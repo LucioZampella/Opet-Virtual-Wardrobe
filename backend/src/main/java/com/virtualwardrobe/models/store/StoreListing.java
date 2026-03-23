@@ -3,6 +3,7 @@ package com.virtualwardrobe.models.store;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.Date;
 
 import java.util.Date;
 
@@ -16,5 +17,5 @@ public class StoreListing {
     private int price;
     private String bio;
     private String status;
-    private Dated date_listed;
+    private Date date_listed;
 }

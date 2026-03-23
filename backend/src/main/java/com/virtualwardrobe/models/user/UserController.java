@@ -1,5 +1,6 @@
 package com.virtualwardrobe.models.user;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,23 +15,30 @@ public class UserController {
     private UserService service;
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
+    public User createUser(@RequestBody @Valid User user) {
         return service.crear(user);
     }
+
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id,@RequestBody User user) {
+    public User updateUser(@PathVariable int id,@RequestBody User user) {
         return service.modificar(id,user);
     }
+
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
+    public void deleteUser(@PathVariable int id) {
         service.eliminar(id);
     }
-    @GetMapping
-    public User findUserById(@PathVariable Long id) {
-        return service.buscarPorId(id);
-    }
+
+    @GetMapping("/{id}")
+    public User findUserById(@PathVariable int id) { return service.buscarPorId(id); }
+
     public List<User> getAllUsers() {
         return service.listarTodos();
+    }
+
+    @PostMapping("/login")
+    public User login(@RequestBody LoginRequest req) {
+        return service.login(req.getEmail(), req.getPassword());
     }
 
 }

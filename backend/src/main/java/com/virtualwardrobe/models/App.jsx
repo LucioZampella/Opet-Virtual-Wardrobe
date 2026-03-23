@@ -2,8 +2,8 @@
 // El que me da las rutas para saber a donde tengo que ir en cada paso
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login      from "./pages/Login";
-import MyProfile  from "./pages/MyProfile";
-import UserList   from "./pages/UserList";
+import MyProfile  from "./pages/myProfile";
+import UserList   from "./pages/userList";
 import Navbar     from "./components/Navbar";
 
 function App() {

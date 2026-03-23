@@ -8,8 +8,33 @@ Content-Type: application/json
   "password": "1234"
 }
 
-### Listar todos
-GET http://localhost:8080/User
+### Email duplicado (debería dar error)
+POST http://localhost:8080/User
+Content-Type: application/json
+
+{
+  "username": "juanito2",
+  "email": "juan@mail.com",
+  "password": "1234"
+}
+
+### Login correcto
+POST http://localhost:8080/User/login
+Content-Type: application/json
+
+{
+  "email": "juan@mail.com",
+  "password": "1234"
+}
+
+### Login con password incorrecta (deberia dar error)
+POST http://localhost:8080/User/login
+Content-Type: application/json
+
+{
+  "email": "juan@mail.com",
+  "password": "4321"
+}
 
 ### Modificar
 PUT http://localhost:8080/User/1
@@ -18,6 +43,12 @@ Content-Type: application/json
 {
   "username": "juanito_editado"
 }
+
+### Listar todos
+GET http://localhost:8080/User
+
+### Traer por id
+GET http://localhost:8080/User/1
 
 ### Eliminar
 DELETE http://localhost:8080/User/1
