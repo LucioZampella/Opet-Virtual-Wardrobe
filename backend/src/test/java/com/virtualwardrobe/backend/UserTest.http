@@ -1,0 +1,23 @@
+### Crear usuario
+POST http://localhost:8080/User
+Content-Type: application/json
+
+{
+  "username": "juanito",
+  "email": "juan@mail.com",
+  "password": "1234"
+}
+
+### Listar todos
+GET http://localhost:8080/User
+
+### Modificar
+PUT http://localhost:8080/User/1
+Content-Type: application/json
+
+{
+  "username": "juanito_editado"
+}
+
+### Eliminar
+DELETE http://localhost:8080/User/1

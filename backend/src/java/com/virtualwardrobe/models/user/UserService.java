@@ -3,10 +3,12 @@ package com.virtualwardrobe.models.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 
 public class UserService {
-
+//Es el encargado de la logica es decir aca verificare las conidicones que quiere que se cumplan
     @Autowired
     private UserRepositorie repo;
 
@@ -15,7 +17,7 @@ public class UserService {
     }
 
     public User modificar(Long id, User user) {
-        User u = repo.findById(id).orElseThrow(() --> new RuntimeException("erorr 400: usuario no encontrado"));
+        User u = repo.findById(id).orElseThrow(() -> new RuntimeException("erorr 400: usuario no encontrado"));
         u.setUsername(user.getUsername());
         u.setEmail(user.getEmail());
         u.setPassword(user.getPassword());
@@ -31,6 +33,10 @@ public class UserService {
     }
 
     public User buscarPorId(Long id) {
-        return repo.findById(id).orElseThrow((--> new RuntimeException("error 400: usuario no existente"));
+        return repo.findById(id).orElseThrow(()-> new RuntimeException("error 400: usuario no existente"));
     }
+    public List<User> listarTodos() {
+        return repo.findAll();
+    }
+
 }

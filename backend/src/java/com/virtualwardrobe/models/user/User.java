@@ -19,12 +19,14 @@ import org.springframework.data.annotation.Id;
 
 @Entity
 
+//Representa la tabla en la db
 @Table(name="User")
 public class User {
-    @Id
+    @jakarta.persistence.Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    @column
+    @Column
+
     private long id;
 
 
@@ -50,4 +52,6 @@ public class User {
 
 
     private String ubication;
+
+
 }

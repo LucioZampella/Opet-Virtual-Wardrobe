@@ -7,6 +7,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/User")
+//Recibe y responde las peticiones de http
 public class UserController {
 
     @Autowired
@@ -16,16 +17,20 @@ public class UserController {
     public User createUser(@RequestBody User user) {
         return service.crear(user);
     }
-    @PutMapping
+    @PutMapping("/{id}")
     public User updateUser(@PathVariable Long id,@RequestBody User user) {
         return service.modificar(id,user);
     }
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
         service.eliminar(id);
     }
     @GetMapping
-    public List<User> getAllUsers() {
-        service.
+    public User findUserById(@PathVariable Long id) {
+        return service.buscarPorId(id);
     }
+    public List<User> getAllUsers() {
+        return service.listarTodos();
+    }
+
 }
