@@ -38,6 +38,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
+    @CrossOrigin(origins = "http://localhost:5173")
     public User login(@RequestBody LoginRequest req) {
         return service.login(req.getEmail(), req.getPassword());
     }
