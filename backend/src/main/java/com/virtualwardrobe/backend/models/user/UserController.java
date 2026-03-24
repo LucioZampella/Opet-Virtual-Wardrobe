@@ -1,4 +1,4 @@
-package com.virtualwardrobe.models.user;
+package com.virtualwardrobe.backend.models.user;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/User")
+@RequestMapping("/usuarios")
 //Recibe y responde las peticiones de http
 public class UserController {
 
@@ -32,6 +32,7 @@ public class UserController {
     @GetMapping("/{id}")
     public User findUserById(@PathVariable int id) { return service.buscarPorId(id); }
 
+    @GetMapping("/list")
     public List<User> getAllUsers() {
         return service.listarTodos();
     }

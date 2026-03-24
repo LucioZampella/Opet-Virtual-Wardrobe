@@ -1,25 +1,29 @@
 ### Crear usuario
-POST http://localhost:8080/User
+POST http://localhost:8080/usuarios
 Content-Type: application/json
 
 {
   "username": "juanito",
   "email": "juan@mail.com",
-  "password": "1234"
+  "password": "1234",
+  "name": "Juan",
+  "lastName": "El Capo"
 }
 
 ### Email duplicado (debería dar error)
-POST http://localhost:8080/User
+POST http://localhost:8080/usuarios
 Content-Type: application/json
 
 {
   "username": "juanito2",
   "email": "juan@mail.com",
-  "password": "1234"
+  "password": "1234",
+  "name": "Juan",
+  "lastName": "El Capo"
 }
 
 ### Login correcto
-POST http://localhost:8080/User/login
+POST http://localhost:8080/usuarios/login
 Content-Type: application/json
 
 {
@@ -28,7 +32,7 @@ Content-Type: application/json
 }
 
 ### Login con password incorrecta (deberia dar error)
-POST http://localhost:8080/User/login
+POST http://localhost:8080/usuarios/login
 Content-Type: application/json
 
 {
@@ -37,7 +41,7 @@ Content-Type: application/json
 }
 
 ### Modificar
-PUT http://localhost:8080/User/1
+PUT http://localhost:8080/usuarios/1
 Content-Type: application/json
 
 {
@@ -45,10 +49,10 @@ Content-Type: application/json
 }
 
 ### Listar todos
-GET http://localhost:8080/User
+GET http://localhost:8080/usuarios/list
 
 ### Traer por id
-GET http://localhost:8080/User/1
+GET http://localhost:8080/usuarios/1
 
 ### Eliminar
-DELETE http://localhost:8080/User/1
+DELETE http://localhost:8080/usuarios/1

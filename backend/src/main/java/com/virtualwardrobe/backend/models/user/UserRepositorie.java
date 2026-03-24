@@ -1,7 +1,6 @@
-package com.virtualwardrobe.models.user;
+package com.virtualwardrobe.backend.models.user;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.data.repository.ListCrudRepository;
 
 import java.util.Optional;
 
@@ -11,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepositorie extends JpaRepository<User, Integer> {
 
-    // Save() --> guarda un ususario o actualiza
+    // Save() --> guarda un usuario o actualiza
     //findById(id) --> busca por id
     //findAll --> Trae todo los usuarios
     //deleteById(id) --> elimina el usuario con el id

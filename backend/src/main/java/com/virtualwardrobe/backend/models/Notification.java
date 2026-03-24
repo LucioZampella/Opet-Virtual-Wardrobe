@@ -1,4 +1,4 @@
-package com.virtualwardrobe.models;
+package com.virtualwardrobe.backend.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

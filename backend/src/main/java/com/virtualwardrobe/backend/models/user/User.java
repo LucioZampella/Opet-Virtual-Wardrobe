@@ -1,4 +1,4 @@
-package com.virtualwardrobe.models.user;
+package com.virtualwardrobe.backend.models.user;
 
 
 import jakarta.persistence.*;
@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 
 //Representa la tabla en la db
 
-@Table(name="User")
+@Table(name = "usuarios")
 public class User {
     @jakarta.persistence.Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,7 +40,7 @@ public class User {
     private String password;
 
     @NotBlank(message = "El nombre no puede estar vacío")
-    private String Name;
+    private String name;
 
     @NotBlank(message = "El apellido no puede estar vacío")
     private String lastName;

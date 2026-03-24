@@ -1,4 +1,4 @@
-package com.virtualwardrobe.models.user;
+package com.virtualwardrobe.backend.models.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,7 +57,7 @@ public class UserService {
 
         User u = repo.findByEmail(email).orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
 
-        if (password != u.getPassword()) {
+        if (!password.equals(u.getPassword())) {
             throw new RuntimeException("Error 401: credenciales inválidas");
         }
         return u;
