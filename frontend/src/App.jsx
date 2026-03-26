@@ -1,10 +1,11 @@
 // App.jsx
 // El que me da las rutas para saber a donde tengo que ir en cada paso
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login      from "./pages/Login.jsx";
-import MyProfile  from "./pages/myProfile.jsx";
+import Login      from "./pages/userCRUD/Login.jsx";
+import MyProfile  from "./pages/userCRUD/myProfile.jsx";
 import UserList   from "./pages/userList.jsx";
 import Navbar     from "./components/Navbar.jsx";
+import SignUp     from "./pages/userCRUD/SignUp.jsx";
 
 function App() {
     const userId = localStorage.getItem("userId");
@@ -13,7 +14,8 @@ function App() {
         <BrowserRouter>
             {userId && <Navbar />}
             <Routes>
-                <Route path="/login"   element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/login" element={userId ? <Login /> : <Navigate to="/signup" />} />
                 <Route path="/profile" element={userId ? <MyProfile />  : <Navigate to="/login" />} />
                 <Route path="/usuarios"   element={userId ? <UserList />   : <Navigate to="/login" />} />
                 <Route path="*"        element={<Navigate to={userId ? "/profile" : "/login"} />} />

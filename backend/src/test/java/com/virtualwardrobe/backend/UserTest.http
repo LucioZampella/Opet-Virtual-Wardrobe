@@ -1,5 +1,5 @@
 ### Crear usuario
-POST http://localhost:8080/usuarios
+POST http://localhost:8080/usuarios/signup
 Content-Type: application/json
 
 {
@@ -11,7 +11,7 @@ Content-Type: application/json
 }
 
 ### Email duplicado (debería dar error)
-POST http://localhost:8080/usuarios
+POST http://localhost:8080/usuarios/signup
 Content-Type: application/json
 
 {

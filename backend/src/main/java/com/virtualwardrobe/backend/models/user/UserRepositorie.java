@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface UserRepositorie extends JpaRepository<User, Integer> {
 
     // Save() --> guarda un usuario o actualiza
-    //findById(id) --> busca por id
+    Optional<User> findById(int id);
     //findAll --> Trae todo los usuarios
     //deleteById(id) --> elimina el usuario con el id
     //existsById(id) --> verifica si existe

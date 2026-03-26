@@ -1,15 +1,12 @@
-// aca un nuevo usuario podra crearse un perfil
+// aca un nuevo usuario podra logearse a su cuenta
 
 import {useNavigate} from "react-router-dom"; // --> Herramienta que oculta/muestra clips al instante sin hacer todo de nuevo
 import {useState} from "react"; // --> Recuerda lo que el usuario va tecleando
 
 function Login() {
 
-    const [username, setUsername] = useState('');
     const [email, setEmail] = useState(''); //--> Variable email y funcion setEmail para modificarla
     const [password, setPassword] = useState('');
-    const [name, setName] = useState('');
-    const [surname, setSurname] = useState('');
 
     const navigate = useNavigate()
 
@@ -21,11 +18,8 @@ function Login() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }, //--> Le avisa a Java que se manda un JSON
                 body: JSON.stringify({
-                    username: username,
                     email: email,
                     password: password,
-                    name: name,
-                    surname: surname,
                 })
             });
 
@@ -50,15 +44,6 @@ function Login() {
             <h2>Iniciar Sesión en Opet</h2>
 
             <div>
-                <label>Username: </label>
-                <input
-                    type = "username"
-                    value = {username}
-                    onChange = {(e) => setUsername(e.target.value)}
-                    />
-            </div>
-
-            <div>
                 <label>Email: </label>
                 <input
                     type="email"
@@ -77,25 +62,6 @@ function Login() {
                 />
             </div>
 
-            <div>
-                <label>Name: </label>
-                <input
-                    type = "name"
-                    value = {name}
-                    onChange = {(e) => setName(e.target.value)}
-                />
-            </div>
-
-            <div>
-                <label>Surname: </label>
-                <input
-                    type = "surname"
-                    value = {surname}
-                    onChange = {(e) => setSurname(e.target.value)}
-                />
-            </div>
-
-            <button type="submit">Entrar</button>
         </form>
     );
 }
