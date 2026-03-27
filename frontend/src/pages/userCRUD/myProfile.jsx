@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {useNavigate} from "react-router-dom";
 
+
 function MyProfile() {
     const [user, setUser] = useState(null);;
     const [editMode, setEditMode] = useState(false);
@@ -9,14 +10,14 @@ function MyProfile() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch(`http://localhost:8080/usuarios/${userId}`)
+        fetch(`http://localhost:8080/usuarios/profile/${userId}`)
             .then(response => response.json()) //--> Agarra la respuesta de java en crudo y la convierte en json
             .then(data => {
                 setUser(data); //--> Ya con los datos en limpio, los guardo y
                 // "saco una fotocopia" para que al editar aparezcan los datos actuales
                 setFormData(data);
             })
-            .catch(error => console.error("Hubo un error al carga el perfil", error))
+            .catch(error => console.error("Hubo un error al cargar el perfil", error))
     }, [userId]);
 
     const logOut = (e) => {
@@ -32,7 +33,7 @@ function MyProfile() {
 
     const updateProfile = async (e) => {
         try {
-            const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
+            const response = await fetch(`http://localhost:8080/usuarios/update/${userId}`, {
                 method: "PUT",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(formData)
@@ -58,6 +59,8 @@ function MyProfile() {
             .then(data => setUser(data))
             .catch(err => console.error("Error al cargar perfil:", err));
     }, []);
+
+
 
 
 

@@ -1,5 +1,6 @@
 import {useNavigate} from "react-router-dom";
 import {useState} from "react";
+import LocationPicker from "../../components/LocationPicker.jsx";
 
 function SignUp() {
     const [username, setUsername] = useState('');
@@ -7,6 +8,8 @@ function SignUp() {
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
+    const [latitude, setLatitude] = useState(null);
+    const [longitude, setLongitude] = useState(null);
 
     const navigate = useNavigate();
 
@@ -22,7 +25,8 @@ function SignUp() {
                     password: password,
                     name: name,
                     lastName: last_name,
-
+                    latitude: latitude,
+                    longitude: longitude
                 })
             });
 
@@ -32,12 +36,27 @@ function SignUp() {
             } else if (response.status === 409) {
                 const errorMessage = await response.text();
                 alert(errorMessage)
+            } else if (response.status === 400) {
+                const errorMessage = await response.text();
+                alert(errorMessage);
             } else {
                 alert("Sucedio un error inesperado");
             }
         } catch (error) {
             console.error("Error al conectar con el servidor:", error);
             alert("Parece que el servidor de Java está apagado.");
+        }
+    };
+
+    const detectUbi = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                setLatitude(pos.coords.latitude);
+                setLongitude(pos.coords.longitude); //--> Si es posible geolocalizar al usuario,
+                // obtengo su ubicacion actual y asigno las coords a la db
+            });
+        } else {
+            alert("Tu navegador no soporta geolocalización");
         }
     };
 
@@ -48,9 +67,9 @@ function SignUp() {
             <div>
                 <label>Username: </label>
                 <input
-                    type = "username"
-                    value = {username}
-                    onChange = {(e) => setUsername(e.target.value)}
+                    type="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                 />
             </div>
 
@@ -74,26 +93,45 @@ function SignUp() {
             </div>
 
             <div>
-                <label>Name: </label>
+                <label>Nombre: </label>
                 <input
-                    type = "name"
-                    value = {name}
-                    onChange = {(e) => setName(e.target.value)}
+                    type="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                 />
             </div>
 
             <div>
-                <label>Surname: </label>
+                <label>Apellido: </label>
                 <input
-                    type = "lastName"
-                    value = {last_name}
-                    onChange = {(e) => setLastName(e.target.value)}
+                    type="lastName"
+                    value={last_name}
+                    onChange={(e) => setLastName(e.target.value)}
                 />
             </div>
 
-            <button type="submit">Entrar</button>
+            <div style={{marginTop: "20px"}}>
+                <label>Ubicación:</label>
+                <p style={{fontSize: '12px', color: "gray"}}> Hacé clic en el mapa</p>
+
+                <button type="button" onClick={detectUbi} style={{marginBottom: "10px"}}>
+                    Ingresar ubicación actual
+                </button>
+
+                <LocationPicker
+                    latitude={latitude}
+                    longitude={longitude}
+                    setLatitude={setLatitude}
+                    setLongitude={setLongitude}
+                />
+            </div>
+
+            <button type="submit" style={{marginTop: "20px"}}>
+                Registrarse
+            </button>
         </form>
     );
 }
+
 
 export default SignUp;

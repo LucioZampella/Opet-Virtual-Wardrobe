@@ -43,11 +43,10 @@ public class User {
     private String name;
 
     @NotBlank(message = "El apellido no puede estar vacío")
+    @Column(name = "last_name")
     private String lastName;
 
-
     private String avatar_url;
-
 
     private String bio;
 

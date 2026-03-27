@@ -19,7 +19,7 @@ public class UserController {
         return service.crear(user);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public User updateUser(@PathVariable int id,@RequestBody User user) {
         return service.modificar(id,user);
     }
@@ -29,7 +29,7 @@ public class UserController {
         service.eliminar(id);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/profile/{id}")
     public User findUserById(@PathVariable int id) { return service.buscarPorId(id); }
 
     @GetMapping("/list")

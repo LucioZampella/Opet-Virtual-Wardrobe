@@ -25,9 +25,8 @@ function Login(setUserId) {
 
             if (response.ok) {
                 const userLogged = await response.json();
-                console.log("Login Exitoso", userLogged);
-                localStorage.setItem("userId", userLogged.id); //--> Guarda el id en el navegador
-                window.location.href = "/profile";
+                localStorage.setItem("userId", userLogged.id);
+                navigate("/profile");
             } else {
                 alert("Email o contraseña incorrectos.");
             }
@@ -59,9 +58,7 @@ function Login(setUserId) {
                     onChange={(e) => setPassword(e.target.value)}
                 />
             </div>
-
             {/* --> agregue el boton para iniciar sesion y en el caso de no tener cuenta registrarte */}
-
             <button type="submit">Iniciar Sesión</button>
             <p>¿No tenés cuenta? <a href="/signup">Registrate</a></p>
 

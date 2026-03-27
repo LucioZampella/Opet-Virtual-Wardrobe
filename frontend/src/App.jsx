@@ -11,14 +11,23 @@ import SignUp     from "./pages/userCRUD/SignUp.jsx";
 function App() {
     const [userId, setUserId] = useState(localStorage.getItem("userId"));
 
+    const updateUserId = () => {
+        setUserId(localStorage.getItem("userId"));
+    };
+
     return (
         <BrowserRouter>
-            {userId && <Navbar />}
             <Routes>
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/login" element={userId ? <Navigate to="/profile" /> : <Login/>} />
-                <Route path="/profile" element={userId ? <MyProfile />  : <Navigate to="/login" />} />
-                <Route path="/usuarios"   element={userId ? <UserList />   : <Navigate to="/login" />} />
+
+                <Route path="/login" element={
+                    userId ? <Navigate to="/profile" /> : <Login onLoginSuccess={updateUserId} />
+                } />
+
+                <Route path="/profile" element={
+                    userId ? <MyProfile /> : <Navigate to="/login" />
+                } />
+
                 <Route path="*" element={<Navigate to={userId ? "/profile" : "/login"} />} />
             </Routes>
         </BrowserRouter>
