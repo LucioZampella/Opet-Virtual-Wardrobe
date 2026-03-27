@@ -3,7 +3,7 @@
 import {useNavigate} from "react-router-dom"; // --> Herramienta que oculta/muestra clips al instante sin hacer todo de nuevo
 import {useState} from "react"; // --> Recuerda lo que el usuario va tecleando
 
-function Login() {
+function Login(setUserId) {
 
     const [email, setEmail] = useState(''); //--> Variable email y funcion setEmail para modificarla
     const [password, setPassword] = useState('');
@@ -26,10 +26,8 @@ function Login() {
             if (response.ok) {
                 const userLogged = await response.json();
                 console.log("Login Exitoso", userLogged);
-
                 localStorage.setItem("userId", userLogged.id); //--> Guarda el id en el navegador
-
-                navigate('/profile');
+                window.location.href = "/profile";
             } else {
                 alert("Email o contraseña incorrectos.");
             }

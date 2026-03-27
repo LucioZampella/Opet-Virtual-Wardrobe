@@ -14,7 +14,6 @@ public class UserController {
 
     @Autowired
     private UserService service;
-
     @PostMapping("/signup")
     public User createUser(@RequestBody @Valid User user) {
         return service.crear(user);

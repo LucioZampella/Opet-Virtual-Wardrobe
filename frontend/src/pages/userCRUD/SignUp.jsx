@@ -22,6 +22,7 @@ function SignUp() {
                     password: password,
                     name: name,
                     lastName: last_name,
+
                 })
             });
 
