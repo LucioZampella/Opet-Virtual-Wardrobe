@@ -3,7 +3,7 @@
 import {useNavigate} from "react-router-dom"; // --> Herramienta que oculta/muestra clips al instante sin hacer todo de nuevo
 import {useState} from "react"; // --> Recuerda lo que el usuario va tecleando
 
-function Login(setUserId) {
+function Login({onLoginSuccess}) {
 
     const [email, setEmail] = useState(''); //--> Variable email y funcion setEmail para modificarla
     const [password, setPassword] = useState('');
@@ -12,6 +12,8 @@ function Login(setUserId) {
 
     const manageEntry = async (event) => {
         event.preventDefault(); //--> Esto para evitar que pegue pantallazo en blanco
+        console.log("Email:", email);       // ← agregá esto
+        console.log("Password:", password);
 
         try {
             const response = await fetch("http://localhost:8080/usuarios/login", {
@@ -26,6 +28,7 @@ function Login(setUserId) {
             if (response.ok) {
                 const userLogged = await response.json();
                 localStorage.setItem("userId", userLogged.id);
+                onLoginSuccess();
                 navigate("/profile");
             } else {
                 alert("Email o contraseña incorrectos.");

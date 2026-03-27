@@ -44,13 +44,14 @@ public class UserService {
 
         validarTodasLasLongitudes(u);
 
-        if (repo.findByUsername(u.getUsername()).isPresent()) {
-            throw new RuntimeException("Error 409: Username ya existente"); // -> Manejan el caso en que ya existe
-            // ese username/email al querer registrarse
-        }
-        if (repo.findByEmail(u.getEmail()).isPresent()) {
-            throw new RuntimeException("Error 409: Email ya existente");
-        }
+        repo.findByUsername(user.getUsername())
+                .filter(existing -> existing.getId() != id)
+                .ifPresent(existing -> { throw new RuntimeException("Error 409: Username ya existente"); });
+
+        repo.findByEmail(user.getEmail())
+                .filter(existing -> existing.getId() != id)
+                .ifPresent(existing -> { throw new RuntimeException("Error 409: Email ya existente"); });
+
 
         // si no hay ningun problema con los datos de mi usuario simplemente cambio los
         u.setUsername(user.getUsername());

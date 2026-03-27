@@ -32,8 +32,9 @@ function MyProfile() {
     // variable a cambiar tenga el valor ingresado al modificar
 
     const updateProfile = async (e) => {
+        e.preventDefault(); // evita que se recargue la pagina antes de al fetch
         try {
-            const response = await fetch(`http://localhost:8080/usuarios/update/${userId}`, {
+            const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
                 method: "PUT",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(formData)

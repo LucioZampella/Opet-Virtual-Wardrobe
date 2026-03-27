@@ -8,7 +8,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
-@CrossOrigin(origins = "http://localhost:5173")
 //Recibe y responde las peticiones de http
 public class UserController {
 
@@ -19,7 +18,7 @@ public class UserController {
         return service.crear(user);
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     public User updateUser(@PathVariable int id,@RequestBody User user) {
         return service.modificar(id,user);
     }
