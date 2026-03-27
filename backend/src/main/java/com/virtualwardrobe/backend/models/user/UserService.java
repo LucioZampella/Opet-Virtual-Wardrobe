@@ -35,7 +35,8 @@ public class UserService {
         u.setLastName(user.getLastName());
         u.setAvatar_url(user.getAvatar_url());
         u.setBio(user.getBio());
-        u.setUbication(user.getUbication());
+        u.setLatitude(user.getLatitude());
+        u.setLongitude(user.getLongitude());
 
         return repo.save(u);
     }

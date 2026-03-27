@@ -51,8 +51,9 @@ public class User {
 
     private String bio;
 
+    private Double latitude;
 
-    private String ubication;
+    private Double longitude;
 
 
 }
