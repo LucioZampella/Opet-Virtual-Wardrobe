@@ -42,7 +42,7 @@ public class UserService {
         u.setUsername(u.getUsername().trim());
         u.setEmail(u.getEmail().trim().toLowerCase());
 
-        validarTodasLasLongitudes(u);
+        validarTodasLasLongitudes(user);
 
         repo.findByUsername(user.getUsername())
                 .filter(existing -> existing.getId() != id)
@@ -100,7 +100,7 @@ public class UserService {
         validarLongitud(u.getUsername(),"Username",0,255);
         validarLongitud(u.getEmail(),"Email",0,255);
         validarLongitud(u.getPassword(),"Password",0,255);
-        validarLongitud(u.getBio(),"Bio",0,500);
+        validarLongitud(u.getBio(),"Bio",0,255);
         validarLongitud(u.getName(),"Name",0,255);
         validarLongitud(u.getLastName(),"Last Name",0,255);
     }

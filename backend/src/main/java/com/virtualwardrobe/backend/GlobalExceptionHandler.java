@@ -27,5 +27,14 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensaje);
     }
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationException(org.springframework.web.bind.MethodArgumentNotValidException e) {
+        String mensaje = e.getBindingResult().getFieldErrors()
+                .stream()
+                .map(error -> error.getDefaultMessage())
+                .findFirst()
+                .orElse("Error de validación");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensaje);
+    }
 }
 

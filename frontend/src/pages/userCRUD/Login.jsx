@@ -40,32 +40,58 @@ function Login({onLoginSuccess}) {
     };
 
     return (
-        <form onSubmit={manageEntry}>
-            <h2>Iniciar Sesión en Opet</h2>
+        // h-screen → ocupa toda la pantalla
+        // lo mando todo al medio
+        // bg - [color] no me acuerdco cuadl habiamos puesto pero no es el que esta
+        <div className="h-screen flex items-center justify-center bg-[#f5f0e8]">
 
-            <div>
-                <label>Email: </label>
-                <input
-                    type="email"
-                    value={email} //--> El input muestra lo que hay en la memoria
-                    onChange={(e) => setEmail(e.target.value)} //--> Cada vez que
-                    // teclea, actualiza la memoria
-                />
+            {/* w-96 → ancho fijo, p-8 → padding interno, rounded-xl → bordes redondeados */}
+            <div className="w-96 p-8 flex flex-col items-center gap-4">
+
+                <div className="text-4xl font-bold text-[#c0392b] mb-4">
+                    <img src="/opet_grey_and_cream.png" className="w-32 mb-4"/>
+                    {/*NO PUEDO PONER EL LOGO NO SE QUE CHOTA HAGO MAL*/}
+                </div>
+
+                <form onSubmit={manageEntry} className="w-full flex flex-col gap-4">
+
+                    {/* border rounded-lg → bordes redondeados  */}
+                    <input
+                        type="email"
+                        placeholder="Ingresar email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg p-3 outline-none"
+                    />
+
+                    <input
+                        type="password"
+                        placeholder="Contraseña"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg p-3 outline-none"
+                    />
+
+                    {/* bg-[#e07070] → color rojo del botón, hover:bg-[#c0392b] → más oscuro al pasar el mouse */}
+                    <button
+                        type="submit"
+                        className="w-full bg-[#e07070] hover:bg-[#c0392b] text-white font-semibold py-3 rounded-full transition"
+                    >
+                        Iniciar sesión
+                    </button>
+
+                    {/* Botón de registrarse */}
+                    <button
+                        type="button"
+                        onClick={() => navigate("/signup")}
+                        className="w-full bg-[#e07070] hover:bg-[#c0392b] text-white font-semibold py-3 rounded-full transition"
+                    >
+                        Registrarse
+                    </button>
+
+                </form>
             </div>
-
-            <div>
-                <label>Contraseña: </label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-            </div>
-            {/* --> agregue el boton para iniciar sesion y en el caso de no tener cuenta registrarte */}
-            <button type="submit">Iniciar Sesión</button>
-            <p>¿No tenés cuenta? <a href="/signup">Registrate</a></p>
-
-        </form>
+        </div>
     );
 }
 
