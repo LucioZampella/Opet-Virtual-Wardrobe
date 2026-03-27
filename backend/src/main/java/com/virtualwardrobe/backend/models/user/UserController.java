@@ -8,13 +8,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
+@CrossOrigin(origins = "http://localhost:5173")
 //Recibe y responde las peticiones de http
 public class UserController {
 
     @Autowired
     private UserService service;
 
-    @PutMapping("/signup")
+    @PostMapping("/signup")
     public User createUser(@RequestBody @Valid User user) {
         return service.crear(user);
     }
@@ -38,7 +39,6 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    @CrossOrigin(origins = "http://localhost:5173")
     public User login(@RequestBody LoginRequest req) {
         return service.login(req.getEmail(), req.getPassword());
     }

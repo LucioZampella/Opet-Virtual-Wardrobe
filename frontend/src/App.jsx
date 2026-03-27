@@ -15,10 +15,10 @@ function App() {
             {userId && <Navbar />}
             <Routes>
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/login" element={userId ? <Login /> : <Navigate to="/signup" />} />
+                <Route path="/login" element={userId ? <Navigate to="/profile" /> : <Login />} />
                 <Route path="/profile" element={userId ? <MyProfile />  : <Navigate to="/login" />} />
                 <Route path="/usuarios"   element={userId ? <UserList />   : <Navigate to="/login" />} />
-                <Route path="*"        element={<Navigate to={userId ? "/profile" : "/login"} />} />
+                <Route path="*" element={<Navigate to={userId ? "/profile" : "/login"} />} />
             </Routes>
         </BrowserRouter>
     );

@@ -29,7 +29,7 @@ function Login() {
 
                 localStorage.setItem("userId", userLogged.id); //--> Guarda el id en el navegador
 
-                navigate('/perfil');
+                navigate('/profile');
             } else {
                 alert("Email o contraseña incorrectos.");
             }
@@ -61,6 +61,11 @@ function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                 />
             </div>
+
+            {/* --> agregue el boton para iniciar sesion y en el caso de no tener cuenta registrarte */}
+
+            <button type="submit">Iniciar Sesión</button>
+            <p>¿No tenés cuenta? <a href="/signup">Registrate</a></p>
 
         </form>
     );
