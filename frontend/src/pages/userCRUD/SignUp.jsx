@@ -32,7 +32,10 @@ function SignUp() {
             } else if (response.status === 409) {
                 const errorMessage = await response.text();
                 alert(errorMessage)
-            } else {
+            }else if (response.status === 400) {
+                const errorMessage = await response.text();
+                alert(errorMessage);}
+            else {
                 alert("Sucedio un error inesperado");
             }
         } catch (error) {

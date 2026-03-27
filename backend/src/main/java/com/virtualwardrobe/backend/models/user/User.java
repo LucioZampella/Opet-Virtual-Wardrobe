@@ -1,7 +1,9 @@
 package com.virtualwardrobe.backend.models.user;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,9 +36,12 @@ public class User {
     private String username;
 
     @NotBlank(message = "Debe ingresar un correo electrónico")
+    @Email(message = "El email no tiene un formato válido")
+    // automaticamnete con el valid me valida que el email este correcto con la sintaxis
     private String email;
 
     @NotBlank(message = "Debe ingresar una contraseña")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // -> la contraseña nunca escapa del json
     private String password;
 
     @NotBlank(message = "El nombre no puede estar vacío")
@@ -45,14 +50,10 @@ public class User {
     @NotBlank(message = "El apellido no puede estar vacío")
     private String lastName;
 
-
     private String avatar_url;
-
 
     private String bio;
 
-
     private String ubication;
-
 
 }
