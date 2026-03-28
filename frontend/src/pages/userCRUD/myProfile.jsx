@@ -26,6 +26,28 @@ function MyProfile() {
         window.location.href = "/login";
     };
 
+    const eliminateProfile = async (e) => {
+        try {
+            const response = await fetch ( `http://localhost:8080/usuarios/${userId}`,
+            {
+                method: 'DELETE'
+            });
+            if (response.ok){
+                alert("Usuario eliminado")
+                localStorage.removeItem("userId");
+                window.location.href = "/login";
+            }else {
+                const errorMsg = await response.text();
+                alert("Algo fallo:" + errorMsg);
+            }
+        }
+        catch (error) {
+            alert("Error de conexión con el servidor");
+        }
+
+    }
+
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value }); //
     }; //--> con "..." trae todo lo anterior no modificado, y luego define que la
@@ -102,6 +124,9 @@ function MyProfile() {
             <button type = "button" onClick={logOut} style={{color : 'red'}}>
                 Cerrar Sesion
             </button>
+                <button type="button" onClick={eliminateProfile} style={{color: 'red'}}>
+                    Eliminar cuenta
+                </button> {/* boton para eliminar perfil*/}
             </div>
         </div>
 );
