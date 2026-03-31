@@ -1,4 +1,4 @@
-package com.virtualwardrobe.backend;
+package com.virtualwardrobe.backend.security;
 
 //
 // es el encargado de dar las excepciones globales y dar el  mensaje de los errores contemplados en el backend

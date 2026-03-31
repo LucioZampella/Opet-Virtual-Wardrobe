@@ -1,15 +1,16 @@
 package com.virtualwardrobe.backend.models.clothe;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ClothesRepositorie extends JpaRepository<Clothes, Integer> {
 
-    Optional<Clothes> findByClotheId(String clotheId);
-    Optional<Clothes> findByClotheName(String clotheName);
-    Optional<Clothes> findByClotheSize(int clothesize);
-    Optional<Clothes> findByClotheType(String clothetype);
-    Optional<Clothes> findByClotheMaterial(String material);
-    Optional<Clothes> findByClotheFit(String fit);
+    @Query(value="SELECT * FROM Clothes WHERE clothes_id = :id", nativeQuery = true)
+    List<Clothes> listarPrendasDeUsuario(@Param("id") int id);
+
+
 }

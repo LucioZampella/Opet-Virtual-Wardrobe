@@ -1,7 +1,13 @@
 package com.virtualwardrobe.backend.models.user;
 
+import com.virtualwardrobe.backend.models.user.userDTO.LoginRequestDTO;
+import com.virtualwardrobe.backend.models.user.userDTO.LoginResponse;
+import com.virtualwardrobe.backend.models.user.userDTO.UserDTO;
+import com.virtualwardrobe.backend.models.user.userServices.UserService;
+import com.virtualwardrobe.backend.security.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,16 +17,22 @@ import java.util.List;
 //Recibe y responde las peticiones de http
 public class UserController {
 
+
+
     @Autowired
     private UserService service;
+
     @PostMapping("/signup")
-    public User createUser(@RequestBody @Valid User user) {
-        return service.crear(user);
+    public ResponseEntity<?> createUser(@RequestBody @Valid UserDTO dto) {
+        service.crear(dto);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable int id, @RequestBody @Valid User user) {
-        return service.modificar(id, user);
+    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody @Valid User user) {
+
+        service.modificar(id, user);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
@@ -37,8 +49,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public User login(@RequestBody LoginRequest req) {
-        return service.login(req.getEmail(), req.getPassword());
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequestDTO dto) {
+        return service.login(dto.getEmail(), dto.getPassword());
     }
 
 }

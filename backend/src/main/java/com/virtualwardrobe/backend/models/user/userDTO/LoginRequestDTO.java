@@ -1,4 +1,4 @@
-package com.virtualwardrobe.backend.models.user;
+package com.virtualwardrobe.backend.models.user.userDTO;
 
 
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginRequest {
+public class LoginRequestDTO {
     private String email;
     private String password;
 }

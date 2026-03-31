@@ -25,19 +25,13 @@ public class Clothes
     @NotBlank(message = "Debe ingresar un name")
     private String name;
 
-
     private String url_model;
     private String image_url;
 
-    @NotBlank(message = "Debe ingresar un tipo")
     private int type_id;
-    @NotBlank(message = "Debe ingresar un talle")
     private int size_id;
-    @NotBlank(message = "Debe ingresar un material")
     private int material_id;
-    @NotBlank(message = "Debe ingresar un corte")
     private int fit_id;
-
     private int preference_level;
 
 

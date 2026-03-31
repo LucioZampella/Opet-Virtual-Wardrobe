@@ -1,6 +1,13 @@
-package com.virtualwardrobe.backend.models.user;
+package com.virtualwardrobe.backend.models.user.userServices;
 
+import com.virtualwardrobe.backend.models.user.User;
+import com.virtualwardrobe.backend.models.user.UserRepositorie;
+import com.virtualwardrobe.backend.models.user.userDTO.LoginResponse;
+import com.virtualwardrobe.backend.models.user.userDTO.UserDTO;
+import com.virtualwardrobe.backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,22 +24,34 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User crear(User u) {
-        // username sin espacios y email en miniscula y sin espacios
-        u.setUsername(u.getUsername().trim());
-        u.setEmail(u.getEmail().trim().toLowerCase());
+    @Autowired
+    private JwtUtil jwtUtil;
 
-        validarTodasLasLongitudes(u);
-        if (repo.findByEmail(u.getEmail()).isPresent()) {
+    @Autowired
+    private UserDetailsServiceimp userDetailsService;
+
+    public User crear(UserDTO dto) {
+        // username sin espacios y email en miniscula y sin espacios
+
+        validarTodasLasLongitudes(dto);
+        if (repo.findByEmail(dto.getEmail()).isPresent()) {
             throw new RuntimeException("Error 409: Email ya existente");
         }
 
-        if (repo.findByUsername(u.getUsername()).isPresent()) {
+        if (repo.findByUsername(dto.getUsername()).isPresent()) {
             throw new RuntimeException("Error 409: Username ya existente"); // -> Manejan el caso en que ya existe
             // ese username/email al querer registrarse
         }
-        u.setPassword(passwordEncoder.encode(u.getPassword()));
-        return repo.save(u);
+        User user = new User();
+        user.setUsername(dto.getUsername().trim());
+        user.setEmail(dto.getEmail().trim().toLowerCase());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setName(dto.getName());
+        user.setLastName(dto.getLastName());
+        user.setLatitude(dto.getLatitude());
+        user.setLongitude(dto.getLongitude());
+
+        return repo.save(user);
     }
 
     public User modificar(int id, User user) {
@@ -78,32 +97,51 @@ public class UserService {
     public User buscarPorId(int id) {
         return repo.findById(id).orElseThrow(()-> new RuntimeException("Error 404: usuario no encontrado"));
     }
+
+
     public List<User> listarTodos() {
         return repo.findAll();
     }
 
-    public User login(String email, String password) {
+
+
+    public ResponseEntity<LoginResponse> login(String email, String password) {
 
         String lowEmail = email.trim().toLowerCase();
 
         User u = repo.findByEmail(lowEmail).orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(u.getUsername());
 
-        if (!passwordEncoder.matches(password, u.getPassword())) {
-            throw new RuntimeException("Error 401: credenciales inválidas");
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            LoginResponse e = new LoginResponse(1,"credencial invalida");
+            return  ResponseEntity.status(401).body(e);
         }
-        return u;
+
+
+        String token= jwtUtil.generateToken(userDetails.getUsername());
+        int id= repo.findByEmail(email).get().getId();
+        LoginResponse e = new LoginResponse(id,token);
+        return ResponseEntity.ok().body(e);
     }
 
 
     //funcion privada que me chequea todas las longitudes
+    private void validarTodasLasLongitudes(UserDTO u){
+        validarLongitud(u.getUsername(),"Username",0,255);
+        validarLongitud(u.getEmail(),"Email",0,255);
+        validarLongitud(u.getPassword(),"Password",0,255);
+        validarLongitud(u.getName(),"Name",0,255);
+        validarLongitud(u.getLastName(),"Last Name",0,255);
+    }
     private void validarTodasLasLongitudes(User u){
         validarLongitud(u.getUsername(),"Username",0,255);
         validarLongitud(u.getEmail(),"Email",0,255);
         validarLongitud(u.getPassword(),"Password",0,255);
-        validarLongitud(u.getBio(),"Bio",0,255);
+        validarLongitud(u.getBio(),"Name",0,500);
         validarLongitud(u.getName(),"Name",0,255);
         validarLongitud(u.getLastName(),"Last Name",0,255);
     }
+
     // funciones privada que me valida la longitud de mis campos
     private void validarLongitud(String campo, String nombreCampo, int min, int max) {
 
