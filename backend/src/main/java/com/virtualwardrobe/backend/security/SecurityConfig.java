@@ -38,7 +38,7 @@ public class SecurityConfig {
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register").permitAll() // rutas públicas
+                        .requestMatchers("/usuarios/login", "/usuarios/signup").permitAll()// rutas públicas
                         .anyRequest().authenticated()                        // el resto requiere token
                 )
                 .sessionManagement(sess -> sess

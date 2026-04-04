@@ -5,7 +5,7 @@ import {useState} from "react"; // --> Recuerda lo que el usuario va tecleando
 
 function Login({onLoginSuccess}) {
 
-    const [email, setEmail] = useState('');       //--> Variable email y funcion setEmail para modificarla
+    const [username, setUsername] = useState('');       //--> Variable email y funcion setEmail para modificarla
     const [password, setPassword] = useState(''); //--> Variable password y funcion setPassword para modificarla
 
     const navigate = useNavigate();
@@ -17,16 +17,17 @@ function Login({onLoginSuccess}) {
             const response = await fetch("http://localhost:8080/usuarios/login", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"}, //--> Le avisa a Java que se manda un JSON
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ username, password })
             });
 
             if (response.ok) {
                 const userLogged = await response.json();
                 localStorage.setItem("userId", userLogged.id); //--> Guarda el id del usuario en el navegador
+                localStorage.setItem("token", userLogged.token);
                 onLoginSuccess();
                 navigate("/profile"); //--> Redirige al perfil si el login fue exitoso
             } else {
-                alert("Email o contraseña incorrectos.");
+                alert("username o contraseña incorrectos.");
             }
         } catch (error) {
             console.error("Error al conectar con el servidor:", error);
@@ -64,12 +65,12 @@ function Login({onLoginSuccess}) {
                 <form onSubmit={manageEntry} className="w-full flex flex-col gap-8">
 
                     <div>
-                        <label className={labelClass}>Email</label>
+                        <label className={labelClass}>username</label>
                         <input
-                            type="email"
-                            placeholder="correo@ejemplo.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            type="username"
+                            placeholder="usernameejemplo.com"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             className={inputClass} // --> solo linea inferior, sin caja, mas elegante
                         />
                     </div>

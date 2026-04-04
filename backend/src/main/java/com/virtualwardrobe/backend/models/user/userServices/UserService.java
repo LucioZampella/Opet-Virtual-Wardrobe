@@ -2,11 +2,12 @@ package com.virtualwardrobe.backend.models.user.userServices;
 
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
-import com.virtualwardrobe.backend.models.user.userDTO.LoginResponse;
-import com.virtualwardrobe.backend.models.user.userDTO.UserDTO;
+import com.virtualwardrobe.backend.models.user.response.LoginResponse;
+import com.virtualwardrobe.backend.models.user.response.UserResponseDTO;
+import com.virtualwardrobe.backend.models.user.userDTO.*;
 import com.virtualwardrobe.backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class UserService {
     @Autowired
     private UserDetailsServiceimp userDetailsService;
 
-    public User crear(UserDTO dto) {
+    public void crear(UserDTO dto) {
         // username sin espacios y email en miniscula y sin espacios
 
         validarTodasLasLongitudes(dto);
@@ -50,52 +51,50 @@ public class UserService {
         user.setLastName(dto.getLastName());
         user.setLatitude(dto.getLatitude());
         user.setLongitude(dto.getLongitude());
-
-        return repo.save(user);
+        repo.save(user);
     }
 
-    public User modificar(int id, User user) {
+    public void modificar(int id, UpdateUserDTO user, String usernameFromToken) {
 
         User u = repo.findById(id).orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
         // username sin espacios y email en miniscula y sin espacios
-        u.setUsername(u.getUsername().trim());
-        u.setEmail(u.getEmail().trim().toLowerCase());
 
-        validarTodasLasLongitudes(user);
-
-        repo.findByUsername(user.getUsername())
-                .filter(existing -> existing.getId() != id)
-                .ifPresent(existing -> { throw new RuntimeException("Error 409: Username ya existente"); });
-
-        repo.findByEmail(user.getEmail())
-                .filter(existing -> existing.getId() != id)
-                .ifPresent(existing -> { throw new RuntimeException("Error 409: Email ya existente"); });
-
-
-        // si no hay ningun problema con los datos de mi usuario simplemente cambio los
-        u.setUsername(user.getUsername());
-        u.setEmail(user.getEmail());
-        if (user.getPassword() != null && !user.getPassword().startsWith("$2a$")) {
-            u.setPassword(user.getPassword());
+        if (!u.getUsername().equals(usernameFromToken)) {
+            throw new RuntimeException("Error 401: No tenés permiso para editar este usuario");
         }
+
+        validarTodasLasLongitudesUpdate(user);
+
         u.setName(user.getName());
         u.setLastName(user.getLastName());
-        u.setAvatar_url(user.getAvatar_url());
         u.setBio(user.getBio());
-        u.setLatitude(user.getLatitude());
-        u.setLongitude(user.getLongitude());
 
-        return repo.save(u);
+        repo.save(u);
     }
-    public void eliminar(int id) {
-        if (repo.findById(id).isEmpty()) {
-            throw new RuntimeException("Error 404: usuario no encontrado");
+
+    public void eliminar(int id,String usernameFromToken) {
+        User u = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
+
+        if (!u.getUsername().equals(usernameFromToken)) {
+            throw new RuntimeException("Error 401: No tenés permiso para eliminar este usuario");
         }
         repo.deleteById(id);
     }
 
-    public User buscarPorId(int id) {
-        return repo.findById(id).orElseThrow(()-> new RuntimeException("Error 404: usuario no encontrado"));
+    public UserResponseDTO buscarPorId(int id) {
+        User user = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
+
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setLastName(user.getLastName());
+        dto.setUsername(user.getUsername());
+        dto.setBio(user.getBio());
+        dto.setAvatar_url(user.getAvatar_url());
+
+        return dto;
     }
 
 
@@ -105,25 +104,25 @@ public class UserService {
 
 
 
-    public ResponseEntity<LoginResponse> login(String email, String password) {
+    public LoginResponse login(LoginRequestDTO loginDTO) {
 
-        String lowEmail = email.trim().toLowerCase();
+        // Si el username no existe, loadUserByUsername ya lanza UsernameNotFoundException
+        UserDetails userDetails = userDetailsService.loadUserByUsername(loginDTO.getUsername());
 
-        User u = repo.findByEmail(lowEmail).orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
-        UserDetails userDetails = userDetailsService.loadUserByUsername(u.getUsername());
-
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            LoginResponse e = new LoginResponse(1,"credencial invalida");
-            return  ResponseEntity.status(401).body(e);
+        // Si la contraseña no coincide, lanzás vos la excepción
+        if (!passwordEncoder.matches(loginDTO.getPassword(), userDetails.getPassword())) {
+            throw new BadCredentialsException("Contraseña incorrecta");
         }
 
+        String token = jwtUtil.generateToken(loginDTO.getUsername());
+        // no hace falta tirar una expceion pq loadByUsername ya lo tira
 
-        String token= jwtUtil.generateToken(userDetails.getUsername());
-        int id= repo.findByEmail(email).get().getId();
-        LoginResponse e = new LoginResponse(id,token);
-        return ResponseEntity.ok().body(e);
+        User user = repo.findByUsername(loginDTO.getUsername()).orElseThrow();
+
+        return new LoginResponse(user.getId(), token);
     }
 
+    // -----------------------------------Funciones privadas ----------------------------------------//
 
     //funcion privada que me chequea todas las longitudes
     private void validarTodasLasLongitudes(UserDTO u){
@@ -133,11 +132,8 @@ public class UserService {
         validarLongitud(u.getName(),"Name",0,255);
         validarLongitud(u.getLastName(),"Last Name",0,255);
     }
-    private void validarTodasLasLongitudes(User u){
-        validarLongitud(u.getUsername(),"Username",0,255);
-        validarLongitud(u.getEmail(),"Email",0,255);
-        validarLongitud(u.getPassword(),"Password",0,255);
-        validarLongitud(u.getBio(),"Name",0,500);
+    private void validarTodasLasLongitudesUpdate(UpdateUserDTO u){
+        validarLongitud(u.getBio(),"Bio",0,500);
         validarLongitud(u.getName(),"Name",0,255);
         validarLongitud(u.getLastName(),"Last Name",0,255);
     }

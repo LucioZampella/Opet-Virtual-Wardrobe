@@ -7,6 +7,8 @@ package com.virtualwardrobe.backend.security;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -22,8 +24,6 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(mensaje);
         } else if (mensaje.startsWith("Error 400")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensaje);
-        } else if (mensaje.startsWith("Error 401")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mensaje);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensaje);
     }
@@ -35,6 +35,10 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .orElse("Error de validación");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensaje);
+    }
+    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
+    public ResponseEntity<String> handleAuthException(RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error 401: Credenciales inválidas");
     }
 }
 

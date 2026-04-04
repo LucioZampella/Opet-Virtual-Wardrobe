@@ -2,13 +2,14 @@ package com.virtualwardrobe.backend.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.apache.catalina.User;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
+@Component
 public class JwtUtil {
 
-    private final String password= "definir contraseña";
+    private final String password= "V2lyZXdhcmRyb2JlU2VjcmV0S2V5Rm9ySldUU2lnbmluZzIwMjYhQCM=";
 
     public String generateToken(String username) {
         return Jwts.builder()
@@ -29,6 +30,7 @@ public class JwtUtil {
     public boolean validateToken(String token, String username) {
         return extraerUsername(token).equals(username) && !estaExpirado(token);
     }
+
     private boolean estaExpirado(String token) {
         return Jwts.parser()
                 .setSigningKey(password)

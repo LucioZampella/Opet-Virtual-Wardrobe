@@ -1,4 +1,4 @@
-package com.virtualwardrobe.backend.models.user.userDTO;
+package com.virtualwardrobe.backend.models.user.response;
 
 
 import lombok.AllArgsConstructor;
@@ -11,5 +11,4 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
     private int id;
     private String token;
-
 }

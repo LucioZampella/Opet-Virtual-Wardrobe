@@ -8,15 +8,20 @@ function MyProfile() {
     const [editMode, setEditMode] = useState(false);
     const [formData, setFormData] = useState({});
     const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+    const isOwner = String(userId) === String(user?.id);
     const [uploading, setUploading] = useState(false);
 
     // --> Al cargar la pagina busca los datos del usuario por su id
     useEffect(() => {
-        fetch(`http://localhost:8080/usuarios/profile/${userId}`)
-            .then(response => response.json()) //--> Agarra la respuesta de java en crudo y la convierte en json
+        fetch(`http://localhost:8080/usuarios/profile/${userId}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+            .then(response => response.json())
             .then(data => {
-                setUser(data); //--> Ya con los datos en limpio, los guardo y
-                // "saco una fotocopia" para que al editar aparezcan los datos actuales
+                setUser(data);
                 setFormData(data);
             })
             .catch(error => console.error("Hubo un error al cargar el perfil", error));
@@ -32,7 +37,10 @@ function MyProfile() {
         if (!window.confirm("¿Estás seguro que querés eliminar tu cuenta?")) return;
         try {
             const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
             if (response.ok) {
                 alert("Usuario eliminado");
@@ -58,7 +66,10 @@ function MyProfile() {
         try {
             const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
                 method: "PUT",
-                headers: {"Content-Type": "application/json"},
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify(formData)
             });
             if (response.ok) {
@@ -198,19 +209,22 @@ function MyProfile() {
                             </div>
 
                             {/* editar perfil */}
-                            <button
-                                onClick={() => setEditMode(true)}
-                                className="
-                                    flex-shrink-0 px-5 py-2
-                                    border border-[#4a4540] hover:border-[#c49a6c]
-                                    text-[#8a7d6e] hover:text-[#c49a6c]
-                                    text-[10px] tracking-[0.2em] uppercase
-                                    transition-all duration-300
-                                "
-                            >
-                                Editar
-                            </button>
+                            {isOwner && (
+                                <button
+                                    onClick={() => setEditMode(true)}
+                                    className="
+                                        flex-shrink-0 px-5 py-2
+                                        border border-[#4a4540] hover:border-[#c49a6c]
+                                        text-[#8a7d6e] hover:text-[#c49a6c]
+                                        text-[10px] tracking-[0.2em] uppercase
+                                        transition-all duration-300
+                                        "
+                                >
+                                    Editar
+                                </button>
+                            )}
                         </div>
+
 
                         {/* Estadisticas */}
                         <div className="flex gap-10 border-t border-[#3a3530] pt-6">
@@ -260,30 +274,32 @@ function MyProfile() {
                 </div>
 
                 {/* Acciones de la cuentarda */}
-                <div className="max-w-2xl mx-auto px-6 pb-12 flex gap-4">
-                    <button
-                        onClick={logOut}
-                        className="
-                            px-6 py-3 border border-[#4a4540]
-                            hover:border-[#c49a6c] hover:text-[#c49a6c]
-                            text-[#6b6258] text-[10px] tracking-[0.2em] uppercase
-                            transition-all duration-300
-                        "
-                    >
-                        Cerrar sesión
-                    </button>
-                    <button
-                        onClick={eliminateProfile}
-                        className="
-                            px-6 py-3 border border-[#4a4540]
-                            hover:border-red-900 hover:text-red-700
-                            text-[#4a4540] text-[10px] tracking-[0.2em] uppercase
-                            transition-all duration-300
-                        "
-                    >
-                        Eliminar cuenta
-                    </button>
-                </div>
+                {isOwner && (
+                    <div className="max-w-2xl mx-auto px-6 pb-12 flex gap-4">
+                        <button
+                            onClick={logOut}
+                            className="
+                                px-6 py-3 border border-[#4a4540]
+                                hover:border-[#c49a6c] hover:text-[#c49a6c]
+                                text-[#6b6258] text-[10px] tracking-[0.2em] uppercase
+                                transition-all duration-300
+                                "
+                        >
+                            Cerrar sesión
+                        </button>
+                        <button
+                            onClick={eliminateProfile}
+                            className="
+                                px-6 py-3 border border-[#4a4540]
+                                hover:border-red-900 hover:text-red-700
+                                text-[#4a4540] text-[10px] tracking-[0.2em] uppercase
+                                transition-all duration-300
+                                "
+                        >
+                            Eliminar cuenta
+                        </button>
+                    </div>
+                )}
             </div>
 
             {editMode && (

@@ -1,8 +1,8 @@
 package com.virtualwardrobe.backend.models.user;
 
-import com.virtualwardrobe.backend.models.user.userDTO.LoginRequestDTO;
-import com.virtualwardrobe.backend.models.user.userDTO.LoginResponse;
-import com.virtualwardrobe.backend.models.user.userDTO.UserDTO;
+import com.virtualwardrobe.backend.models.user.response.LoginResponse;
+import com.virtualwardrobe.backend.models.user.response.UserResponseDTO;
+import com.virtualwardrobe.backend.models.user.userDTO.*;
 import com.virtualwardrobe.backend.models.user.userServices.UserService;
 import com.virtualwardrobe.backend.security.JwtUtil;
 import jakarta.validation.Valid;
@@ -18,6 +18,8 @@ import java.util.List;
 public class UserController {
 
 
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Autowired
     private UserService service;
@@ -29,19 +31,30 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody @Valid User user) {
+    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody @Valid UpdateUserDTO user,
+                                        @RequestHeader("Authorization") String authHeader) {
 
-        service.modificar(id, user);
+            String token = authHeader.replace("Bearer ", "");
+            String usernameFromToken = jwtUtil.extraerUsername(token);
+            service.modificar(id, user, usernameFromToken);
+        return ResponseEntity.ok().build();
+        }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable int id, @RequestHeader("Authorization") String authHeader) {
+
+        String token = authHeader.replace("Bearer ", "");
+        String usernameFromToken = jwtUtil.extraerUsername(token);
+
+        service.eliminar(id, usernameFromToken);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable int id) {
-        service.eliminar(id);
-    }
-
     @GetMapping("/profile/{id}")
-    public User findUserById(@PathVariable int id) { return service.buscarPorId(id); }
+    public  ResponseEntity<UserResponseDTO> findUserById(@PathVariable int id) {
+        UserResponseDTO u = service.buscarPorId(id);
+        return ResponseEntity.ok().body(u);
+    }
 
     @GetMapping("/list")
     public List<User> getAllUsers() {
@@ -50,7 +63,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequestDTO dto) {
-        return service.login(dto.getEmail(), dto.getPassword());
-    }
+        return ResponseEntity.ok(service.login(dto));
 
+    }
 }

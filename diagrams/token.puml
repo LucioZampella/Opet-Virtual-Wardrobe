@@ -1,0 +1,36 @@
+@startuml
+autonumber
+skinparam shadowing false
+skinparam monochrome true
+
+actor "Front-end (User)" as Front
+participant "Controller" as Ctrl
+participant "Service" as Serv
+participant "Repository" as Repo
+database "Database" as DB
+participant "GlobalExceptionHandler" as ErrorHandler
+
+== Proceso de Consulta ==
+
+Front -> Ctrl : GET /users/{id}\nHeader: Authorization [Token]
+note left: El token valida la sesión
+
+Ctrl -> Serv : buscarUsuarioSeguro(id)
+
+Serv -> Repo : findById(id)
+Repo -> DB : SELECT * FROM users
+DB --> Repo : ResultSet
+Repo --> Serv : Optional<User> (Entidad completa)
+
+alt #LightPink Si el Optional está vacío
+    Serv -> Serv : .orElseThrow()
+    Serv --X ErrorHandler : Throw UserNotFoundException
+    ErrorHandler --> Front : 401 Unauthorized / User Not Found
+else #LightGreen Si el usuario existe
+    Serv -> Serv : Mapear User -> UserDTO
+    note right: Aquí se filtra la password
+    Serv --> Ctrl : UserDTO (Datos públicos)
+    Ctrl --> Front : 200 OK (JSON con UserDTO)
+end
+
+@endum
