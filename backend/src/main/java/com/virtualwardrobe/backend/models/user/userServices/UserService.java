@@ -5,6 +5,7 @@ import com.virtualwardrobe.backend.models.user.UserRepositorie;
 import com.virtualwardrobe.backend.models.user.response.LoginResponse;
 import com.virtualwardrobe.backend.models.user.response.UserResponseDTO;
 import com.virtualwardrobe.backend.models.user.userDTO.*;
+import com.virtualwardrobe.backend.security.CustomUserDetails;
 import com.virtualwardrobe.backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -57,18 +58,14 @@ public class UserService {
     public void modificar(int id, UpdateUserDTO user, String usernameFromToken) {
 
         User u = repo.findById(id).orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
-        // username sin espacios y email en miniscula y sin espacios
 
         if (!u.getUsername().equals(usernameFromToken)) {
             throw new RuntimeException("Error 401: No tenés permiso para editar este usuario");
         }
-
         validarTodasLasLongitudesUpdate(user);
-
         u.setName(user.getName());
         u.setLastName(user.getLastName());
         u.setBio(user.getBio());
-
         repo.save(u);
     }
 
@@ -85,7 +82,6 @@ public class UserService {
     public UserResponseDTO buscarPorId(int id) {
         User user = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
-
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
         dto.setName(user.getName());
@@ -93,7 +89,6 @@ public class UserService {
         dto.setUsername(user.getUsername());
         dto.setBio(user.getBio());
         dto.setAvatar_url(user.getAvatar_url());
-
         return dto;
     }
 
@@ -107,19 +102,18 @@ public class UserService {
     public LoginResponse login(LoginRequestDTO loginDTO) {
 
         // Si el username no existe, loadUserByUsername ya lanza UsernameNotFoundException
-        UserDetails userDetails = userDetailsService.loadUserByUsername(loginDTO.getUsername());
+        CustomUserDetails userDetails = userDetailsService.loadUserByUsername(loginDTO.getUsername());
 
         // Si la contraseña no coincide, lanzás vos la excepción
         if (!passwordEncoder.matches(loginDTO.getPassword(), userDetails.getPassword())) {
             throw new BadCredentialsException("Contraseña incorrecta");
         }
 
-        String token = jwtUtil.generateToken(loginDTO.getUsername());
+        String token = jwtUtil.generateToken(loginDTO.getUsername(),userDetails.getId());
         // no hace falta tirar una expceion pq loadByUsername ya lo tira
 
-        User user = repo.findByUsername(loginDTO.getUsername()).orElseThrow();
 
-        return new LoginResponse(user.getId(), token);
+        return new LoginResponse(userDetails.getId(), token);
     }
 
     // -----------------------------------Funciones privadas ----------------------------------------//
