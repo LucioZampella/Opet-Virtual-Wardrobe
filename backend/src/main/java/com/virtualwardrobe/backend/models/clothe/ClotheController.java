@@ -1,13 +1,6 @@
 package com.virtualwardrobe.backend.models.clothe;
 
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
-import com.virtualwardrobe.backend.models.user.User;
-import com.virtualwardrobe.backend.models.user.response.LoginResponse;
-import com.virtualwardrobe.backend.models.user.response.UserResponseDTO;
-import com.virtualwardrobe.backend.models.user.userDTO.LoginRequestDTO;
-import com.virtualwardrobe.backend.models.user.userDTO.UpdateUserDTO;
-import com.virtualwardrobe.backend.models.user.userDTO.UserDTO;
-import com.virtualwardrobe.backend.models.user.userServices.UserService;
 import com.virtualwardrobe.backend.security.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

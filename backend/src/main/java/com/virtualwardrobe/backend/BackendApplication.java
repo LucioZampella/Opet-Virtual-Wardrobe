@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@EnableJpaRepositories("com.virtualwardrobe.backend.models.user")
-@EntityScan("com.virtualwardrobe.backend.models.user")
+@EnableJpaRepositories("com.virtualwardrobe.backend")
+@EntityScan("com.virtualwardrobe.backend")
 public class BackendApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BackendApplication.class, args);

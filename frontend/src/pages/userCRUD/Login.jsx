@@ -25,7 +25,7 @@ function Login({onLoginSuccess}) {
                 localStorage.setItem("userId", userLogged.id); //--> Guarda el id del usuario en el navegador
                 localStorage.setItem("token", userLogged.token);
                 onLoginSuccess();
-                navigate("/profile"); //--> Redirige al perfil si el login fue exitoso
+                navigate("/feed"); //--> Redirige al perfil si el login fue exitoso
             } else {
                 alert("username o contraseña incorrectos.");
             }

@@ -1,10 +1,6 @@
 package com.virtualwardrobe.backend.models.clothe;
 
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
-import com.virtualwardrobe.backend.models.user.User;
-import com.virtualwardrobe.backend.models.user.UserRepositorie;
-import com.virtualwardrobe.backend.models.user.response.UserResponseDTO;
-import com.virtualwardrobe.backend.models.user.userServices.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,5 @@
 package com.virtualwardrobe.backend.models.clothe;
 
-import com.virtualwardrobe.backend.models.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
