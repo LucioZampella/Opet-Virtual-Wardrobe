@@ -33,7 +33,7 @@ public class UserService {
     private UserDetailsServiceimp userDetailsService;
 
     public void crear(UserDTO dto) {
-        // username sin espacios y email en miniscula y sin espacios
+        // username sin espacios y email en minuscula y sin espacios
 
         validarTodasLasLongitudes(dto);
         if (repo.findByEmail(dto.getEmail()).isPresent()) {

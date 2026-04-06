@@ -22,6 +22,8 @@ public class ClotheService {
         c.setMaterialId(dto.getMaterialId());
         c.setSizeId(dto.getSizeId());
         c.setTypeId(dto.getTypeId());
+        c.setColorId(dto.getColorId());
+        c.setPreferenceLevel(dto.getPreferenceLevel());
         repo.save(c);
     }
 
@@ -38,6 +40,8 @@ public class ClotheService {
         c.setMaterialId(dto.getMaterialId());
         c.setSizeId(dto.getSizeId());
         c.setTypeId(dto.getTypeId());
+        c.setColorId(dto.getColorId());
+        c.setPreferenceLevel(dto.getPreferenceLevel());
         repo.save(c);
     }
 
@@ -62,6 +66,8 @@ public class ClotheService {
         dto.setMaterialId(c.getMaterialId());
         dto.setSizeId(c.getSizeId());
         dto.setTypeId(c.getTypeId());
+        dto.setColorId(c.getColorId());
+        dto.setPreferenceLevel(dto.getPreferenceLevel());
         return dto;
     }
 
@@ -69,24 +75,16 @@ public class ClotheService {
         return repo.findByUserId(userId);
     }
 
-    public void agregarFavorita(int id, int userId) {
-        Clothe c = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Error 404: prenda no encontrada"));
-
-        if (c.getUserId() != userId) {
-            throw new RuntimeException("Error 401: No tenés permiso para modificar esta prenda");
-        }
-        c.setPreferenceLevel(1);
-        repo.save(c);
-    }
 
     public List<Clothe> filtrar(int userId, Integer typeId, Integer sizeId,
-                                Integer materialId, Integer fitId, String name) {
+                                Integer materialId, Integer fitId, Integer colorId, Integer preferenceLevel, String name) {
         return repo.findByUserId(userId).stream()
                 .filter(c -> typeId == null || c.getTypeId() == typeId)
                 .filter(c -> sizeId == null || c.getSizeId() == sizeId)
                 .filter(c -> materialId == null || c.getMaterialId() == materialId)
                 .filter(c -> fitId == null || c.getFitId() == fitId)
+                .filter(c -> colorId == null || c.getColorId() == colorId)
+                .filter(c -> preferenceLevel == null || c.getPreferenceLevel() == preferenceLevel)
                 .filter(c -> name == null || c.getName().toLowerCase().contains(name.toLowerCase()))
                 .collect(Collectors.toList());
     }

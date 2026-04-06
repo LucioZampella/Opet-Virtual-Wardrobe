@@ -67,7 +67,6 @@ public class ClotheController {
             @RequestHeader("Authorization") String authHeader) {
 
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        service.agregarFavorita(id, userId);
         return ResponseEntity.ok().build();
     }
 
@@ -77,10 +76,12 @@ public class ClotheController {
             @RequestParam(required = false) Integer sizeId,
             @RequestParam(required = false) Integer materialId,
             @RequestParam(required = false) Integer fitId,
+            @RequestParam(required = false) Integer colorId,
+            @RequestParam (required = false) Integer preferenceLevel,
             @RequestParam(required = false) String name,
             @RequestHeader("Authorization") String authHeader) {
 
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        return ResponseEntity.ok(service.filtrar(userId, typeId, sizeId, materialId, fitId, name));
+        return ResponseEntity.ok(service.filtrar(userId, typeId, sizeId, materialId, fitId, colorId, preferenceLevel, name));
     }
 }
