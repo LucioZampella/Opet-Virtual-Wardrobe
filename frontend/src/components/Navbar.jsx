@@ -1,7 +1,29 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 function Navbar() {
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("token");
+
+        if (userId) {
+            fetch(`http://localhost:8080/usuarios/profile/${userId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setUser(data);
+                })
+                .catch(error => console.error("Error al cargar usuario en Navbar:", error));
+        }
+    }, []);
 
     return (
         <>
@@ -10,15 +32,39 @@ function Navbar() {
                 fixed top-0 left-0 right-0 z-50
                 bg-[#221f1c] border-b border-[#3a3530]
                 shadow-[0_4px_24px_rgba(0,0,0,0.4)]
-                flex items-center justify-center
+                flex items-center justify-between px-6
                 h-14
             ">
+                {/* Div vacío para centrar el logo perfectamente */}
+                <div className="w-10"></div>
+
                 <img
                     src="/opet_cream.png"
-                    className="h-20 object-contain opacity-90"
+                    className="h-10 object-contain opacity-90 cursor-pointer"
                     alt="Opet"
+                    onClick={() => navigate("/feed")}
                 />
-            </div>
+
+                <div className="flex items-center">
+                    <button
+                        onClick={() =>
+                            navigate('/profile')
+                    }
+                        className="group flex items-center gap-2"
+                    >
+                        {user ? (
+                            <img
+                                src={user.avatar_url || "/default-avatar.png"}
+                                className="h-9 w-9 rounded-full object-cover border-2 border-[#3a3530] group-hover:border-cream transition-all"
+                                alt="Mi Perfil"
+                            />
+                        ) : (
+                            // 2. Corregido: El div del skeleton ahora está bien envuelto
+                            <div className="h-9 w-9 rounded-full bg-[#3a3530] animate-pulse" />
+                        )}
+                    </button>
+                </div>
+            </div> {/* 3. Corregido: Faltaba cerrar este div de la barra superior */}
 
             {/* Barra inferior de navegación */}
             <div className="
@@ -27,7 +73,8 @@ function Navbar() {
                 flex justify-around items-center
                 h-16
             ">
-                <button onClick={() => navigate("/feed")} className="flex flex-col items-center gap-1 text-[#6b6258] hover:text-[#c49a6c] transition-colors duration-300">
+                <button onClick={() => navigate("/feed")}
+                        className="flex flex-col items-center gap-1 text-[#6b6258] hover:text-[#c49a6c] transition-colors duration-300">
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9.75L12 3l9 6.75V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.75z"/></svg>
                     <span className="text-[9px] tracking-[0.15em] uppercase">Inicio</span>
                 </button>
@@ -62,6 +109,4 @@ function Navbar() {
 }
 
 export default Navbar;
-
-
 
