@@ -4,6 +4,7 @@ import STATUS from "../../constants/statusOptions.js";
 
 const EmptyForm = {
     price: "",
+    name: "",
     description: "",
     status: STATUS.ACTIVE,
 };
@@ -12,7 +13,7 @@ const EmptyForm = {
 function Store() {
 
     const [storeListing, setStoreListing] = useState([]);
-    const [showStoreListing, setShowStoreListing] = useState(false);
+    const [showCreateListing, setShowCreateListing] = useState(false);
     const [editingListing, setEditingListing] = useState(null);
     const token = localStorage.getItem("token");
     const [form, setForm] = useState(EmptyForm);
@@ -101,9 +102,9 @@ function Store() {
         }
     }
 
-    const createStoreListing = async(e) => {
+    const createStoreListing = async(e) => { // --> Crear una publicacion de venta
         e.preventDefault();
-
+        setShowCreateListing(true);
         try {
             const response = await fetch(`http://localhost:8080/store`, {
                 method: "POST",
@@ -112,16 +113,114 @@ function Store() {
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
-
+                    price: Number(form.price),
+                    name: form.name,
+                    description: form.description,
+                    status: form.status,
                 })
             });
+
+            if (response.ok) {
+                await fetchAllListings();
+                setShowCreateListing(false);
+                setForm(EmptyForm);
+            } else {
+                const errorMsg = await response.text();
+                console.error("No se pudo crear la publicación: ", errorMsg);
+            }
         } catch (error) {
-
+            console.error("Error de conexión con el servidor: ", error)
         }
-    }
+    };
 
+    const openEditState = (StoreListing) => { //--> Abre el estado de edicion de una publicacion ya subida
+        setEditingListing(StoreListing);
+        setForm({
+            name:       StoreListing.name       || "",
+            price: StoreListing.price || 0,
+            description: StoreListing.description || "",
+            status: StoreListing.status || STATUS.ACTIVE,
+        });
+    };
 
-            return <div>Tienda</div>;
+    const updateStoreListing = async (e) => { //--> Update las ediciones realizadas
+        e.preventDefault();
+
+        try {
+            const response = await fetch(`http://localhost:8080/store/${editingListing.listingId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: form.name,
+                    price: Number(form.price),
+                    description: form.description,
+                    status: form.status
+                })
+            });
+
+            if (response.ok) {
+                setStoreListing(prev =>
+                    prev.map(l =>
+                        l.listingId === editingListing.listingId
+                            ? {
+                                ...l, ...form, name: form.name, price: Number(form.price), description: form.description,
+                                status: form.status
+                            }
+                            : l
+                    )
+                );
+                setEditingListing(null);
+                setForm(EmptyForm);
+            } else {
+                const errorMsg = response.text();
+                console.error("No se pudo editar la prenda: ", errorMsg);
+            }
+        } catch (error) {
+                console.error("Error de conexion: ", error);
+            }
+        };
+
+    const deleteListing = async(listingId) => { // --> Borra la publicacion propia seleccionada por el usuario
+        if (!window.confirm("¿Estas seguro que queres borrar la publicación?")) return;
+
+        try {
+            const response = await fetch (`http://localhost:8080/clothes/${listingId}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                setStoreListing(prev => prev.filter(l => l.listingId !== listingId));
+            } else {
+                const errorMsg = response.text();
+                console.error("No se pudo eliminar la prenda: ", errorMsg);
+            }
+        } catch (error) {
+            console.error("Error de conexion: ", error);
+        }
+    };
+
+    const inputClass = `
+        w-full bg-transparent border-b border-[#4a4540]
+        text-[#e8d5b0] placeholder-[#6b6258]
+        py-3 px-0 text-sm tracking-wide
+        outline-none focus:border-[#c49a6c]
+        transition-colors duration-300
+    `;
+
+    const labelClass = "text-[10px] font-semibold tracking-[0.2em] uppercase text-[#8a7d6e] mb-1 block";
+
+    const selectClass = `
+        w-full bg-[#2a2622] border-b border-[#4a4540]
+        text-[#e8d5b0] py-3 px-0 text-sm
+        outline-none focus:border-[#c49a6c]
+        transition-colors duration-300 cursor-pointer
+    `;
+
+    return <div>Tienda</div>;
 }
 
 export default Store;

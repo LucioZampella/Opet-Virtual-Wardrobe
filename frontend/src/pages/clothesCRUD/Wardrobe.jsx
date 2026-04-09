@@ -109,8 +109,7 @@ function Wardrobe() {
             const url = await uploadImageToCloudinary(file);
             setForm(prev => ({ ...prev, image_url: url }));
         } catch (error) {
-            alert("Error al subir la imagen");
-            console.error(error);
+            console.error("Error al subir la imagen: ", error);
         } finally {
             setUploading(false);
         }
@@ -170,11 +169,10 @@ function Wardrobe() {
                 setForm(EmptyForm);
             } else {
                 const errorMsg = await response.text();
-                alert("Error al crear la prenda: " + errorMsg);
+                console.error("Error al crear la prenda: " + errorMsg);
             }
         } catch (error) {
-            alert("Error de conexión con el servidor");
-            console.error(error);
+            console.error("Error de conexión con el servidor: ", error);
         }
     };
 
@@ -228,11 +226,10 @@ function Wardrobe() {
                 setForm(EmptyForm);
             } else {
                 const errorMsg = await response.text();
-                alert("Error al actualizar: " + errorMsg);
+                console.error("Error al actualizar: " + errorMsg);
             }
         } catch (error) {
-            alert("Error de conexión");
-            console.error(error);
+            console.error("Error de conexión: ", error);
         }
     };
 
