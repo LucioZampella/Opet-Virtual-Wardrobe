@@ -6,7 +6,7 @@ import SignUp from "./pages/userCRUD/SignUp.jsx";
 import Feed from "./pages/Feed.jsx";
 import Friends from "./pages/Friends.jsx";
 import Wardrobe from "./pages/clothesCRUD/Wardrobe.jsx";
-import Store from "./pages/Store.jsx";
+import Store from "./pages/storeCRUD/Store.jsx";
 import OutfitBuilder from "./pages/OutfitBuilder.jsx";
 import Search from "./pages/Search.jsx";
 

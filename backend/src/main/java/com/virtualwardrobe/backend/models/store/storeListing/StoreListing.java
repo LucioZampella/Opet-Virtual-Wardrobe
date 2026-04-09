@@ -1,5 +1,6 @@
 package com.virtualwardrobe.backend.models.store.storeListing;
 
+import com.virtualwardrobe.backend.models.clothe.Clothe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,10 @@ public class StoreListing {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "listing_id")
     private int listingId;
+
+    @ManyToOne
+    @JoinColumn(name = "clothes_id", insertable = false, updatable = false)
+    private Clothe clothe;
 
     @Column(name = "clothes_id")
     private int clothesId;

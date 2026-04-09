@@ -24,7 +24,7 @@ public class StoreListingController {
     private StoreListingService service;
 
     @PostMapping
-    public ResponseEntity<?> createPub(
+    public ResponseEntity<?> createListing(
             @RequestBody @Valid StoreListingDTO dto,
             @RequestHeader("Authorization") String authHeader) {
 
@@ -34,7 +34,7 @@ public class StoreListingController {
     }
 
     @PutMapping("/{listingId}")
-    public ResponseEntity<?> updatePub(
+    public ResponseEntity<?> updateListing(
             @PathVariable int listingId,
             @RequestBody @Valid UpdateListingDTO dto,
             @RequestHeader("Authorization") String authHeader) {
@@ -45,7 +45,7 @@ public class StoreListingController {
     }
 
     @DeleteMapping("/{listingId}")
-    public ResponseEntity<?> deletePub(
+    public ResponseEntity<?> deleteListing(
             @PathVariable int listingId,
             @RequestHeader("Authorization") String authHeader) {
 
@@ -54,17 +54,28 @@ public class StoreListingController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/home")
+    public ResponseEntity<List<StoreListing>> getAllListings() {
+        return ResponseEntity.ok(service.listarTodas());
+    }
+
     @GetMapping("/{listingId}")
-    public ResponseEntity<ListingResponseDTO> findPubById(@PathVariable int listingId) {
+    public ResponseEntity<ListingResponseDTO> findListingById(@PathVariable int listingId) {
         return ResponseEntity.ok(service.buscarPorId(listingId));
     }
 
     @GetMapping("/filter")
     public ResponseEntity<List<StoreListing>> filtrar (
-            @RequestParam(required = false) Integer min,
-            @RequestParam(required = false) Integer max,
+            @RequestParam(required = false) Double min,
+            @RequestParam(required = false) Double max,
+            @RequestParam(required = false) Integer typeId,
+            @RequestParam(required = false) Integer sizeId,
+            @RequestParam(required = false) Integer materialId,
+            @RequestParam(required = false) Integer fitId,
+            @RequestParam(required = false) Integer colorId,
+            @RequestParam(required = false) String name,
     @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok(service.filtrarPorPrecio(min, max));
+        return ResponseEntity.ok(service.filtrar(min, max, typeId, sizeId, materialId, fitId, colorId, name));
     }
 }
 

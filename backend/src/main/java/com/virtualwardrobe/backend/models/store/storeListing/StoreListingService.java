@@ -68,11 +68,16 @@ public class StoreListingService {
         return dto;
     }
 
-    public List<StoreListing> listarPorUserId(int sellerId) {
-        return repo.findByUserId(sellerId);
+    public List<StoreListing> listarTodas() {
+        return repo.findAllByOrderByDateDesc();
     }
 
-    public List<StoreListing> filtrarPorPrecio(double min, double max) {
-        return repo.findByPriceBetween(min, max);
+    public List<StoreListing> listarPorUserId(int sellerId) {
+        return repo.findBySellerId(sellerId);
+    }
+
+    public List<StoreListing> filtrar(double min, double max, Integer typeId, Integer sizeId, Integer materialId,
+                                      Integer fitId, Integer colorId, String name) {
+        return repo.filterByAll(min, max, typeId, sizeId, materialId, fitId, colorId, name);
     }
 }
