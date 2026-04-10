@@ -20,7 +20,7 @@ public interface StoreListingRepositorie extends JpaRepository<StoreListing, Int
             "(:materialId IS NULL OR p.clothe.materialId = :materialId) AND" +
             "(:fitId IS NULL OR p.clothe.fitId = :fitId) AND" +
             "(:colorId IS NULL OR p.clothe.colorId = :colorId) AND" +
-            "(:name IS NULL OR p.clothe.name = :name)")
+            "(:name IS NULL OR p.clothe.name LIKE '%:name%')")
     List<StoreListing> filterByAll(Double min, Double max, Integer typeId, Integer sizeId, Integer materialId,
                                    Integer fitId, Integer colorId, String name);
 

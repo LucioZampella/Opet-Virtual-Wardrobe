@@ -98,8 +98,12 @@ function Store() {
         if (hayAlgunFiltro) {
             fetchWithFilters(newFilters);
         } else {
-            fetchClothes();
+            fetchAllListings()
         }
+    }
+
+    const handleSearching = () => { // --> Maneja busquedas de articulos
+        fetchWithFilters(filters);
     }
 
     const createStoreListing = async(e) => { // --> Crear una publicacion de venta
