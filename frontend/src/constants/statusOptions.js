@@ -3,3 +3,4 @@ export const STATUS = [
     { INACTIVE: "Inactivo"},
     { SOLD: "Vendido"}
     ]
+

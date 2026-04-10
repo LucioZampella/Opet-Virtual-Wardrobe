@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import Navbar from "../../components/Navbar.jsx";
-import STATUS from "../../constants/statusOptions.js";
+import {STATUS} from "../../constants/statusOptions.js";
 
 const EmptyForm = {
     price: "",

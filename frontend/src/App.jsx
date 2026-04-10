@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+// IMPORTANTE: Asegurate de que estas rutas sean las correctas en tu proyecto
 import Login from "./pages/userCRUD/Login.jsx";
 import MyProfile from "./pages/userCRUD/myProfile.jsx";
 import SignUp from "./pages/userCRUD/SignUp.jsx";
@@ -11,7 +13,12 @@ import OutfitBuilder from "./pages/OutfitBuilder.jsx";
 import Search from "./pages/Search.jsx";
 
 function App() {
-    const [token, setToken] = useState(localStorage.getItem("token"));
+    // Inicialización limpia del token
+    const [token, setToken] = useState(() => {
+        const savedToken = localStorage.getItem("token");
+        // Evitamos que el string "undefined" o "null" nos engañe
+        return (savedToken && savedToken !== "undefined" && savedToken !== "null") ? savedToken : null;
+    });
 
     const updateAuth = () => {
         setToken(localStorage.getItem("token"));
@@ -20,16 +27,16 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/signup" element={<SignUp />} />
-
+                {/* Rutas Públicas */}
                 <Route path="/login" element={
-                    token ? <Navigate to="/feed" /> : <Login onLoginSuccess={updateAuth} />
+                    !token ? <Login onLoginSuccess={updateAuth} /> : <Navigate to="/feed" />
+                } />
+                <Route path="/signup" element={
+                    !token ? <SignUp /> : <Navigate to="/feed" />
                 } />
 
-                <Route path="/profile" element={
-                    token ? <MyProfile /> : <Navigate to="/login" />
-                } />
-
+                {/* Rutas Privadas */}
+                <Route path="/profile" element={token ? <MyProfile /> : <Navigate to="/login" />} />
                 <Route path="/feed" element={token ? <Feed /> : <Navigate to="/login" />} />
                 <Route path="/friends" element={token ? <Friends /> : <Navigate to="/login" />} />
                 <Route path="/wardrobe" element={token ? <Wardrobe /> : <Navigate to="/login" />} />
@@ -37,6 +44,7 @@ function App() {
                 <Route path="/outfit-builder" element={token ? <OutfitBuilder /> : <Navigate to="/login" />} />
                 <Route path="/search" element={token ? <Search /> : <Navigate to="/login" />} />
 
+                {/* Redirección por defecto: Si no existe la ruta, va al feed o al login */}
                 <Route path="*" element={<Navigate to={token ? "/feed" : "/login"} />} />
             </Routes>
         </BrowserRouter>
