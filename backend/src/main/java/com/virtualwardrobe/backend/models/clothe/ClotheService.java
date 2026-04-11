@@ -1,6 +1,9 @@
 package com.virtualwardrobe.backend.models.clothe;
 
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
+import com.virtualwardrobe.backend.models.user.User;
+import com.virtualwardrobe.backend.models.user.UserRepositorie;
+import com.virtualwardrobe.backend.models.user.userServices.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,9 +16,13 @@ public class ClotheService {
     @Autowired
     private ClotheRepositorie repo;
 
+    @Autowired
+    private UserRepositorie UserRepo;
+
     public void crear(ClotheDTO dto, int userId) {
         Clothe c = new Clothe();
-        c.setUserId(userId);
+        User user= UserRepo.findById(userId).get();
+        c.setUser(user);
         c.setName(dto.getName());
         c.setFitId(dto.getFitId());
         c.setImage_url(dto.getImage_url());
@@ -31,7 +38,7 @@ public class ClotheService {
         Clothe c = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Error 404: prenda no encontrada"));
 
-        if (c.getUserId() != userId) {
+        if (c.getUser().getId() != userId) {
             throw new RuntimeException("Error 401: No tenés permiso para editar esta prenda");
         }
         c.setName(dto.getName());
@@ -48,10 +55,10 @@ public class ClotheService {
     public void eliminar(int id, int userId) {
         Clothe c = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Error 404: prenda no encontrada"));
-
-        if (c.getUserId() != userId) {
-            throw new RuntimeException("Error 401: No tenés permiso para eliminar esta prenda");
+        if (c.getUser().getId() != userId) {
+            throw new RuntimeException("Error 401: No tenés permiso para editar esta prenda");
         }
+
         repo.deleteById(id);
     }
 
@@ -77,15 +84,21 @@ public class ClotheService {
 
 
     public List<Clothe> filtrar(int userId, Integer typeId, Integer sizeId,
-                                Integer materialId, Integer fitId, Integer colorId, Integer preferenceLevel, String name) {
+                                Integer materialId, Integer fitId,
+                                List<Integer> colourIds,
+                                Integer preferenceLevel, String name) {
+
         return repo.findByUserId(userId).stream()
                 .filter(c -> typeId == null || c.getTypeId() == typeId)
                 .filter(c -> sizeId == null || c.getSizeId() == sizeId)
                 .filter(c -> materialId == null || c.getMaterialId() == materialId)
                 .filter(c -> fitId == null || c.getFitId() == fitId)
-                .filter(c -> colorId == null || c.getColorId() == colorId)
                 .filter(c -> preferenceLevel == null || c.getPreferenceLevel() == preferenceLevel)
                 .filter(c -> name == null || c.getName().toLowerCase().contains(name.toLowerCase()))
+                .filter(c -> colourIds == null || colourIds.isEmpty() ||
+                        c.getColours().stream()
+                                .anyMatch(colour -> colourIds.contains(colour.getId())))
                 .collect(Collectors.toList());
     }
+
 }

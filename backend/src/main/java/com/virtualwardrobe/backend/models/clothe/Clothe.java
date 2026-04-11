@@ -1,9 +1,13 @@
 package com.virtualwardrobe.backend.models.clothe;
 
+import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.colour.Colour;
+import com.virtualwardrobe.backend.models.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 
 @Entity
@@ -18,8 +22,9 @@ public class Clothe {
     @Column(name = "clothes_id")
     private int id;
 
-    @Column(name = "user_id")
-    private int userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column(length = 20)
     private String name;
@@ -49,4 +54,13 @@ public class Clothe {
     @Column(name = "preference_level")
     private int preferenceLevel;
 
-}
+    @ManyToMany
+    @JoinTable(
+        name="clothe_colours",
+        joinColumns = @JoinColumn(name= "clothes_id"),
+            inverseJoinColumns = @JoinColumn(name = "colour_id")
+            // creo la tabla "clothe_colours" donde estaran en como columnas  el clothe_id y el colour_id
+    )
+    private List<Colour> colours;
+    }
+

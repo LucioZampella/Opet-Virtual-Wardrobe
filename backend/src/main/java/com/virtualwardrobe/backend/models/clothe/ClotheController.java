@@ -61,27 +61,18 @@ public class ClotheController {
         return ResponseEntity.ok(service.listarPorUserId(userId));
     }
 
-    @PatchMapping("/{id}/favorite")
-    public ResponseEntity<?> toggleFavorite(
-            @PathVariable int id,
-            @RequestHeader("Authorization") String authHeader) {
-
-        int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/filter")
     public ResponseEntity<List<Clothe>> filtrar(
             @RequestParam(required = false) Integer typeId,
             @RequestParam(required = false) Integer sizeId,
             @RequestParam(required = false) Integer materialId,
             @RequestParam(required = false) Integer fitId,
-            @RequestParam(required = false) Integer colorId,
-            @RequestParam (required = false) Integer preferenceLevel,
+            @RequestParam(required = false) List<Integer> colourIds,
+            @RequestParam(required = false) Integer preferenceLevel,
             @RequestParam(required = false) String name,
             @RequestHeader("Authorization") String authHeader) {
 
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        return ResponseEntity.ok(service.filtrar(userId, typeId, sizeId, materialId, fitId, colorId, preferenceLevel, name));
+        return ResponseEntity.ok(service.filtrar(userId, typeId, sizeId, materialId, fitId, colourIds, preferenceLevel, name));
     }
 }
