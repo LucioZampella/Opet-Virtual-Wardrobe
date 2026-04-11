@@ -13,28 +13,34 @@ const EmptyForm = {
 function Store() {
 
     const [storeListing, setStoreListing] = useState([]);
+    const [myClothes, setMyClothes] = useState([]);
+    const [selectedClothe, setSelectedClothe] = useState(null);
     const [showCreateListing, setShowCreateListing] = useState(false);
     const [editingListing, setEditingListing] = useState(null);
     const token = localStorage.getItem("token");
+    const userId = parseInt(localStorage.getItem("userId"));
     const [form, setForm] = useState(EmptyForm);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [filters, setFilters] = useState({
         min: "",
         max: "",
-        typeId:     "",
-        sizeId:     "",
+        typeId: "",
+        sizeId: "",
         materialId: "",
-        fitId:      "",
+        fitId: "",
         colorId: "",
-        name:  "",
+        name: "",
     })
 
-    const fetchAllListings = async() => { // --> Trae todas las listings
+    const fetchAllListings = async () => { // --> Trae todas las listings
         setLoading(true);
         try {
             const response = await fetch(`http://localhost:8080/store/home`, {
-                method: "GET"
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
@@ -54,7 +60,7 @@ function Store() {
         fetchAllListings();
     }, []);
 
-    const fetchWithFilters = async(newFilters) => { // --> Trae todas las listings pero ahora con filtros especificos
+    const fetchWithFilters = async (newFilters) => { // --> Trae todas las listings pero ahora con filtros especificos
         setLoading(true);
         try {
             const params = new URLSearchParams();
@@ -80,9 +86,24 @@ function Store() {
         }
 
     }
+    // --> me traigo todas mis prendas del usuario //
+    const fetchMyClothes = async () => {
+        try {
+            const response = await fetch(`http://localhost:8080/clothes/my-clothes`, {
+                headers: {"Authorization": `Bearer ${token}`}
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setMyClothes(data);
+                console.log(myClothes)
+            }
+        } catch (error) {
+            console.error("Error al cargar prendas: ", error);
+        }
+    };
 
     const handleFormChange = (e) => { // --> Maneja los cambios en los atributos de las listings
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setForm(prev => ({
             ...prev,
             [name]: value
@@ -106,9 +127,8 @@ function Store() {
         fetchWithFilters(filters);
     }
 
-    const createStoreListing = async(e) => { // --> Crear una publicacion de venta
+    const createStoreListing = async (e) => { // --> Crear una publicacion de venta
         e.preventDefault();
-        setShowCreateListing(true);
         try {
             const response = await fetch(`http://localhost:8080/store`, {
                 method: "POST",
@@ -117,6 +137,7 @@ function Store() {
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
+                    clothesId: selectedClothe.id,
                     price: Number(form.price),
                     name: form.name,
                     description: form.description,
@@ -140,7 +161,7 @@ function Store() {
     const openEditState = (StoreListing) => { //--> Abre el estado de edicion de una publicacion ya subida
         setEditingListing(StoreListing);
         setForm({
-            name:       StoreListing.name       || "",
+            name: StoreListing.name || "",
             price: StoreListing.price || 0,
             description: StoreListing.description || "",
             status: StoreListing.status || STATUS.ACTIVE,
@@ -183,17 +204,17 @@ function Store() {
                 console.error("No se pudo editar la prenda: ", errorMsg);
             }
         } catch (error) {
-                console.error("Error de conexion: ", error);
-            }
-        };
+            console.error("Error de conexion: ", error);
+        }
+    };
 
-    const deleteListing = async(listingId) => { // --> Borra la publicacion propia seleccionada por el usuario
+    const deleteListing = async (listingId) => { // --> Borra la publicacion propia seleccionada por el usuario
         if (!window.confirm("¿Estas seguro que queres borrar la publicación?")) return;
 
         try {
-            const response = await fetch (`http://localhost:8080/clothes/${listingId}`, {
+            const response = await fetch(`http://localhost:8080/store/${listingId}`, {
                 method: "DELETE",
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: {"Authorization": `Bearer ${token}`}
             });
 
             if (response.ok) {
@@ -223,8 +244,209 @@ function Store() {
         outline-none focus:border-[#c49a6c]
         transition-colors duration-300 cursor-pointer
     `;
+    return (
+        <div className="min-h-screen bg-[#2a2622]">
+            <Navbar/>
+            <div className="pt-14 pb-16 max-w-2xl mx-auto px-6">
 
-    return <div>Tienda</div>;
+                {/* Header */}
+                <div className="flex items-center justify-between py-8">
+                    <div>
+                        <p className="text-[#6b6258] text-[10px] tracking-[0.3em] uppercase mb-1">Opet</p>
+                        <h2 className="text-[#e8d5b0] text-2xl font-light tracking-widest">Tienda</h2>
+                        <div className="w-8 h-px bg-[#c49a6c] mt-2"></div>
+                    </div>
+                    <button
+                        onClick={() => {
+                            setShowCreateListing(true);
+                            fetchMyClothes();
+                        }}
+                        className="px-5 py-2 bg-[#c49a6c] hover:bg-[#d4aa7c] text-[#221f1c] text-xs font-semibold tracking-[0.2em] uppercase transition-all duration-300"
+                    >
+                        + Publicar
+                    </button>
+                </div>
+
+                {loading && <p className="text-[#6b6258] text-xs text-center mt-10 animate-pulse">Cargando...</p>}
+
+                {!loading && storeListing.length === 0 && (
+                    <p className="text-[#6b6258] text-xs text-center mt-10">No hay publicaciones todavía.</p>
+                )}
+
+                <div className="grid grid-cols-2 gap-4 mt-6">
+                    {storeListing.map(listing => (
+                        <div key={listing.listingId}
+                             className="border border-[#3a3530] bg-[#221f1c] hover:border-[#4a4540] transition-colors duration-300">
+                            {listing.clothe?.image_url
+                                ? <img src={listing.clothe.image_url} className="w-full aspect-square object-cover"/>
+                                : <div className="w-full aspect-square flex items-center justify-center bg-[#2a2622]">
+                                    <span className="text-[#3a3530] text-xs">Sin imagen</span>
+                                </div>
+                            }
+                            <div className="p-3 flex flex-col gap-1">
+                                <p className="text-[#e8d5b0] text-sm tracking-wide">{listing.clothe?.name}</p>
+                                <p className="text-[#c49a6c] text-xs tracking-[0.15em]">${listing.price}</p>
+                                <p className="text-[#6b6258] text-[10px] leading-relaxed">{listing.description}</p>
+
+                                {listing.sellerId === userId && (
+                                    <div className="flex gap-2 mt-2">
+                                        <button
+                                            onClick={() => openEditState(listing)}
+                                            className="flex-1 py-2 border border-[#4a4540] hover:border-[#c49a6c] text-[#6b6258] hover:text-[#c49a6c] text-[9px] tracking-[0.15em] uppercase transition-all duration-300"
+                                        >
+                                            Editar
+                                        </button>
+                                        <button
+                                            onClick={() => deleteListing(listing.listingId)}
+                                            className="flex-1 py-2 border border-[#4a4540] hover:border-red-900 text-[#4a4540] hover:text-red-700 text-[9px] tracking-[0.15em] uppercase transition-all duration-300"
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* como creo una publicacion de tienda  */}
+            {showCreateListing && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
+                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">
+                        <h3 className="text-[#e8d5b0] text-lg font-light tracking-widest mb-1">Nueva publicación</h3>
+                        <div className="w-6 h-px bg-[#c49a6c] mb-8"></div>
+
+                        <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto mb-6">
+                            {myClothes.map(clothe => (
+                                <div
+                                    key={clothe.id}
+                                    onClick={() => setSelectedClothe(clothe)}
+                                    className={`
+                                    cursor-pointer border aspect-square overflow-hidden
+                                    transition-all duration-300
+                                    ${selectedClothe?.id === clothe.id
+                                        ? 'border-[#c49a6c]'
+                                        : 'border-[#3a3530] hover:border-[#4a4540]'}
+                                `}
+                                >
+                                    {clothe.image_url
+                                        ? <img src={clothe.image_url} className="w-full h-full object-cover"/>
+                                        : <div className="w-full h-full flex items-center justify-center">
+                                            <span
+                                                className="text-[#4a4540] text-[9px] text-center px-1">{clothe.name}</span>
+                                        </div>
+                                    }
+                                </div>
+                            ))}
+                        </div>
+
+                        {selectedClothe && (
+                            <form onSubmit={createStoreListing} className="flex flex-col gap-6 mt-4">
+                                <div>
+                                    <label className={labelClass}>Precio</label>
+                                    <input
+                                        type="number"
+                                        name="price"
+                                        value={form.price}
+                                        onChange={handleFormChange}
+                                        placeholder="0"
+                                        className={inputClass}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Descripción</label>
+                                    <textarea
+                                        name="description"
+                                        value={form.description}
+                                        onChange={handleFormChange}
+                                        placeholder="Describí tu prenda..."
+                                        rows={3}
+                                        className={inputClass + " resize-none"}
+                                    />
+                                </div>
+                                <div className="flex gap-4">
+                                    <button
+                                        type="submit"
+                                        className="flex-1 py-3 bg-[#c49a6c] hover:bg-[#d4aa7c] text-[#221f1c] text-xs font-semibold tracking-[0.2em] uppercase transition-all duration-300"
+                                    >
+                                        Publicar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCreateListing(false)}
+                                        className="flex-1 py-3 border border-[#4a4540] hover:border-[#6b6258] text-[#6b6258] text-xs tracking-[0.2em] uppercase transition-all duration-300"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                    </div>
+                </div>
+            )}
+            {editingListing && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
+                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">
+                        <h3 className="text-[#e8d5b0] text-lg font-light tracking-widest mb-1">Editar publicación</h3>
+                        <div className="w-6 h-px bg-[#c49a6c] mb-8"></div>
+
+                        <form onSubmit={updateStoreListing} className="flex flex-col gap-6">
+                            <div>
+                                <label className={labelClass}>Precio</label>
+                                <input
+                                    type="number"
+                                    name="price"
+                                    value={form.price}
+                                    onChange={handleFormChange}
+                                    placeholder="0"
+                                    className={inputClass}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Descripción</label>
+                                <textarea
+                                    name="description"
+                                    value={form.description}
+                                    onChange={handleFormChange}
+                                    rows={3}
+                                    className={inputClass + " resize-none"}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Estado</label>
+                                <select
+                                    name="status"
+                                    value={form.status}
+                                    onChange={handleFormChange}
+                                    className={selectClass}
+                                >
+                                    <option value="ACTIVE">Activo</option>
+                                    <option value="SOLD">Vendido</option>
+                                    <option value="PAUSED">Pausado</option>
+                                </select>
+                            </div>
+                            <div className="flex gap-4">
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 bg-[#c49a6c] hover:bg-[#d4aa7c] text-[#221f1c] text-xs font-semibold tracking-[0.2em] uppercase transition-all duration-300"
+                                >
+                                    Guardar
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingListing(null)}
+                                    className="flex-1 py-3 border border-[#4a4540] hover:border-[#6b6258] text-[#6b6258] text-xs tracking-[0.2em] uppercase transition-all duration-300"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
-
 export default Store;

@@ -41,7 +41,7 @@ public class StoreListing {
     @Column(name = "status")
     private StoreStatus status;
 
-    @Column(name = "date")
+    @Column(name = "date_listed")
     private LocalDate date;
 
 }
