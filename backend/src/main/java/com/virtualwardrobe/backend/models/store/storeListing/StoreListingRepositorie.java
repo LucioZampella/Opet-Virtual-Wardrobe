@@ -20,10 +20,10 @@ public interface StoreListingRepositorie extends JpaRepository<StoreListing, Int
                   "(:sizeId IS NULL OR p.clothe.sizeId = :sizeId) AND " +
                   "(:materialId IS NULL OR p.clothe.materialId = :materialId) AND " +
                   "(:fitId IS NULL OR p.clothe.fitId = :fitId) AND " +
-                  "(:colorIds IS NULL OR c.id IN :colorIds) AND " + // Usamos el ID del color
+            "(COALESCE(:colorIds, NULL) IS NULL OR c.id IN :colorIds) AND " + // Usamos el ID del color
                   "(:name IS NULL OR p.clothe.name LIKE CONCAT('%', :name, '%'))")
     List<StoreListing> filterByAll(Double min, Double max, Integer typeId, Integer sizeId, Integer materialId,
-                                   Integer fitId, List<Long> colorId, String name);
+                                   Integer fitId, List<Long> colorIds, String name);
 
     List<StoreListing> findAllByOrderByDateDesc();
 }

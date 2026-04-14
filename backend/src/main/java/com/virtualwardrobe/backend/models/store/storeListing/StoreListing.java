@@ -1,5 +1,6 @@
 package com.virtualwardrobe.backend.models.store.storeListing;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.virtualwardrobe.backend.models.clothe.Clothe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

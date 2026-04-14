@@ -17,7 +17,7 @@ public class Colour {
 
     private String name;
 
-    @JsonIgnoreProperties("colours") // O @JsonIgnore
+    @JsonIgnoreProperties("colours")
     @ManyToMany(mappedBy = "colours")
     private List<Clothe> clothes;
 

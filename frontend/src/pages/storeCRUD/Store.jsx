@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import Navbar from "../../components/Navbar.jsx";
 import {STATUS} from "../../constants/statusOptions.js";
+import Search from "../../components/Search.jsx";
 
 const EmptyForm = {
     price: "",
@@ -23,13 +24,13 @@ function Store() {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [filters, setFilters] = useState({
-        min: "",
-        max: "",
+        min: 0,
+        max: 10000001,
         typeId: "",
         sizeId: "",
         materialId: "",
         fitId: "",
-        colorId: "",
+        colorId: [],
         name: "",
     })
 
@@ -64,20 +65,29 @@ function Store() {
         setLoading(true);
         try {
             const params = new URLSearchParams();
-            if (newFilters.min) params.append("min", newFilters.min);
-            if (newFilters.max) params.append("max", newFilters.max);
-            if (newFilters.typeId) params.append("typeId", newFilters.typeId);
-            if (newFilters.sizeId) params.append("sizeId", newFilters.sizeId);
-            if (newFilters.materialId) params.append("materialId", newFilters.materialId);
-            if (newFilters.fitId) params.append("fitId", newFilters.fitId);
-            if (newFilters.colorId) params.append("colorId", newFilters.colorId);
-            if (newFilters.name) params.append("name", newFilters.name);
 
-            const response = await response(`http://localhost:8080/store/filter?${params.toString()}`);
+            Object.keys(newFilters).forEach(key => {
+                const value = newFilters[key];
+                if (value !== "" && value !== null && value !== undefined) {
+                    if (Array.isArray(value)) {
+                        value.forEach(v => params.append(key, v));
+                    } else {
+                        params.append(key, value);
+                    }
+                }
+            });
+
+            const response = await fetch(`http://localhost:8080/store/filter?${params}`, {
+                headers: { "Authorization": `Bearer ${token}`,
+                "Accept": "application/json"}
+            });
 
             if (response.ok) {
-                const data = response.json();
+                const data = await response.json();
                 setStoreListing(data);
+            } else {
+                const errorData = await response.json();
+                console.error("DETALLE DEL ERROR 500 DESDE EL BACKEND:", errorData);
             }
         } catch (error) {
             console.error("Error al filtrar: ", error);
@@ -86,7 +96,7 @@ function Store() {
         }
 
     }
-    // --> me traigo todas mis prendas del usuario //
+    // --> me traigo todas mis prendas del usuario
     const fetchMyClothes = async () => {
         try {
             const response = await fetch(`http://localhost:8080/clothes/my-clothes`, {
@@ -123,9 +133,18 @@ function Store() {
         }
     }
 
-    const handleSearching = () => { // --> Maneja busquedas de articulos
-        fetchWithFilters(filters);
-    }
+    const handleSearching = (searchValue) => { // --> Maneja busquedas de articulos
+        setFilters(prev => ({...prev, name: searchValue})); // --> Esto para que se muestre en el
+        //input lo que vas escribiendo
+
+        const newFilters = {...filters, name: searchValue}
+
+        if (searchValue.trim() !== "") {
+            fetchWithFilters(newFilters)
+        } else {
+            fetchAllListings();
+        }
+    };
 
     const createStoreListing = async (e) => { // --> Crear una publicacion de venta
         e.preventDefault();
@@ -266,6 +285,12 @@ function Store() {
                         + Publicar
                     </button>
                 </div>
+
+                <Search
+                    value = {filters.name}
+                    onChange={handleSearching}
+                    placeholder="BUSCAR..."
+                    />
 
                 {loading && <p className="text-[#6b6258] text-xs text-center mt-10 animate-pulse">Cargando...</p>}
 

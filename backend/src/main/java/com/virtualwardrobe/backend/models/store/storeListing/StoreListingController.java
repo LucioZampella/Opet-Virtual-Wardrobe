@@ -5,6 +5,7 @@ import com.virtualwardrobe.backend.models.clothe.Clothe;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
 import com.virtualwardrobe.backend.models.store.storeListing.storeListingDTO.ListingResponseDTO;
 import com.virtualwardrobe.backend.models.store.storeListing.storeListingDTO.StoreListingDTO;
+import com.virtualwardrobe.backend.models.store.storeListing.storeListingDTO.StoreListingFilterDTO;
 import com.virtualwardrobe.backend.models.store.storeListing.storeListingDTO.UpdateListingDTO;
 import com.virtualwardrobe.backend.security.JwtUtil;
 import jakarta.validation.Valid;

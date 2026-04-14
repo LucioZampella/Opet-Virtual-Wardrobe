@@ -11,7 +11,7 @@ const EmptyForm = {
     sizeId:     "",
     materialId: "",
     fitId:      "",
-    colorsId: [],
+    colorIds: [],
     image_url:  "",
     preferenceLevel: 50,
 };
@@ -27,7 +27,7 @@ function Wardrobe() {
         sizeId:     "",
         materialId: "",
         fitId:      "",
-        colorsId: "",
+        colorIds: [],
         preferenceLevel: "",
     });
 
@@ -70,7 +70,11 @@ function Wardrobe() {
             Object.entries(newFilters).forEach(([key, value]) => {
                 // Verificamos que el valor no sea null, undefined o una cadena vacía
                 if (value !== null && value !== undefined && value !== "") {
-                    params.append(key, value);
+                    if (Array.isArray(value)) {
+                        value.forEach(v => params.append(key, v));
+                    } else {
+                        params.append(key, value);
+                    }
                 }
             });
             const url = `http://localhost:8080/clothes/filter?${params.toString()}`;
