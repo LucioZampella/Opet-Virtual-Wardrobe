@@ -72,10 +72,10 @@ public class StoreListingController {
             @RequestParam(required = false) Integer sizeId,
             @RequestParam(required = false) Integer materialId,
             @RequestParam(required = false) Integer fitId,
-            @RequestParam(required = false) Integer colorId,
+            @RequestParam(required = false) List<Long> colorIds,
             @RequestParam(required = false) String name,
     @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok(service.filtrar(min, max, typeId, sizeId, materialId, fitId, colorId, name));
+        return ResponseEntity.ok(service.filtrar(min, max, typeId, sizeId, materialId, fitId, colorIds, name));
     }
 }
 

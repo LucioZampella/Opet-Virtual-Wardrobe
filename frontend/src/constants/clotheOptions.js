@@ -41,24 +41,31 @@ export const CLOTHING_TYPES = [
 ];
 
 export const COLORS = [
-    { id: 1, label: "Blanco" },
-    { id: 2, label: "Negro" },
+    { id: 1, label: "Negro" },
+    { id: 2, label: "Blanco" },
     { id: 3, label: "Gris" },
-    { id: 4, label: "Azul" },
-    { id: 5, label: "Celeste" },
+    { id: 4, label: "Beige" },
+    { id: 5, label: "Crema" },
+
     { id: 6, label: "Rojo" },
-    { id: 7, label: "Bordó" },
-    { id: 8, label: "Verde" },
-    { id: 9, label: "Amarillo" },
+    { id: 7, label: "Azul" },
+    { id: 8, label: "Amarillo" },
+    { id: 9, label: "Verde" },
     { id: 10, label: "Naranja" },
-    { id: 11, label: "Rosa" },
-    { id: 12, label: "Violeta" },
-    { id: 13, label: "Marrón" },
-    { id: 14, label: "Beige" },
-    { id: 15, label: "Dorado" },
-    { id: 16, label: "Plateado" },
-    { id: 17, label: "Multicolor" },
-    { id: 18, label: "Estampado" }
+    { id: 11, label: "Violeta" },
+    { id: 12, label: "Rosa" },
+
+    { id: 13, label: "Cian" },
+    { id: 14, label: "Turquesa" },
+    { id: 15, label: "Burdeos" },
+    { id: 16, label: "Mostaza" },
+    { id: 17, label: "Oliva" },
+    { id: 18, label: "Terracota" },
+    { id: 19, label: "Celeste" },
+    { id: 20, label: "Lila" },
+    { id: 21, label: "Marrón" },
+    { id: 22, label: "Dorado" },
+    { id: 23, label: "Plateado" }
 ];
 
 export const SIZES = [

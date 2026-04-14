@@ -1,6 +1,7 @@
 package com.virtualwardrobe.backend.models.clothe;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -10,5 +11,6 @@ import java.util.Optional;
 public interface ClotheRepositorie extends JpaRepository<Clothe, Integer> {
     Optional<Clothe> findById(int id);
     List<Clothe> findByUserId(int userId);
-
+    @Query("SELECT DISTINCT c FROM Clothe c LEFT JOIN FETCH c.colours")
+    List<Clothe> findAllWithColours();
 }

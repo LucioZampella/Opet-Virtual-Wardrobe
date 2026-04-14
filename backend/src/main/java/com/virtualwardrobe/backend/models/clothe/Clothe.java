@@ -44,9 +44,6 @@ public class Clothe {
     @Column(name = "material_id")
     private int materialId;
 
-    @Column(name = "color_id")
-    private int colorId;
-
     @Column(name = "fit_id")
     private int fitId;
 

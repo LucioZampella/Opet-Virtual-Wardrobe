@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import Navbar from "../../components/Navbar.jsx";
+import GenericSelect from "../../constants/GenericSelect";
 const CLOUDINARY_CLOUD_NAME = "ducp0gbgq";
 const CLOUDINARY_UPLOAD_PRESET = "opet_clothes";
 import { CLOTHING_TYPES, COLORS, SIZES, FITS, MATERIALS } from "../../constants/clotheOptions.js";
@@ -10,10 +11,11 @@ const EmptyForm = {
     sizeId:     "",
     materialId: "",
     fitId:      "",
-    colorId: "",
+    colorsId: [],
     image_url:  "",
     preferenceLevel: 50,
 };
+
 
 
 function Wardrobe() {
@@ -25,7 +27,7 @@ function Wardrobe() {
         sizeId:     "",
         materialId: "",
         fitId:      "",
-        colorId: "",
+        colorsId: "",
         preferenceLevel: "",
     });
 
@@ -65,12 +67,14 @@ function Wardrobe() {
         setLoading(true);
         try {
             const params = new URLSearchParams(); // --> URLSearchParams arma la cadena "?typeId=1&sizeId=3" automáticamente
-            if (newFilters.typeId)     params.append("typeId",     newFilters.typeId);
-            if (newFilters.sizeId)     params.append("sizeId",     newFilters.sizeId);
-            if (newFilters.materialId) params.append("materialId", newFilters.materialId);
-            if (newFilters.fitId)      params.append("fitId",      newFilters.fitId);
-            if (newFilters.colorId) params.append("colorId", newFilters.colorId);
-            if (newFilters.preferenceLevel) params.append("preferenceLevel", newFilters.preferenceLevel);
+            Object.entries(newFilters).forEach(([key, value]) => {
+                // Verificamos que el valor no sea null, undefined o una cadena vacía
+                if (value !== null && value !== undefined && value !== "") {
+                    params.append(key, value);
+                }
+            });
+            const url = `http://localhost:8080/clothes/filter?${params.toString()}`;
+            console.log("URL QUE ESTOY MANDANDO AL BACKEND:", url); // <--- ESTO ES LO QUE NECESITO VER
 
             const response = await fetch(`http://localhost:8080/clothes/filter?${params.toString()}`, {
                 headers: { "Authorization": `Bearer ${token}` }
@@ -122,13 +126,27 @@ function Wardrobe() {
             [name]: value
         }));
     };
+    // funcione que controla los botones de colores
+    const toggleColor = (id) => {
+        setForm(prev => {
+            const currentIds = prev.colourIds || [];
+            const newIds = currentIds.includes(id)
+                ? currentIds.filter(cId => cId !== id)
+                : [...currentIds, id];
+            return { ...prev, colourIds: newIds };
+        });
+    };
 
-    const handleFilterChange = (e) => { // --> Maneja los cambios de filtros
-        const { name, value } = e.target;
-        const newFilters = { ...filters, [name]: value };
+    const handleFilterChange = (name, newValue) => {
+        // newValue vendrá como el objeto completo {id: ..., name: ...} o null si lo borras
+        const selectedId = newValue ? newValue.id : "";
+
+        const newFilters = { ...filters, [name]: selectedId };
         setFilters(newFilters);
 
-        const hayAlgunFiltro = Object.values(newFilters).some(v => v !== "");
+        // Ejecutamos la búsqueda con los filtros actualizados
+        const hayAlgunFiltro = Object.values(newFilters).some(v => v !== "" && v !== undefined);
+
         if (hayAlgunFiltro) {
             fetchWithFilters(newFilters);
         } else {
@@ -158,7 +176,7 @@ function Wardrobe() {
                     sizeId:     Number(form.sizeId),
                     materialId: Number(form.materialId),
                     fitId:      Number(form.fitId),
-                    colorId: Number(form.colorId),
+                    colourIds: form.colourIds,
                     preferenceLevel: Number(form.preferenceLevel),
                 })
             });
@@ -185,7 +203,7 @@ function Wardrobe() {
             sizeId:     clothe.sizeId     || 0,
             materialId: clothe.materialId || 0,
             fitId:      clothe.fitId      || 0,
-            colorId: clothe.colorId || 0,
+            colourIds:  clothe.colours?.map(c => c.id) || [],
             preferenceLevel: clothe.preferenceLevel || 50,
         });
     };
@@ -207,7 +225,7 @@ function Wardrobe() {
                     sizeId:     Number(form.sizeId),
                     materialId: Number(form.materialId),
                     fitId:      Number(form.fitId),
-                    colorId: Number(form.colorId),
+                    colourIds: form.colourIds,
                     preferenceLevel: Number(form.preferenceLevel),
                 })
             });
@@ -309,47 +327,48 @@ function Wardrobe() {
 
 
                 {/* Filtros, los cuales solo se muestran con 1 prenda o mas*/}
-                {clothes.length > 0 && (
-                    <div className="py-4 flex gap-3 overflow-x-auto">
-                        {/* Cada select llama a handleFilterChange cuando cambia su valor */}
 
-                        <select name="typeId" value={filters.typeId} onChange={handleFilterChange} className={selectClass}>
-                            <option value="">Todos los tipos</option>
-                            {/* Iteramos clothing_types para generar las opciones dinámicamente */}
-                            {CLOTHING_TYPES.map(t => (
-                                <option key={t.id} value={t.id}>{t.label}</option>
-                            ))}
-                        </select>
+                {/*CAMBIOOO, ahora se mostrara todo el tiempo con el objetivo de que cuando no encuentre nada con el filtro*/}
+                {/*Siga estando los filtros arriba y no se crashee todo */}
 
-                        <select name="sizeId" value={filters.sizeId} onChange={handleFilterChange} className={selectClass}>
-                            <option value="">Todos los talles</option>
-                            {SIZES.map(t => (
-                                <option key={t.id} value={t.id}>{t.label}</option>
-                            ))}
-                        </select>
 
-                        <select name="materialId" value={filters.materialId} onChange={handleFilterChange} className={selectClass}>
-                            <option value="">Todos los materiales</option>
-                            {MATERIALS.map(m => (
-                                <option key={m.id} value={m.id}>{m.label}</option>
-                            ))}
-                        </select>
+                {(clothes.length > 0 || Object.values(filters).some(v => v !== "")) && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 py-2">
+                        <GenericSelect
+                            label="Tipo"
+                            options={CLOTHING_TYPES}
+                            value={filters.typeId ? CLOTHING_TYPES.find(t => t.id === parseInt(filters.typeId)) : null}
+                            onChange={(val) => handleFilterChange("typeId", val)}
+                        />
+                        <GenericSelect
+                            label="Talle"
+                            options={SIZES}
+                            value={filters.sizeId ? SIZES.find(s => s.id === parseInt(filters.sizeId)) : null}
+                            onChange={(val) => handleFilterChange("sizeId", val)}
+                        />
 
-                        <select name="fitId" value={filters.fitId} onChange={handleFilterChange} className={selectClass}>
-                            <option value="">Todos los fits</option>
-                            {FITS.map(f => (
-                                <option key={f.id} value={f.id}>{f.label}</option>
-                            ))}
-                        </select>
+                        <GenericSelect
+                            label="Material"
+                            options={MATERIALS}
+                            value={filters.materialId ? MATERIALS.find(m => m.id === parseInt(filters.materialId)) : null}
+                            onChange={(val) => handleFilterChange("materialId", val)}
+                        />
 
-                        <select name="colorId" value={filters.colorId} onChange={handleFilterChange} className={selectClass}>
-                            <option value="">Todos los colores</option>
-                            {COLORS.map(c => (
-                                <option key={c.id} value={c.id}>{c.label}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+                        <GenericSelect
+                            label="Fit"
+                            options={FITS}
+                            value={filters.fitId ? FITS.find(f => f.id === parseInt(filters.fitId)) : null}
+                            onChange={(val) => handleFilterChange("fitId", val)}
+                        />
+                        <GenericSelect
+                            label="Todos los Colores"
+                            options={COLORS}
+                            // Buscamos el objeto por ID para que el select muestre el nombre correcto
+                            value={filters.colourIds ? COLORS.find(c => c.id === parseInt(filters.colourIds)) : null}
+                            // AQUÍ ESTÁ EL CAMBIO: pasamos 'val ? val.id : ""'
+                            onChange={(val) => handleFilterChange("colourIds", val ? val.id : "")}
+                        />
+                    </div>)}
 
                 {loading && (
                     <div className="flex justify-center py-16">
@@ -411,18 +430,23 @@ function Wardrobe() {
 
                                     {/* Tags de categorías */}
                                     <div className="flex flex-wrap gap-1">
+                                        {/* Primero, las etiquetas que son IDs únicos */}
                                         {[
-                                            getLabelById(CLOTHING_TYPES,     clothe.typeId),
-                                            getLabelById(SIZES,    clothe.sizeId),
+                                            getLabelById(CLOTHING_TYPES, clothe.typeId),
+                                            getLabelById(SIZES, clothe.sizeId),
                                             getLabelById(MATERIALS, clothe.materialId),
-                                            getLabelById(FITS,      clothe.fitId),
-                                            getLabelById(COLORS, clothe.colorId)
-                                        ].map((label, i) => (
+                                            getLabelById(FITS, clothe.fitId)
+                                        ].filter(label => label).map((label, i) => (
+                                            <span key={`attr-${i}`} className="text-[9px] tracking-[0.1em] uppercase text-[#6b6258] border border-[#3a3530] px-2 py-0.5">{label}</span>
+                                        ))}
+
+                                        {/* Ahora, mapeamos la lista de colores (ManyToMany) */}
+                                        {clothe.colours && clothe.colours.map(colour => (
                                             <span
-                                                key={i}
+                                                key={`color-${colour.id}`}
                                                 className="text-[9px] tracking-[0.1em] uppercase text-[#6b6258] border border-[#3a3530] px-2 py-0.5"
                                             >
-                                                {label}
+                                            {colour.name} {/* Aquí accedes directamente al nombre del color */}
                                             </span>
                                         ))}
                                     </div>
@@ -556,15 +580,21 @@ function Wardrobe() {
                                 </select>
                             </div>
 
-                            {/* Color */}
-                            <div>
-                                <label className={labelClass}>Color</label>
-                                <select name="colorId" value={form.colorId} onChange={handleFormChange} required className={selectClass}>
-                                    <option value={""} disabled>Selecciona un color</option>
-                                    {COLORS.map(c => (
-                                        <option key={c.id} value={c.id}>{c.label}</option>
-                                    ))}
-                                </select>
+                            {/*Cambio el coso de colores para que ahora sea con tags y no con select*/}
+                            <div className="flex flex-wrap gap-2">
+                                {COLORS.map(c => {
+                                    const isSelected = form.colourIds?.includes(c.id);
+                                    return (
+                                        <button
+                                            type="button"
+                                            key={c.id}
+                                            onClick={() => toggleColor(c.id)}
+                                            className={isSelected ? "bg-blue-500" : "bg-gray-200"}
+                                        >
+                                            {c.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             <div>
@@ -664,7 +694,8 @@ function Wardrobe() {
 
                             <div>
                                 <label className={labelClass}>Tipo de prenda</label>
-                                <select name="typeId" value={form.typeId} onChange={handleFormChange} required className={selectClass}>
+                                <select name="typeId" value={form.typeId} onChange={handleFormChange} required
+                                        className={selectClass}>
                                     <option value={""} disabled>Seleccioná un tipo</option>
                                     {CLOTHING_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                                 </select>
@@ -672,7 +703,8 @@ function Wardrobe() {
 
                             <div>
                                 <label className={labelClass}>Talle</label>
-                                <select name="sizeId" value={form.sizeId} onChange={handleFormChange} required className={selectClass}>
+                                <select name="sizeId" value={form.sizeId} onChange={handleFormChange} required
+                                        className={selectClass}>
                                     <option value={""} disabled>Seleccioná un talle</option>
                                     {SIZES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                                 </select>
@@ -680,23 +712,33 @@ function Wardrobe() {
 
                             <div>
                                 <label className={labelClass}>Material</label>
-                                <select name="materialId" value={form.materialId} onChange={handleFormChange} required className={selectClass}>
+                                <select name="materialId" value={form.materialId} onChange={handleFormChange} required
+                                        className={selectClass}>
                                     <option value={""} disabled>Seleccioná un material</option>
                                     {MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
                                 </select>
                             </div>
 
-                            <div>
-                                <label className={labelClass}>Color</label>
-                                <select name="colorId" value={form.colorId} onChange={handleFormChange} required className={selectClass}>
-                                    <option value={""} disabled>Selecciona un color</option>
-                                    {COLORS.map( c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                                </select>
+                            <div className="flex flex-wrap gap-2">
+                                {COLORS.map(c => {
+                                    const isSelected = form.colourIds?.includes(c.id);
+                                    return (
+                                        <button
+                                            type="button"
+                                            key={c.id}
+                                            onClick={() => toggleColor(c.id)}
+                                            className={isSelected ? "bg-blue-500" : "bg-gray-200"}
+                                        >
+                                            {c.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             <div>
                                 <label className={labelClass}>Corte (Fit)</label>
-                                <select name="fitId" value={form.fitId} onChange={handleFormChange} required className={selectClass}>
+                                <select name="fitId" value={form.fitId} onChange={handleFormChange} required
+                                        className={selectClass}>
                                     <option value={""} disabled>Seleccioná un corte</option>
                                     {FITS.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
                                 </select>
@@ -718,9 +760,11 @@ function Wardrobe() {
                                 />
 
                                 <div className="flex justify-between mt-1">
-                                    <span className="text-[#4a4540] text-[10px] tracking-[0.15em] uppercase">No me gusta</span>
+                                    <span
+                                        className="text-[#4a4540] text-[10px] tracking-[0.15em] uppercase">No me gusta</span>
                                     <span className="text-[#c49a6c] text-sm font-light">{form.preferenceLevel}</span>
-                                    <span className="text-[#4a4540] text-[10px] tracking-[0.15em] uppercase">Favorita</span>
+                                    <span
+                                        className="text-[#4a4540] text-[10px] tracking-[0.15em] uppercase">Favorita</span>
                                 </div>
                             </div>
 
@@ -739,7 +783,10 @@ function Wardrobe() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => { setEditingClothe(null); setForm(EmptyForm); }}
+                                    onClick={() => {
+                                        setEditingClothe(null);
+                                        setForm(EmptyForm);
+                                    }}
                                     className="
                                         flex-1 py-3 border border-[#4a4540]
                                         hover:border-[#6b6258] text-[#6b6258]

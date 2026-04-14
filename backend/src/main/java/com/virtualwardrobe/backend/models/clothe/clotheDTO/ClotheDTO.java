@@ -1,11 +1,10 @@
 package com.virtualwardrobe.backend.models.clothe.clotheDTO;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,9 +20,8 @@ public class ClotheDTO {
     @Min(1)
     private Integer materialId;
 
-    @NotNull(message = "El color no puede estar vacío")
-    @Min(1)
-    private Integer colorId;
+    @NotEmpty(message = "La lista de colores no puede estar vacía")
+    private List<Long> colourIds;
 
     @NotNull(message = "El talle no puede estar vacío")
     @Min(1)

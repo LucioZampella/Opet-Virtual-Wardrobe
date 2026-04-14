@@ -1,5 +1,6 @@
 package com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.colour;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.virtualwardrobe.backend.models.clothe.Clothe;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -16,7 +17,8 @@ public class Colour {
 
     private String name;
 
-    @ManyToMany(mappedBy="colours")
+    @JsonIgnoreProperties("colours") // O @JsonIgnore
+    @ManyToMany(mappedBy = "colours")
     private List<Clothe> clothes;
 
 
