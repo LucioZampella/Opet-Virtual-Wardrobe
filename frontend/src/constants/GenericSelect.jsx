@@ -8,15 +8,19 @@ export default function GenericSelect({ label, options, onChange, value }) {
             size="small" // <--- Esto hace que el componente sea más compacto
             disablePortal
             options={options || []}
-            value={value}
+            value={value || null}
             onChange={(event, newValue) => onChange(newValue)}
-            getOptionLabel={(option) => option.label || option.name || ""}
+            getOptionLabel={(option) => { if (typeof option === String) {
+                return option;
+            }
+                return option.label || option.name || "";
+            }
+            }
             isOptionEqualToValue={(option, value) => option.id === value.id}
             renderInput={(params) => (
                 <TextField
                     {...params}
                     label={label}
-                    // Estilo compacto y oscuro
                     sx={{
                         '& .MuiInputLabel-root': { fontSize: '0.8rem', color: '#6b6258' },
                         '& .MuiOutlinedInput-root': { fontSize: '0.8rem', color: '#e8d5b0' }

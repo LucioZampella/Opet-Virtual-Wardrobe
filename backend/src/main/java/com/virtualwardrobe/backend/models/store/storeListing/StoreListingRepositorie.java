@@ -8,12 +8,12 @@ import java.util.Optional;
 
 public interface StoreListingRepositorie extends JpaRepository<StoreListing, Integer> {
 
-    Optional<StoreListing> findById(int listingId);
+    Optional<StoreListing> findByListingId(int listingId);
 
     List<StoreListing> findBySellerId(int sellerId);
 
     @Query("SELECT DISTINCT p FROM StoreListing p " +
-                  "LEFT JOIN p.clothe.colours c " + // Hacemos join para acceder a los colores
+                  "LEFT JOIN p.clothe.colorIds c " + // Hacemos join para acceder a los colores
                   "WHERE (:min IS NULL OR p.price >= :min) AND " +
                   "(:max IS NULL OR p.price <= :max) AND " +
                   "(:typeId IS NULL OR p.clothe.typeId = :typeId) AND " +

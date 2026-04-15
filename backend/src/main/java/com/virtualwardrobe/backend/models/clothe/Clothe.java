@@ -1,6 +1,6 @@
 package com.virtualwardrobe.backend.models.clothe;
 
-import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.colour.Colour;
+import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
 import com.virtualwardrobe.backend.models.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -58,6 +58,6 @@ public class Clothe {
             inverseJoinColumns = @JoinColumn(name = "colour_id")
             // creo la tabla "clothe_colours" donde estaran en como columnas  el clothe_id y el colour_id
     )
-    private List<Colour> colours;
+    private List<Color> colorIds;
     }
 

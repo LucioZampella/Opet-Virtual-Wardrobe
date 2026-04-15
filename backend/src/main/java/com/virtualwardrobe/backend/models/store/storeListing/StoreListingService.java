@@ -44,7 +44,7 @@ public class StoreListingService {
     }
 
     public void eliminar(int listingId, int sellerId) {
-        StoreListing ls = repo.findById(listingId)
+        StoreListing ls = repo.findByListingId(listingId)
                 .orElseThrow(() -> new RuntimeException("Error 404: Publicación no encontrada"));
 
         if (ls.getSellerId() != sellerId) {
@@ -54,7 +54,7 @@ public class StoreListingService {
     }
 
     public ListingResponseDTO buscarPorId(int listingId) {
-        StoreListing ls = repo.findById(listingId)
+        StoreListing ls = repo.findByListingId(listingId)
                 .orElseThrow(() -> new RuntimeException("Error 404: Publicación no encontrada"));
 
         ListingResponseDTO dto = new ListingResponseDTO();

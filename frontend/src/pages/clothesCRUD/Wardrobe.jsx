@@ -68,7 +68,6 @@ function Wardrobe() {
         try {
             const params = new URLSearchParams(); // --> URLSearchParams arma la cadena "?typeId=1&sizeId=3" automáticamente
             Object.entries(newFilters).forEach(([key, value]) => {
-                // Verificamos que el valor no sea null, undefined o una cadena vacía
                 if (value !== null && value !== undefined && value !== "") {
                     if (Array.isArray(value)) {
                         value.forEach(v => params.append(key, v));
@@ -77,6 +76,7 @@ function Wardrobe() {
                     }
                 }
             });
+
             const url = `http://localhost:8080/clothes/filter?${params.toString()}`;
             console.log("URL QUE ESTOY MANDANDO AL BACKEND:", url); // <--- ESTO ES LO QUE NECESITO VER
 
@@ -133,11 +133,11 @@ function Wardrobe() {
     // funcione que controla los botones de colores
     const toggleColor = (id) => {
         setForm(prev => {
-            const currentIds = prev.colourIds || [];
+            const currentIds = prev.colorIds || [];
             const newIds = currentIds.includes(id)
                 ? currentIds.filter(cId => cId !== id)
                 : [...currentIds, id];
-            return { ...prev, colourIds: newIds };
+            return { ...prev, colorIds: newIds };
         });
     };
 
@@ -180,7 +180,7 @@ function Wardrobe() {
                     sizeId:     Number(form.sizeId),
                     materialId: Number(form.materialId),
                     fitId:      Number(form.fitId),
-                    colourIds: form.colourIds,
+                    colorIds: form.colorIds,
                     preferenceLevel: Number(form.preferenceLevel),
                 })
             });
@@ -207,7 +207,7 @@ function Wardrobe() {
             sizeId:     clothe.sizeId     || 0,
             materialId: clothe.materialId || 0,
             fitId:      clothe.fitId      || 0,
-            colourIds:  clothe.colours?.map(c => c.id) || [],
+            colorIds:  clothe.colorIds?.map(c => c.id) || [],
             preferenceLevel: clothe.preferenceLevel || 50,
         });
     };
@@ -229,21 +229,19 @@ function Wardrobe() {
                     sizeId:     Number(form.sizeId),
                     materialId: Number(form.materialId),
                     fitId:      Number(form.fitId),
-                    colourIds: form.colourIds,
+                    colorIds: form.colorIds,
                     preferenceLevel: Number(form.preferenceLevel),
                 })
             });
 
             if (response.ok) {
-                setClothes(prev => // --> Recorremos el array de prendas, una vez encontramos la prenda que acabamos
-                    // de editar pumba reemplazamos los datos por los nuevos
-                    prev.map(c =>
-                        c.id === editingClothe.id
-                            ? { ...c, ...form, typeId: Number(form.typeId), sizeId: Number(form.sizeId), materialId: Number(form.materialId), fitId: Number(form.fitId),
-                            colorId: Number(form.colorId), preferenceLevel: Number(form.preferenceLevel)}
-                            : c
-                    )
-                );
+                setClothes(prev =>
+                        prev.map(c =>
+                            c.id === editingClothe.id
+                                ? { ...c, ...form }
+                                : c
+                        )
+                    );
                 setEditingClothe(null);
                 setForm(EmptyForm);
             } else {
@@ -341,36 +339,36 @@ function Wardrobe() {
                         <GenericSelect
                             label="Tipo"
                             options={CLOTHING_TYPES}
-                            value={filters.typeId ? CLOTHING_TYPES.find(t => t.id === parseInt(filters.typeId)) : null}
+                            value={CLOTHING_TYPES.find(t => t.id === parseInt(filters.typeId)) || null}
                             onChange={(val) => handleFilterChange("typeId", val)}
                         />
                         <GenericSelect
                             label="Talle"
                             options={SIZES}
-                            value={filters.sizeId ? SIZES.find(s => s.id === parseInt(filters.sizeId)) : null}
+                            value={SIZES.find(s => s.id === parseInt(filters.sizeId)) || null}
                             onChange={(val) => handleFilterChange("sizeId", val)}
                         />
 
                         <GenericSelect
                             label="Material"
                             options={MATERIALS}
-                            value={filters.materialId ? MATERIALS.find(m => m.id === parseInt(filters.materialId)) : null}
+                            value={MATERIALS.find(m => m.id === parseInt(filters.materialId)) || null}
                             onChange={(val) => handleFilterChange("materialId", val)}
                         />
 
                         <GenericSelect
                             label="Fit"
                             options={FITS}
-                            value={filters.fitId ? FITS.find(f => f.id === parseInt(filters.fitId)) : null}
+                            value={FITS.find(f => f.id === parseInt(filters.fitId)) || null}
                             onChange={(val) => handleFilterChange("fitId", val)}
                         />
                         <GenericSelect
                             label="Todos los Colores"
                             options={COLORS}
                             // Buscamos el objeto por ID para que el select muestre el nombre correcto
-                            value={filters.colourIds ? COLORS.find(c => c.id === parseInt(filters.colourIds)) : null}
-                            // AQUÍ ESTÁ EL CAMBIO: pasamos 'val ? val.id : ""'
-                            onChange={(val) => handleFilterChange("colourIds", val ? val.id : "")}
+                            value={COLORS.find(c => c.id === parseInt(filters.colorIds)) || null}
+                            // ACA ESTÁ EL CAMBIO: pasamos 'val ? val.id : ""'
+                            onChange={(val) => handleFilterChange("colorIds", val ? val.id : "")}
                         />
                     </div>)}
 
@@ -445,12 +443,12 @@ function Wardrobe() {
                                         ))}
 
                                         {/* Ahora, mapeamos la lista de colores (ManyToMany) */}
-                                        {clothe.colours && clothe.colours.map(colour => (
+                                        {clothe.colorIds && clothe.colorIds.map(colorIds => (
                                             <span
-                                                key={`color-${colour.id}`}
+                                                key={`color-${colorIds.id}`}
                                                 className="text-[9px] tracking-[0.1em] uppercase text-[#6b6258] border border-[#3a3530] px-2 py-0.5"
                                             >
-                                            {colour.name} {/* Aquí accedes directamente al nombre del color */}
+                                            {colorIds.name} {/* Aquí accedes directamente al nombre del color */}
                                             </span>
                                         ))}
                                     </div>
@@ -587,7 +585,7 @@ function Wardrobe() {
                             {/*Cambio el coso de colores para que ahora sea con tags y no con select*/}
                             <div className="flex flex-wrap gap-2">
                                 {COLORS.map(c => {
-                                    const isSelected = form.colourIds?.includes(c.id);
+                                    const isSelected = form.colorIds?.includes(c.id);
                                     return (
                                         <button
                                             type="button"
@@ -725,7 +723,7 @@ function Wardrobe() {
 
                             <div className="flex flex-wrap gap-2">
                                 {COLORS.map(c => {
-                                    const isSelected = form.colourIds?.includes(c.id);
+                                    const isSelected = form.colorIds?.includes(c.id);
                                     return (
                                         <button
                                             type="button"

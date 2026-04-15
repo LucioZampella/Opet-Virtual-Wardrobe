@@ -1,7 +1,7 @@
 package com.virtualwardrobe.backend.Initializator;
 
-import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.colour.Colour;
-import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.colour.ColourRepository;
+import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
+import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.ColorRepository;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.fit.ClothesFit;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.fit.ClothesFitRepositorie;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.material.ClothesMaterial;
@@ -19,7 +19,7 @@ import java.util.List;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Autowired  private ColourRepository c;
+    @Autowired  private ColorRepository c;
     @Autowired  private ClothesTypeRepositorie typeRepo;
     @Autowired  private ClothesSizeRepositorie sizeRepo;
     @Autowired  private ClothesFitRepositorie fitRepo;
@@ -31,33 +31,33 @@ public class DataInitializer implements CommandLineRunner {
 
         if(c.count()==0){
             c.saveAll(List.of(
-                    new Colour("Negro"),
-                    new Colour("Blanco"),
-                    new Colour("Gris"),
-                    new Colour("Beige"),
-                    new Colour("Crema"),
+                    new Color("Negro"),
+                    new Color("Blanco"),
+                    new Color("Gris"),
+                    new Color("Beige"),
+                    new Color("Crema"),
 
                     // Colores Vivos
-                    new Colour("Rojo"),
-                    new Colour("Azul"),
-                    new Colour("Amarillo"),
-                    new Colour("Verde"),
-                    new Colour("Naranja"),
-                    new Colour("Violeta"),
-                    new Colour("Rosa"),
+                    new Color("Rojo"),
+                    new Color("Azul"),
+                    new Color("Amarillo"),
+                    new Color("Verde"),
+                    new Color("Naranja"),
+                    new Color("Violeta"),
+                    new Color("Rosa"),
 
                     // Tonos Específicos (Moda)
-                    new Colour("Cian"),
-                    new Colour("Turquesa"),
-                    new Colour("Burdeos"),
-                    new Colour("Mostaza"),
-                    new Colour("Oliva"),
-                    new Colour("Terracota"),
-                    new Colour("Celeste"),
-                    new Colour("Lila"),
-                    new Colour("Marrón"),
-                    new Colour("Dorado"),
-                    new Colour("Plateado")
+                    new Color("Cian"),
+                    new Color("Turquesa"),
+                    new Color("Burdeos"),
+                    new Color("Mostaza"),
+                    new Color("Oliva"),
+                    new Color("Terracota"),
+                    new Color("Celeste"),
+                    new Color("Lila"),
+                    new Color("Marrón"),
+                    new Color("Dorado"),
+                    new Color("Plateado")
 
             ));
         }

@@ -27,11 +27,10 @@ function Login({onLoginSuccess}) {
                 onLoginSuccess();
                 navigate("/feed"); //--> Redirige al perfil si el login fue exitoso
             } else {
-                alert("username o contraseña incorrectos.");
+                console.error("username o contraseña incorrectos.");
             }
         } catch (error) {
             console.error("Error al conectar con el servidor:", error);
-            alert("Parece que el servidor de Java está apagado.");
         }
     };
 

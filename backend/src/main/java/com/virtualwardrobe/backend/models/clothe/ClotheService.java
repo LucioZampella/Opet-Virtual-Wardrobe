@@ -1,11 +1,10 @@
 package com.virtualwardrobe.backend.models.clothe;
 
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
-import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.colour.Colour;
-import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.colour.ColourRepository;
+import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
+import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.ColorRepository;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
-import com.virtualwardrobe.backend.models.user.userServices.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +18,7 @@ public class ClotheService {
     private ClotheRepositorie repo;
 
     @Autowired
-    private ColourRepository colourRepository;
+    private ColorRepository colorRepository;
 
 
     @Autowired
@@ -30,8 +29,8 @@ public class ClotheService {
         User user= UserRepo.findById(userId).get();
 
         if (dto.getColourIds() != null && !dto.getColourIds().isEmpty()) {
-            List<Colour> colours = colourRepository.findAllById(dto.getColourIds());
-            c.setColours(colours);
+            List<Color> colorIds = colorRepository.findAllById(dto.getColourIds());
+            c.setColorIds(colorIds);
         }
         c.setUser(user);
         c.setName(dto.getName());
@@ -52,8 +51,8 @@ public class ClotheService {
             throw new RuntimeException("Error 401: No tenés permiso para editar esta prenda");
         }
         if (dto.getColourIds() != null && !dto.getColourIds().isEmpty()) {
-            List<Colour> colours = colourRepository.findAllById(dto.getColourIds());
-            c.setColours(colours);
+            List<Color> colorIds = colorRepository.findAllById(dto.getColourIds());
+            c.setColorIds(colorIds);
         }
 
         c.setName(dto.getName());
@@ -87,8 +86,8 @@ public class ClotheService {
         dto.setMaterialId(c.getMaterialId());
         dto.setSizeId(c.getSizeId());
         dto.setTypeId(c.getTypeId());
-        List<Colour> colours = colourRepository.findAllById(dto.getColourIds());
-        c.setColours(colours);
+        List<Color> colors = colorRepository.findAllById(dto.getColourIds());
+        c.setColorIds(colors);
         dto.setPreferenceLevel(dto.getPreferenceLevel());
         return dto;
     }
@@ -100,7 +99,7 @@ public class ClotheService {
 
     public List<Clothe> filtrar(int userId, Integer typeId, Integer sizeId,
                                 Integer materialId, Integer fitId,
-                                List<Long> colourIds,
+                                List<Long> colorIds,
                                 Integer preferenceLevel, String name) {
 
         return repo.findByUserId(userId).stream()
@@ -110,9 +109,9 @@ public class ClotheService {
                 .filter(c -> fitId == null || c.getFitId() == fitId)
                 .filter(c -> preferenceLevel == null || c.getPreferenceLevel() == preferenceLevel)
                 .filter(c -> name == null || c.getName().toLowerCase().contains(name.toLowerCase()))
-                .filter(c -> colourIds == null || colourIds.isEmpty() ||
-                        c.getColours().stream()
-                                .anyMatch(colour -> colourIds.contains(colour.getId())))
+                .filter(c -> colorIds == null || colorIds.isEmpty() ||
+                        c.getColorIds().stream()
+                                .anyMatch(color -> colorIds.contains(color.getId())))
                 .collect(Collectors.toList());
     }
 }

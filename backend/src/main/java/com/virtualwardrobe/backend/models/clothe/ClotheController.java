@@ -67,14 +67,14 @@ public class ClotheController {
             @RequestParam(required = false) Integer sizeId,
             @RequestParam(required = false) Integer materialId,
             @RequestParam(required = false) Integer fitId,
-            @RequestParam(required = false) List<Long> colourIds,
+            @RequestParam(required = false) List<Long> colorIds,
             @RequestParam(required = false) Integer preferenceLevel,
             @RequestParam(required = false) String name,
             @RequestHeader("Authorization") String authHeader) {
 
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        System.out.println("COLORES RECIBIDOS EN BACKEND: " + colourIds); // <-- MIRA LA CONSOLA DE TU BACKEND
+        System.out.println("COLORES RECIBIDOS EN BACKEND: " + colorIds); // <-- MIRA LA CONSOLA DE TU BACKEND
         // ...
-        return ResponseEntity.ok(service.filtrar(userId, typeId, sizeId, materialId, fitId, colourIds, preferenceLevel, name));
+        return ResponseEntity.ok(service.filtrar(userId, typeId, sizeId, materialId, fitId, colorIds, preferenceLevel, name));
     }
 }
