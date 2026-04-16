@@ -142,13 +142,17 @@ function Wardrobe() {
     };
 
     const handleFilterChange = (name, newValue) => {
-        // newValue vendrá como el objeto completo {id: ..., name: ...} o null si lo borras
-        const selectedId = newValue ? newValue.id : "";
+        let selectedValue;
 
-        const newFilters = { ...filters, [name]: selectedId };
+        if (name === "colorIds") {
+            selectedValue = Array.isArray(newValue) ? newValue : [];
+        } else {
+            selectedValue = newValue ? newValue.id : "";
+        }
+
+        const newFilters = { ...filters, [name]: selectedValue };
         setFilters(newFilters);
 
-        // Ejecutamos la búsqueda con los filtros actualizados
         const hayAlgunFiltro = Object.values(newFilters).some(v => v !== "" && v !== undefined);
 
         if (hayAlgunFiltro) {
@@ -207,7 +211,7 @@ function Wardrobe() {
             sizeId:     clothe.sizeId     || 0,
             materialId: clothe.materialId || 0,
             fitId:      clothe.fitId      || 0,
-            colorIds:  clothe.colorIds?.map(c => c.id) || [],
+            colorIds:  clothe.colorIds ? clothe.colorIds.map(c => typeof c === 'object' ? c.id : c) : [],
             preferenceLevel: clothe.preferenceLevel || 50,
         });
     };
@@ -365,10 +369,15 @@ function Wardrobe() {
                         <GenericSelect
                             label="Todos los Colores"
                             options={COLORS}
-                            // Buscamos el objeto por ID para que el select muestre el nombre correcto
-                            value={COLORS.find(c => c.id === parseInt(filters.colorIds)) || null}
-                            // ACA ESTÁ EL CAMBIO: pasamos 'val ? val.id : ""'
-                            onChange={(val) => handleFilterChange("colorIds", val ? val.id : "")}
+                            multiple={true}
+                            value={COLORS.filter(c => filters.colorIds.includes(c.id)) || []}
+                            onChange={(selectedValues) => {
+                                const ids = Array.isArray(selectedValues) ?
+                                    selectedValues.map(o => o.id) :
+                                    [];
+                                handleFilterChange("colorIds", ids);
+                                }
+                            }
                         />
                     </div>)}
 

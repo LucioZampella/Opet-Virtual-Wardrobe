@@ -2,13 +2,14 @@ import * as React from 'react';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 
-export default function GenericSelect({ label, options, onChange, value }) {
+export default function GenericSelect({ label, options, onChange, value, multiple = false }) {
     return (
         <Autocomplete
+            multiple={multiple}
             size="small" // <--- Esto hace que el componente sea más compacto
             disablePortal
             options={options || []}
-            value={value || null}
+            value={value || (multiple ? [] : null) }
             onChange={(event, newValue) => onChange(newValue)}
             getOptionLabel={(option) => { if (typeof option === String) {
                 return option;

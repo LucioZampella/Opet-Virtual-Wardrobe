@@ -21,7 +21,7 @@ public class ClotheDTO {
     private Integer materialId;
 
     @NotEmpty(message = "La lista de colores no puede estar vacía")
-    private List<Long> colourIds;
+    private List<Long> colorIds;
 
     @NotNull(message = "El talle no puede estar vacío")
     @Min(1)

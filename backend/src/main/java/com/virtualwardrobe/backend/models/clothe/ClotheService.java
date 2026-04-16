@@ -28,8 +28,8 @@ public class ClotheService {
         Clothe c = new Clothe();
         User user= UserRepo.findById(userId).get();
 
-        if (dto.getColourIds() != null && !dto.getColourIds().isEmpty()) {
-            List<Color> colorIds = colorRepository.findAllById(dto.getColourIds());
+        if (dto.getColorIds() != null && !dto.getColorIds().isEmpty()) {
+            List<Color> colorIds = colorRepository.findAllById(dto.getColorIds());
             c.setColorIds(colorIds);
         }
         c.setUser(user);
@@ -50,8 +50,8 @@ public class ClotheService {
         if (c.getUser().getId() != userId) {
             throw new RuntimeException("Error 401: No tenés permiso para editar esta prenda");
         }
-        if (dto.getColourIds() != null && !dto.getColourIds().isEmpty()) {
-            List<Color> colorIds = colorRepository.findAllById(dto.getColourIds());
+        if (dto.getColorIds() != null && !dto.getColorIds().isEmpty()) {
+            List<Color> colorIds = colorRepository.findAllById(dto.getColorIds());
             c.setColorIds(colorIds);
         }
 
@@ -86,7 +86,7 @@ public class ClotheService {
         dto.setMaterialId(c.getMaterialId());
         dto.setSizeId(c.getSizeId());
         dto.setTypeId(c.getTypeId());
-        List<Color> colors = colorRepository.findAllById(dto.getColourIds());
+        List<Color> colors = colorRepository.findAllById(dto.getColorIds());
         c.setColorIds(colors);
         dto.setPreferenceLevel(dto.getPreferenceLevel());
         return dto;
