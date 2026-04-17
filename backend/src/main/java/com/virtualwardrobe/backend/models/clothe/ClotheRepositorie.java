@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface ClotheRepositorie extends JpaRepository<Clothe, Integer> {
     Optional<Clothe> findById(int id);
+    @Query("SELECT DISTINCT c FROM Clothe c LEFT JOIN FETCH c.colorIds WHERE c.user.id = :userId")
     List<Clothe> findByUserId(int userId);
-    @Query("SELECT DISTINCT c FROM Clothe c LEFT JOIN FETCH c.colorIds")
-    List<Clothe> findAllWithColorIds();
 }

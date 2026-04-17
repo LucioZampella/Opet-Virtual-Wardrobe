@@ -99,19 +99,37 @@ public class ClotheService {
 
     public List<Clothe> filtrar(int userId, Integer typeId, Integer sizeId,
                                 Integer materialId, Integer fitId,
-                                List<Long> colorIds,
+                                List<Long> colorIds, // Este es el ID que viene del Frontend
                                 Integer preferenceLevel, String name) {
 
-        return repo.findByUserId(userId).stream()
+        List<Clothe> todasLasPrendas = repo.findByUserId(userId);
+
+
+
+        // 2. LOG DE INSPECCIÓN (El "Join local" visual)
+        System.out.println("--- LISTA COMPLETA ANTES DE FILTRAR ---");
+        for (Clothe c : todasLasPrendas) {
+            String nombresColores = c.getColorIds().stream()
+                    .map(color -> color.getName()) // Asumiendo que Color tiene getName()
+                    .collect(Collectors.joining(", "));
+            System.out.println("Prenda: " + c.getName() + " | Colores: [" + nombresColores + "]");
+        }
+        System.out.println("---------------------------------------");
+        return todasLasPrendas.stream()
                 .filter(c -> typeId == null || c.getTypeId() == typeId)
                 .filter(c -> sizeId == null || c.getSizeId() == sizeId)
                 .filter(c -> materialId == null || c.getMaterialId() == materialId)
                 .filter(c -> fitId == null || c.getFitId() == fitId)
                 .filter(c -> preferenceLevel == null || c.getPreferenceLevel() == preferenceLevel)
                 .filter(c -> name == null || c.getName().toLowerCase().contains(name.toLowerCase()))
-                .filter(c -> colorIds == null || colorIds.isEmpty() ||
-                        c.getColorIds().stream()
-                                .anyMatch(color -> colorIds.contains(color.getId())))
-                .collect(Collectors.toList());
-    }
+                .filter(c -> {
+                    if (colorIds == null || colorIds.isEmpty()) return true;
+
+                    return c.getColorIds().stream().anyMatch(color -> {
+                        long idPrenda = (long) color.getId(); // Convertimos el int a long
+                        boolean esIgual = colorIds.contains(idPrenda);
+                        return esIgual;
+                    });
+                }).collect(Collectors.toList());
+}
 }
