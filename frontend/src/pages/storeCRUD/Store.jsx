@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import Navbar from "../../components/Navbar.jsx";
 import {STATUS} from "../../constants/statusOptions.js";
 import Search from "../../components/Search.jsx";
+import toast from "react-hot-toast";
 
 const EmptyForm = {
     price: "",
@@ -49,9 +50,11 @@ function Store() {
                 setStoreListing(data);
             } else {
                 console.error("Error al cargar la tienda: ", response.status);
+                toast.error("Error al cargar la tienda, intente mas tarde")
             }
         } catch (error) {
             console.error("Error de conexion: ", error)
+            toast.error("error de conexion")
         } finally {
             setLoading(false);
         }
@@ -91,6 +94,7 @@ function Store() {
             }
         } catch (error) {
             console.error("Error al filtrar: ", error);
+            toast.error("Error al filtras prendas")
         } finally {
             setLoading(false);
         }
@@ -109,6 +113,7 @@ function Store() {
             }
         } catch (error) {
             console.error("Error al cargar prendas: ", error);
+            toast.error("las ventas  no se trajieron correctamente")
         }
     };
 
@@ -166,14 +171,17 @@ function Store() {
 
             if (response.ok) {
                 await fetchAllListings();
+                toast.success("Venta de prenda  creada exitosamente")
                 setShowCreateListing(false);
                 setForm(EmptyForm);
             } else {
                 const errorMsg = await response.text();
                 console.error("No se pudo crear la publicación: ", errorMsg);
+                toast.error("No se pudo crear la publicacion")
             }
         } catch (error) {
             console.error("Error de conexión con el servidor: ", error)
+            toast.error("Error de conexion")
         }
     };
 
@@ -216,11 +224,13 @@ function Store() {
                             : l
                     )
                 );
+                toast.success("Venta actualizada correctamente")
                 setEditingListing(null);
                 setForm(EmptyForm);
             } else {
                 const errorMsg = response.text();
                 console.error("No se pudo editar la prenda: ", errorMsg);
+                toast.error("No se pudo editar la venta")
             }
         } catch (error) {
             console.error("Error de conexion: ", error);
@@ -238,9 +248,11 @@ function Store() {
 
             if (response.ok) {
                 setStoreListing(prev => prev.filter(l => l.listingId !== listingId));
+                toast.success("Venta eliminada")
             } else {
                 const errorMsg = response.text();
-                console.error("No se pudo eliminar la prenda: ", errorMsg);
+                console.error("No se pudo eliminar la venta: ", errorMsg);
+                toast.error("No se pudo eliminar la venta")
             }
         } catch (error) {
             console.error("Error de conexion: ", error);

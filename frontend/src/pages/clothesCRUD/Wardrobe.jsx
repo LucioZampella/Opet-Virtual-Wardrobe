@@ -4,6 +4,7 @@ import GenericSelect from "../../constants/GenericSelect";
 const CLOUDINARY_CLOUD_NAME = "ducp0gbgq";
 const CLOUDINARY_UPLOAD_PRESET = "opet_clothes";
 import { CLOTHING_TYPES, COLORS, SIZES, FITS, MATERIALS } from "../../constants/clotheOptions.js";
+import toast from "react-hot-toast";
 
 const EmptyForm = {
     name:       "", // --> Por defecto arrancan vacios
@@ -51,6 +52,7 @@ function Wardrobe() {
                 setClothes(data);
             } else {
                 console.error("Error al cargar prendas:", response.status);
+                toast.error("No se cargaron todas las prendas")
             }
         } catch (error) {
             console.error("Error de conexión:", error);
@@ -86,10 +88,12 @@ function Wardrobe() {
 
             if (response.ok) {
                 const data = await response.json();
+                toast.success("Filtro aplicado")
                 setClothes(data);
             }
         } catch (error) {
             console.error("Error al filtrar:", error);
+            toast.error("Error al filtrar prendas")
         } finally {
             setLoading(false);
         }
@@ -166,7 +170,7 @@ function Wardrobe() {
         e.preventDefault();
 
         if (!form.image_url) {
-            alert("Primero subí una foto de la prenda");
+            toast.error("Primero subí una foto de la prenda");
             return;
         }
 
@@ -191,11 +195,13 @@ function Wardrobe() {
 
             if (response.ok) {
                 await fetchClothes();
+                toast.success("Creaste la prenda!")
                 setShowCreateState(false);
                 setForm(EmptyForm);
             } else {
                 const errorMsg = await response.text();
                 console.error("Error al crear la prenda: " + errorMsg);
+                toast.error("No se creo la prenda ")
             }
         } catch (error) {
             console.error("Error de conexión con el servidor: ", error);
@@ -246,11 +252,13 @@ function Wardrobe() {
                                 : c
                         )
                     );
+                toast.success("Actualizaste la prenda")
                 setEditingClothe(null);
                 setForm(EmptyForm);
             } else {
                 const errorMsg = await response.text();
                 console.error("Error al actualizar: " + errorMsg);
+                toast.error("No se pudo actualizar")
             }
         } catch (error) {
             console.error("Error de conexión: ", error);
@@ -268,12 +276,14 @@ function Wardrobe() {
 
             if (response.ok) {
                 setClothes(prev => prev.filter(c => c.id !== id)); // --> Un nuevo array de prendas sin la que acabamos de borrar
+                toast.success("Eliminaste la prenda")
             } else {
                 const errorMsg = await response.text();
-                alert("Error al eliminar: " + errorMsg);
+                console.error("Error al eliminar: " + errorMsg);
+                toast.error("Error al eliminar ")
             }
         } catch (error) {
-            alert("Error de conexión");
+            toast.error("Error de conexión");
             console.error(error);
         }
     };

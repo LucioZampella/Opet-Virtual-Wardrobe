@@ -1,6 +1,7 @@
 import {useNavigate} from "react-router-dom";
 import {useState} from "react";
 import LocationPicker from "../../components/LocationPicker.jsx";
+import toast from "react-hot-toast";
 
 function SignUp() {
     const [username, setUsername] = useState('');
@@ -31,17 +32,18 @@ function SignUp() {
             });
 
             if (response.ok) {
-                alert("La cuenta fue creada exitosamente");
+                toast.success("Cuenta  creada exitosamente");
+
                 navigate("/login"); //--> Si se registro bien, lo manda al login
             } else if (response.status === 409 || response.status === 400) {
                 const errorMessage = await response.text();
-                alert(errorMessage); //--> Muestra el error que tiro Java (email duplicado, etc)
+                toast.error(errorMessage); //--> Muestra el error que tiro Java (email duplicado, etc)
             } else {
-                alert("Sucedió un error inesperado");
+                toast.error("Sucedió un error inesperado");
             }
         } catch (error) {
             console.error("Error al conectar con el servidor:", error);
-            alert("Parece que el servidor de Java está apagado.");
+            toast.error("Parece que el servidor de Java está apagado.");
         }
     };
 
@@ -53,9 +55,15 @@ function SignUp() {
                 // obtengo su ubicacion actual y asigno las coords a la db
             });
         } else {
-            alert("Tu navegador no soporta geolocalización");
+            toast("Tu navegador no soporta geolocalización", {
+                icon: '⚠️',
+                style: {
+                    background: '#facc15', // Amarillo
+                    color: '#000',
+            }
+            })
         }
-    };
+    }
     const inputClass = `
         w-full bg-transparent border-b border-[#4a4540] 
         text-[#e8d5b0] placeholder-[#6b6258] 

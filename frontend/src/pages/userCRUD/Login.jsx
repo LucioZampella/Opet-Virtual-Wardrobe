@@ -2,7 +2,7 @@
 
 import {useNavigate} from "react-router-dom"; // --> Herramienta que oculta/muestra clips al instante sin hacer todo de nuevo
 import {useState} from "react"; // --> Recuerda lo que el usuario va tecleando
-
+import toast from "react-hot-toast";
 function Login({onLoginSuccess}) {
 
     const [username, setUsername] = useState('');       //--> Variable email y funcion setEmail para modificarla
@@ -25,12 +25,13 @@ function Login({onLoginSuccess}) {
                 localStorage.setItem("userId", userLogged.id); //--> Guarda el id del usuario en el navegador
                 localStorage.setItem("token", userLogged.token);
                 onLoginSuccess();
+                toast.success("Te logeaste bien!")
                 navigate("/feed"); //--> Redirige al perfil si el login fue exitoso
             } else {
-                console.error("username o contraseña incorrectos.");
+                toast.error("username o contraseña incorrectos.");
             }
         } catch (error) {
-            console.error("Error al conectar con el servidor:", error);
+            toast.error("Error al conectar con el servidor:", error);
         }
     };
 

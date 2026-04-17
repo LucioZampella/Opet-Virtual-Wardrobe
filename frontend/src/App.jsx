@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
+import { Toaster } from 'react-hot-toast';
 
 import Login from "./pages/userCRUD/Login.jsx";
 import MyProfile from "./pages/userCRUD/myProfile.jsx";
@@ -23,6 +24,9 @@ function App() {
 
     return (
         <BrowserRouter>
+            {/* Importo  react toast */}
+
+            <Toaster position="bottom-center" />
             <Routes>
                 {/* Rutas Públicas */}
                 <Route path="/login" element={

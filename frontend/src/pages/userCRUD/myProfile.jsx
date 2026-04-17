@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import Navbar from "../../components/Navbar.jsx";
 const CLOUDINARY_CLOUD_NAME = "ducp0gbgq";
 const CLOUDINARY_UPLOAD_PRESET = "opet_avatars"; //--> Import para la api para guardar las fotos de perfil
+import toast from "react-hot-toast";
 
 function MyProfile() {
     const [user, setUser] = useState(null);
@@ -43,12 +44,12 @@ function MyProfile() {
                 }
             });
             if (response.ok) {
-                alert("Usuario eliminado");
+                toast.success("Usuario eliminado");
                 localStorage.removeItem("userId");
                 window.location.href = "/login";
             } else {
                 const errorMsg = await response.text();
-                alert("Algo falló: " + errorMsg);
+                toast.error("Algo falló: " + errorMsg);
             }
         } catch {
             alert("Error de conexión con el servidor");
@@ -74,14 +75,14 @@ function MyProfile() {
             });
             if (response.ok) {
                 setUser(formData);
-                alert("Cambios guardados");
+                toast.success("Cambios guardados");
                 setEditMode(false);
             } else {
                 const errorMsg = await response.text();
-                alert("Algo falló: " + errorMsg);
+                toast.error("Algo falló: " + errorMsg);
             }
         } catch {
-            alert("Error de conexión con el servidor");
+            toast.error("Error de conexión con el servidor, intenta mas tarde ");
         }
     };
 
@@ -116,11 +117,21 @@ function MyProfile() {
 
             if (!response.ok) {
                 const errorMsg = await response.text();
-                alert("La foto cargó, pero falló al guardarse" + errorMsg);
+                toast(
+                    "La foto cargo, pero fallo al guardarse" + errorMsg,
+                    {
+                        icon: '⚠️',
+                        style: {
+                            background: '#facc15', // Amarillo
+                            color: '#000',         // Texto negro para que se lea bien en amarillo
+                        },
+                    },
+
+                )
             }
         } catch (error) {
             console.error(error);
-            alert("Error al subir la imagen");
+            toast.error("Error al subir la imagen");
         } finally {
             setUploading(false);
         }
