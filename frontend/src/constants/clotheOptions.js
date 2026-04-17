@@ -133,3 +133,14 @@ export const MATERIALS = [
     { id: 28, label: "Acero quirúrgico" },
     { id: 29, label: "Fantasía" }
 ];
+export const SINGLE_ONLY_TYPES = [
+    3,  // Zapatillas
+    4,  // Zapatos
+    6,  // Pantalón
+    7,  // Short
+    15, // Taco
+    19, // Calzas
+    20, // Malla/Traje de baño
+    27, // Sandalias
+    28, // Traje
+];

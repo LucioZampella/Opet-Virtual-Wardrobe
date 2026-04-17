@@ -12,4 +12,6 @@ public interface ClotheRepositorie extends JpaRepository<Clothe, Integer> {
     Optional<Clothe> findById(int id);
     @Query("SELECT DISTINCT c FROM Clothe c LEFT JOIN FETCH c.colorIds WHERE c.user.id = :userId")
     List<Clothe> findByUserId(int userId);
+    // devuelve todas las prendas que tengan el id en la lista
+    List<Clothe> findByIdIn(List<Integer> ids);
 }

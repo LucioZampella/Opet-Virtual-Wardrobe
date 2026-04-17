@@ -5,6 +5,8 @@ package com.virtualwardrobe.backend.security;
 //
 
 
+import com.virtualwardrobe.backend.exceptions.InvalidOutfitException;
+import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -27,6 +29,7 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensaje);
     }
+
     @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidationException(org.springframework.web.bind.MethodArgumentNotValidException e) {
         String mensaje = e.getBindingResult().getFieldErrors()
@@ -39,6 +42,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
     public ResponseEntity<String> handleAuthException(RuntimeException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error 401: Credenciales inválidas");
+    }
+
+    @ExceptionHandler(InvalidOutfitException.class)
+    public ResponseEntity<String> handleInvalidOutfit(InvalidOutfitException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UnauthorizedActionException.class)
+    public ResponseEntity<String> handleUnauthorized(UnauthorizedActionException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 }
 

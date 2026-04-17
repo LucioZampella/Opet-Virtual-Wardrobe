@@ -50,6 +50,7 @@ public class ClotheService {
         if (c.getUser().getId() != userId) {
             throw new RuntimeException("Error 401: No tenés permiso para editar esta prenda");
         }
+
         if (dto.getColorIds() != null && !dto.getColorIds().isEmpty()) {
             List<Color> colorIds = colorRepository.findAllById(dto.getColorIds());
             c.setColorIds(colorIds);
