@@ -1,5 +1,8 @@
 package com.virtualwardrobe.backend.models.clothe;
 
+import com.virtualwardrobe.backend.exceptions.InvalidClotheException;
+import com.virtualwardrobe.backend.exceptions.InvalidOutfitException;
+import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.ColorRepository;
@@ -45,10 +48,10 @@ public class ClotheService {
 
     public void modificar(int id, ClotheDTO dto, int userId) {
         Clothe c = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Error 404: prenda no encontrada"));
+                .orElseThrow(() -> new InvalidClotheException("Prenda no encontrada"));
 
         if (c.getUser().getId() != userId) {
-            throw new RuntimeException("Error 401: No tenés permiso para editar esta prenda");
+            throw new UnauthorizedActionException("No tenés permiso para editar esta prenda");
         }
 
         if (dto.getColorIds() != null && !dto.getColorIds().isEmpty()) {
@@ -68,9 +71,9 @@ public class ClotheService {
 
     public void eliminar(int id, int userId) {
         Clothe c = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Error 404: prenda no encontrada"));
+                .orElseThrow(() -> new InvalidClotheException("Prenda no encontrada"));
         if (c.getUser().getId() != userId) {
-            throw new RuntimeException("Error 401: No tenés permiso para editar esta prenda");
+            throw new UnauthorizedActionException("No tenés permiso para editar esta prenda");
         }
 
         repo.deleteById(id);
@@ -78,7 +81,7 @@ public class ClotheService {
 
     public ClotheDTO buscarPorId(int id) {
         Clothe c = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Error 404: prenda no encontrada"));
+                .orElseThrow(() -> new InvalidClotheException("Prenda no encontrada"));
 
         ClotheDTO dto = new ClotheDTO();
         dto.setName(c.getName());

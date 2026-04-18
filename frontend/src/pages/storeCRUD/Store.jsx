@@ -88,13 +88,14 @@ function Store() {
             if (response.ok) {
                 const data = await response.json();
                 setStoreListing(data);
+                toast.success("Filtro aplicado")
             } else {
                 const errorData = await response.json();
                 console.error("DETALLE DEL ERROR 500 DESDE EL BACKEND:", errorData);
             }
         } catch (error) {
             console.error("Error al filtrar: ", error);
-            toast.error("Error al filtras prendas")
+            toast.error(error)
         } finally {
             setLoading(false);
         }
@@ -113,7 +114,7 @@ function Store() {
             }
         } catch (error) {
             console.error("Error al cargar prendas: ", error);
-            toast.error("las ventas  no se trajieron correctamente")
+            toast.error(error)
         }
     };
 
@@ -177,7 +178,7 @@ function Store() {
             } else {
                 const errorMsg = await response.text();
                 console.error("No se pudo crear la publicación: ", errorMsg);
-                toast.error("No se pudo crear la publicacion")
+                toast.error(errorMsg)
             }
         } catch (error) {
             console.error("Error de conexión con el servidor: ", error)
@@ -230,7 +231,7 @@ function Store() {
             } else {
                 const errorMsg = response.text();
                 console.error("No se pudo editar la prenda: ", errorMsg);
-                toast.error("No se pudo editar la venta")
+                toast.error( errorMsg)
             }
         } catch (error) {
             console.error("Error de conexion: ", error);
@@ -252,7 +253,7 @@ function Store() {
             } else {
                 const errorMsg = response.text();
                 console.error("No se pudo eliminar la venta: ", errorMsg);
-                toast.error("No se pudo eliminar la venta")
+                toast.error( errorMsg)
             }
         } catch (error) {
             console.error("Error de conexion: ", error);

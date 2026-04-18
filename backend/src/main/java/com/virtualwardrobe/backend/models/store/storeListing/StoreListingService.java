@@ -1,6 +1,8 @@
 package com.virtualwardrobe.backend.models.store.storeListing;
 
 
+import com.virtualwardrobe.backend.exceptions.InvalidStoreException;
+import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
 import com.virtualwardrobe.backend.models.clothe.Clothe;
 import com.virtualwardrobe.backend.models.store.storeListing.storeListingDTO.ListingResponseDTO;
 import com.virtualwardrobe.backend.models.store.storeListing.storeListingDTO.StoreListingDTO;
@@ -31,10 +33,10 @@ public class StoreListingService {
 
     public void modificar(int listingId, UpdateListingDTO dto, int sellerId) {
         StoreListing ls = repo.findById(listingId)
-                .orElseThrow(() -> new RuntimeException("Error 404: Publicación no encontrada"));
+                .orElseThrow(() -> new InvalidStoreException("Publicación no encontrada"));
 
         if (ls.getSellerId() != sellerId) {
-            throw new RuntimeException("Error 401: No tenés permiso para editar esta publicación");
+            throw new UnauthorizedActionException(" No tenés permiso para editar esta publicación");
         }
 
         ls.setPrice(dto.getPrice());
@@ -45,17 +47,17 @@ public class StoreListingService {
 
     public void eliminar(int listingId, int sellerId) {
         StoreListing ls = repo.findByListingId(listingId)
-                .orElseThrow(() -> new RuntimeException("Error 404: Publicación no encontrada"));
+                .orElseThrow(() -> new InvalidStoreException("Publicación no encontrada"));
 
         if (ls.getSellerId() != sellerId) {
-            throw new RuntimeException("Error 401: No tenés permiso para eliminar esta publicación");
+            throw new UnauthorizedActionException("No tenés permiso para eliminar esta publicación");
         }
         repo.deleteById(listingId);
     }
 
     public ListingResponseDTO buscarPorId(int listingId) {
         StoreListing ls = repo.findByListingId(listingId)
-                .orElseThrow(() -> new RuntimeException("Error 404: Publicación no encontrada"));
+                .orElseThrow(() -> new InvalidStoreException(" Publicación no encontrada"));
 
         ListingResponseDTO dto = new ListingResponseDTO();
         dto.setListingId(ls.getListingId());

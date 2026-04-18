@@ -10,6 +10,7 @@ import lombok.Setter;
 public class UserDTO {
     @NotBlank(message = "El username no puede estar vacío")
     private String username;
+    @NotBlank( message = " El email no puede estar vacio")
     private String email;
     // si no pongo not blank se me genera un hash con una contraseña vacia que no deberia poder pasar
     @NotBlank(message = "Debe ingresar una contraseña")

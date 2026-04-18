@@ -201,7 +201,7 @@ function Wardrobe() {
             } else {
                 const errorMsg = await response.text();
                 console.error("Error al crear la prenda: " + errorMsg);
-                toast.error("No se creo la prenda ")
+                toast.error(errorMsg)
             }
         } catch (error) {
             console.error("Error de conexión con el servidor: ", error);
@@ -258,7 +258,7 @@ function Wardrobe() {
             } else {
                 const errorMsg = await response.text();
                 console.error("Error al actualizar: " + errorMsg);
-                toast.error("No se pudo actualizar")
+                toast.error(errorMsg)
             }
         } catch (error) {
             console.error("Error de conexión: ", error);
@@ -280,7 +280,7 @@ function Wardrobe() {
             } else {
                 const errorMsg = await response.text();
                 console.error("Error al eliminar: " + errorMsg);
-                toast.error("Error al eliminar ")
+                toast.error("Error al eliminar ", + errorMsg)
             }
         } catch (error) {
             toast.error("Error de conexión");
@@ -552,7 +552,6 @@ function Wardrobe() {
                                     value={form.name}
                                     onChange={handleFormChange}
                                     placeholder="Ej: Remera blanca de algodón"
-                                    required
                                     className={inputClass}
                                 />
                             </div>
@@ -560,7 +559,7 @@ function Wardrobe() {
                             {/* Tipo de prenda */}
                             <div>
                                 <label className={labelClass}>Tipo de prenda</label>
-                                <select name="typeId" value={form.typeId} onChange={handleFormChange} required className={selectClass}>
+                                <select name="typeId" value={form.typeId} onChange={handleFormChange}  className={selectClass}>
                                     <option value={""} disabled>Seleccioná un tipo</option>
                                     {CLOTHING_TYPES.map(t => (
                                         <option key={t.id} value={t.id}>{t.label}</option>
@@ -571,7 +570,7 @@ function Wardrobe() {
                             {/* Talle */}
                             <div>
                                 <label className={labelClass}>Talle</label>
-                                <select name="sizeId" value={form.sizeId} onChange={handleFormChange} required className={selectClass}>
+                                <select name="sizeId" value={form.sizeId} onChange={handleFormChange}  className={selectClass}>
                                     <option value={""} disabled>Seleccioná un talle</option>
                                     {SIZES.map(t => (
                                         <option key={t.id} value={t.id}>{t.label}</option>
@@ -582,7 +581,7 @@ function Wardrobe() {
                             {/* Material */}
                             <div>
                                 <label className={labelClass}>Material</label>
-                                <select name="materialId" value={form.materialId} onChange={handleFormChange} required className={selectClass}>
+                                <select name="materialId" value={form.materialId} onChange={handleFormChange}  className={selectClass}>
                                     <option value={""} disabled>Seleccioná un material</option>
                                     {MATERIALS.map(m => (
                                         <option key={m.id} value={m.id}>{m.label}</option>
@@ -593,7 +592,7 @@ function Wardrobe() {
                             {/* Fit */}
                             <div>
                                 <label className={labelClass}>Corte (Fit)</label>
-                                <select name="fitId" value={form.fitId} onChange={handleFormChange} required className={selectClass}>
+                                <select name="fitId" value={form.fitId} onChange={handleFormChange}  className={selectClass}>
                                     <option value={""} disabled>Seleccioná un corte</option>
                                     {FITS.map(f => (
                                         <option key={f.id} value={f.id}>{f.label}</option>

@@ -16,7 +16,7 @@ public class StoreListingDTO {
     private int clothesId;
 
     @NotNull(message = "Debe asignar un precio")
-    @Min(1)
+    @Min(value = 1, message = "Debe ingresar un precio")
     @Max(10000000)
     private double price;
 

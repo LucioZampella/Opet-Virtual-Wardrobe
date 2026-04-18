@@ -30,7 +30,8 @@ function MyProfile() {
 
     const logOut = (e) => {
         e.preventDefault();
-        localStorage.removeItem("userId"); //--> Borra el id guardado y manda al login
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
         window.location.href = "/login";
     };
 
@@ -52,7 +53,7 @@ function MyProfile() {
                 toast.error("Algo falló: " + errorMsg);
             }
         } catch {
-            alert("Error de conexión con el servidor");
+            toast.error("Error de conexión con el servidor");
         }
     };
 

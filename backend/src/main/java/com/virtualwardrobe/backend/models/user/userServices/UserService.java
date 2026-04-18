@@ -1,5 +1,7 @@
 package com.virtualwardrobe.backend.models.user.userServices;
 
+import com.virtualwardrobe.backend.exceptions.InvalidUserException;
+import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
 import com.virtualwardrobe.backend.models.user.response.LoginResponse;
@@ -37,11 +39,11 @@ public class UserService {
 
         validarTodasLasLongitudes(dto);
         if (repo.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("Error 409: Email ya existente");
+            throw new InvalidUserException("Email ya existente");
         }
 
         if (repo.findByUsername(dto.getUsername()).isPresent()) {
-            throw new RuntimeException("Error 409: Username ya existente"); // -> Manejan el caso en que ya existe
+            throw new InvalidUserException("Username ya existente"); // -> Manejan el caso en que ya existe
             // ese username/email al querer registrarse
         }
         User user = new User();
@@ -57,10 +59,10 @@ public class UserService {
 
     public void modificar(int id, UpdateUserDTO user, String usernameFromToken) {
 
-        User u = repo.findById(id).orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
+        User u = repo.findById(id).orElseThrow(() -> new InvalidUserException("usuario no encontrado"));
 
         if (!u.getUsername().equals(usernameFromToken)) {
-            throw new RuntimeException("Error 401: No tenés permiso para editar este usuario");
+            throw new UnauthorizedActionException("No tenés permiso para editar este usuario");
         }
         validarTodasLasLongitudesUpdate(user);
         u.setName(user.getName());
@@ -71,17 +73,17 @@ public class UserService {
 
     public void eliminar(int id,String usernameFromToken) {
         User u = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
+                .orElseThrow(() -> new InvalidUserException(" usuario no encontrado"));
 
         if (!u.getUsername().equals(usernameFromToken)) {
-            throw new RuntimeException("Error 401: No tenés permiso para eliminar este usuario");
+            throw new UnauthorizedActionException("No tenés permiso para eliminar este usuario");
         }
         repo.deleteById(id);
     }
 
     public UserResponseDTO buscarPorId(int id) {
         User user = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Error 404: usuario no encontrado"));
+                .orElseThrow(() -> new InvalidUserException("usuario no encontrado"));
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
         dto.setName(user.getName());

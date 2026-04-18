@@ -13,22 +13,22 @@ public class ClotheDTO {
     private String name;
 
     @NotNull(message = "Debe ingresar un tipo")
-    @Min(1)
+    @Min(value = 1, message = "Debe ingresar un tipo")
     private Integer typeId;
 
     @NotNull(message = "El material no puede estar vacío")
-    @Min(1)
+    @Min(value = 1, message = "Debe ingresar un material")
     private Integer materialId;
 
-    @NotEmpty(message = "La lista de colores no puede estar vacía")
+    @NotEmpty(message = "Debe elegir por lo menos  un color ")
     private List<Long> colorIds;
 
     @NotNull(message = "El talle no puede estar vacío")
-    @Min(1)
+    @Min(value = 1, message = "Debe ingresar un talle")
     private Integer sizeId;
 
     @NotNull(message = "El fit no puede estar vacío")
-    @Min(1)
+    @Min(value = 1, message = "Debe ingresar un fit")
     private Integer fitId;
 
     @NotBlank(message = "Debe tener una foto")
