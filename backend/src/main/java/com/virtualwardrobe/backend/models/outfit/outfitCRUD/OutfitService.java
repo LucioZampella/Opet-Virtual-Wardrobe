@@ -63,8 +63,13 @@ public class OutfitService {
         if(prendasDelOutfit.isEmpty()) {
             throw new InvalidOutfitException("La lista de prendas no puede estar vacía");
         }
+        int promedio = (int) prendasDelOutfit.stream()
+                .mapToInt(Clothe::getPreferenceLevel)
+                .average()
+                .orElse(50);
 
         oldOutfit.setName(dto.getName());
+        oldOutfit.setLevel_of_coincidence(promedio);
         oldOutfit.setClothes(prendasDelOutfit);
         repo.save(oldOutfit);
 

@@ -54,7 +54,7 @@ public class PostService {
     }
 
     //4  acuatalizamo la descripcion
-    public void actualizar(int id, String nuevaDescripcion, int userId) {
+    public void modificar(int id, String nuevaDescripcion, int userId) {
         Post pub = postRepositorie.findById(id)
                 .orElseThrow(() -> new InvalidPostException("Publicación no encontrada"));
 
