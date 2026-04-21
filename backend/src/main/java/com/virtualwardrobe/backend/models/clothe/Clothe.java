@@ -3,9 +3,13 @@ package com.virtualwardrobe.backend.models.clothe;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
 import com.virtualwardrobe.backend.models.user.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.List;
 
@@ -24,9 +28,11 @@ public class Clothe {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
-    @Column(length = 20)
+
+    @Column
     private String name;
 
     @Column

@@ -1,11 +1,14 @@
 package com.virtualwardrobe.backend.models.outfit.outfitCRUD;
 
 import com.virtualwardrobe.backend.exceptions.InvalidOutfitException;
+import com.virtualwardrobe.backend.exceptions.InvalidStoreException;
 import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
 import com.virtualwardrobe.backend.models.clothe.Clothe;
 import com.virtualwardrobe.backend.models.clothe.ClotheRepositorie;
 import com.virtualwardrobe.backend.models.outfit.outfitDTO.OutfitDTO;
 import com.virtualwardrobe.backend.models.outfit.outfitResponse.OutfitResponse;
+import com.virtualwardrobe.backend.models.post.PostCrud.PostRepositorie;
+import com.virtualwardrobe.backend.models.store.storeListing.StoreListingRepositorie;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,9 @@ public class OutfitService {
 
     @Autowired
     private ClotheRepositorie clotheRepo;
+
+    @Autowired
+    private PostRepositorie PostRepo;
 
 
     public void crear(OutfitDTO dto, int id) throws InvalidOutfitException {
@@ -82,6 +88,13 @@ public class OutfitService {
 
             if (oldOutfit.getUser().getId() != userId) {
                 throw new UnauthorizedActionException("No tienes permiso para editar esta prenda.");
+            }
+
+            // Verificar si está en algún outfit
+            boolean enTienda = PostRepo.findAll().stream()
+                    .anyMatch(s -> s.getId() == id);
+            if (enTienda) {
+                throw new InvalidStoreException("No podés eliminar esta outfit porque tiene una publicación activa en el perfil. Eliminála primero.");
             }
 
             repo.delete(oldOutfit);

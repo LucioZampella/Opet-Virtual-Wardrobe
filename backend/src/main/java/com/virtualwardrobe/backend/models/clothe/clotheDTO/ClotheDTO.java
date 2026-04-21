@@ -9,7 +9,8 @@ import java.util.List;
 @Getter
 @Setter
 public class ClotheDTO {
-    @NotBlank(message = "El nombre no puede estar vacío")
+    @Min(value = 1, message = "El nombre no puede ser vacio")
+    @Max(value = 50, message = "El nombre no puede superar los 100 caracteres ")
     private String name;
 
     @NotNull(message = "Debe ingresar un tipo")
