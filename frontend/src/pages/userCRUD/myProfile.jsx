@@ -203,7 +203,9 @@ function MyProfile() {
             const updatedUser = {...user, avatar_url: url}; //--> Manda el cambio a la db
             const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
                 method: "PUT",
-                headers: {"Content-Type": "application/json"},
+                headers: {"Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify(updatedUser)
             });
 

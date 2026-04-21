@@ -138,7 +138,7 @@ public class ClotheService {
         System.out.println("--- LISTA COMPLETA ANTES DE FILTRAR ---");
         for (Clothe c : todasLasPrendas) {
             String nombresColores = c.getColorIds().stream()
-                    .map(color -> color.getName()) // Asumiendo que Color tiene getName()
+                    .map(color -> color.getName())
                     .collect(Collectors.joining(", "));
             System.out.println("Prenda: " + c.getName() + " | Colores: [" + nombresColores + "]");
         }
@@ -154,7 +154,7 @@ public class ClotheService {
                     if (colorIds == null || colorIds.isEmpty()) return true;
 
                     return c.getColorIds().stream().anyMatch(color -> {
-                        long idPrenda = (long) color.getId(); // Convertimos el int a long
+                        long idPrenda = (long) color.getId();
                         boolean esIgual = colorIds.contains(idPrenda);
                         return esIgual;
                     });
