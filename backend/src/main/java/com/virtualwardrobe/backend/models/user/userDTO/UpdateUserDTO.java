@@ -11,5 +11,6 @@ public class UpdateUserDTO {
     private String name;
     private String lastName;
     private String bio;
+    private String avatar_url;
     // sin password, email, latitude, longitude, username
 }

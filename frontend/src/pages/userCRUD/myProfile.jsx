@@ -200,13 +200,19 @@ function MyProfile() {
             setUser(prev => ({...prev, avatar_url: url})); // --> Hace que la imagen aparezca
             setFormData(prev => ({...prev, avatar_url: url}));
 
-            const updatedUser = {...user, avatar_url: url}; //--> Manda el cambio a la db
+            const dataToUpdate = {
+                name: user.name,
+                lastName: user.lastName,
+                bio: user.bio,
+                avatar_url: url
+            }; //--> Manda el cambio a la db
+
             const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
                 method: "PUT",
                 headers: {"Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify(updatedUser)
+                body: JSON.stringify(dataToUpdate)
             });
 
             if (!response.ok) {

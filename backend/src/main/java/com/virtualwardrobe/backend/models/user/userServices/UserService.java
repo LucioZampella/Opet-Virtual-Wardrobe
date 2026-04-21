@@ -68,6 +68,7 @@ public class UserService {
         u.setName(user.getName());
         u.setLastName(user.getLastName());
         u.setBio(user.getBio());
+        u.setAvatar_url(user.getAvatar_url());
         repo.save(u);
     }
 
