@@ -3,15 +3,24 @@ import Navbar from "../../components/Navbar.jsx";
 const CLOUDINARY_CLOUD_NAME = "ducp0gbgq";
 const CLOUDINARY_UPLOAD_PRESET = "opet_avatars"; //--> Import para la api para guardar las fotos de perfil
 import toast from "react-hot-toast";
+import {useParams} from "react-router-dom";
 
 function MyProfile() {
+    const { id } = useParams();
     const [user, setUser] = useState(null);
     const [editMode, setEditMode] = useState(false);
     const [formData, setFormData] = useState({});
-    const userId = localStorage.getItem("userId");
+    const loggedUserId = localStorage.getItem("userId");
+    const userId = id || loggedUserId;
     const token = localStorage.getItem("token");
-    const isOwner = String(userId) === String(user?.id);
+    const isOwner = String(loggedUserId) === String(userId);
     const [uploading, setUploading] = useState(false);
+    const [myPosts, setMyPosts] = useState([]); // mis psots
+    const [showCreateModal, setShowCreateModal] = useState(false); // para poner el nuevo post
+    const [postFormData, setPostFormData] = useState({descripcion: "", outfitId: ""});
+    const [outfits, setOutfits] = useState([]); // apra elegir outdfits
+    const [editingPost, setEditingPost] = useState(null);
+    const [editPostDesc, setEditPostDesc] = useState("");
 
     // --> Al cargar la pagina busca los datos del usuario por su id
     useEffect(() => {
@@ -27,6 +36,22 @@ function MyProfile() {
             })
             .catch(error => console.error("Hubo un error al cargar el perfil", error));
     }, [userId]);
+
+    useEffect(() => {
+        fetch(`http://localhost:8080/api/posts/user/${userId}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => setMyPosts(data))
+            .catch(err => console.error("Error cargando posts", err));
+
+        fetch(`http://localhost:8080/outfit/my-outfits`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => setOutfits(data))
+            .catch(err => console.error("Error cargando outfits", err));
+    }, [userId, token]);
 
     const logOut = (e) => {
         e.preventDefault();
@@ -62,6 +87,71 @@ function MyProfile() {
         //--> con "..." trae todo lo anterior no modificado, y luego define que la
         // variable a cambiar tenga el valor ingresado al modificar
     };
+    const handleCreatePost = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(`http://localhost:8080/api/posts`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(postFormData)
+            });
+            if (response.ok) {
+                toast.success("Publicación creada");
+                setShowCreateModal(false);
+                setPostFormData({descripcion: "", outfitId: ""});
+                // Recargar posts (puedes volver a hacer el fetch o sumarlo al estado)
+                window.location.reload();
+            }
+        } catch (error) {
+            toast.error("Error al crear el post");
+        }
+    };
+    const handleUpdatePost = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(`http://localhost:8080/api/posts/${editingPost.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(editPostDesc)
+            });
+            if (response.ok) {
+                toast.success("Post actualizado");
+                setEditingPost(null);
+                setMyPosts(prev => prev.map(p =>
+                    p.id === editingPost.id ? {...p, descripcion: editPostDesc} : p
+                ));
+            } else {
+                const errorMsg = await response.text();
+                toast.error(errorMsg);
+            }
+        } catch {
+            toast.error("Error de conexión");
+        }
+    };
+    const handleDeletePost = async (postId) => {
+        if (!window.confirm("¿Seguro que querés eliminar este post?")) return;
+        try {
+            const response = await fetch(`http://localhost:8080/api/posts/${postId}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (response.ok) {
+                toast.success("Post eliminado");
+                setMyPosts(prev => prev.filter(p => p.id !== postId));
+            } else {
+                toast.error("No se pudo eliminar");
+            }
+        } catch {
+            toast.error("Error de conexión");
+        }
+    };
+
 
     const updateProfile = async (e) => {
         e.preventDefault(); // evita que se recargue la pagina antes del fetch
@@ -94,7 +184,7 @@ function MyProfile() {
 
         const response = await fetch(
             `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-            { method: "POST", body: data }
+            {method: "POST", body: data}
         );
         const result = await response.json();
         return result.secure_url; // --> Esta es la URL que se guarda en la db
@@ -109,7 +199,7 @@ function MyProfile() {
             setUser(prev => ({...prev, avatar_url: url})); // --> Hace que la imagen aparezca
             setFormData(prev => ({...prev, avatar_url: url}));
 
-            const updatedUser = { ...user, avatar_url: url }; //--> Manda el cambio a la db
+            const updatedUser = {...user, avatar_url: url}; //--> Manda el cambio a la db
             const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
                 method: "PUT",
                 headers: {"Content-Type": "application/json"},
@@ -127,7 +217,6 @@ function MyProfile() {
                             color: '#000',         // Texto negro para que se lea bien en amarillo
                         },
                     },
-
                 )
             }
         } catch (error) {
@@ -137,6 +226,22 @@ function MyProfile() {
             setUploading(false);
         }
     };
+
+    useEffect(() => {
+        fetch(`http://localhost:8080/api/posts/my-posts`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => setMyPosts(data))
+            .catch(err => console.error("Error cargando posts", err));
+
+        fetch(`http://localhost:8080/outfit/my-outfits`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => setOutfits(data))
+            .catch(err => console.error("Error cargando outfits", err));
+    }, [userId, token]);
 
     const inputClass = `
         w-full bg-transparent border-b border-[#4a4540]
@@ -153,6 +258,7 @@ function MyProfile() {
             <p className="text-[#6b6258] text-xs tracking-[0.3em] uppercase animate-pulse">Cargando perfil...</p>
         </div>
     );
+
 
     return (
         <div className="min-h-screen bg-[#2a2622]">
@@ -172,28 +278,28 @@ function MyProfile() {
                             {/* Avatar margenn */}
                             <div
                                 className="relative w-20 h-20 rounded-full flex-shrink-0border
-                                 border-[#4a4540] bg-[#2a2622]
-                                 flex items-center justify-center overflow-hidden
-                                 group cursor-pointer" onClick={() => !uploading && document.getElementById("avatarInput").click()}>
+border-[#4a4540] bg-[#2a2622]
+flex items-center justify-center overflow-hidden
+group cursor-pointer" onClick={() => !uploading && document.getElementById("avatarInput").click()}>
 
                                 {/* Imagen*/}
                                 {user.avatar_url
                                     ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="Perfil"/>
                                     : <span className="text-[#c49a6c] text-2xl font-light">
-                                        {user.name?.charAt(0).toUpperCase()}
-                                </span>
+{user.name?.charAt(0).toUpperCase()}
+</span>
                                 }
 
                                 {/* Overlay oscuro al hacer hover */}
                                 <div className="
-                                absolute inset-0 bg-black/60
-                                flex items-center justify-center
-                                opacity-0 group-hover:opacity-100
-                                transition-opacity duration-300">
+absolute inset-0 bg-black/60
+flex items-center justify-center
+opacity-0 group-hover:opacity-100
+transition-opacity duration-300">
 
-                                    <span className="text-[#e8d5b0] text-[8px] text-center font-semibold tracking-[0.2em] uppercase px-1">
-                                        {uploading ? "Subiendo" : "Cambiar"}
-                                    </span>
+<span className="text-[#e8d5b0] text-[8px] text-center font-semibold tracking-[0.2em] uppercase px-1">
+{uploading ? "Subiendo" : "Cambiar"}
+</span>
                                 </div>
                             </div>
 
@@ -225,12 +331,12 @@ function MyProfile() {
                                 <button
                                     onClick={() => setEditMode(true)}
                                     className="
-                                        flex-shrink-0 px-5 py-2
-                                        border border-[#4a4540] hover:border-[#c49a6c]
-                                        text-[#8a7d6e] hover:text-[#c49a6c]
-                                        text-[10px] tracking-[0.2em] uppercase
-                                        transition-all duration-300
-                                        "
+flex-shrink-0 px-5 py-2
+border border-[#4a4540] hover:border-[#c49a6c]
+text-[#8a7d6e] hover:text-[#c49a6c]
+text-[10px] tracking-[0.2em] uppercase
+transition-all duration-300
+"
                                 >
                                     Editar
                                 </button>
@@ -241,81 +347,104 @@ function MyProfile() {
                         {/* Estadisticas */}
                         <div className="flex gap-10 border-t border-[#3a3530] pt-6">
                             {[
-                                {label: "Publicaciones", value: 0},
+                                {label: "Publicaciones", value: myPosts.length},
                                 {label: "Seguidores", value: 0},
                                 {label: "Seguidos", value: 0},
                             ].map(stat => (
                                 <div key={stat.label} className="flex flex-col items-center gap-1">
                                     <span className="text-[#e8d5b0] text-lg font-light">{stat.value}</span>
-                                    <span className="text-[#4a4540] text-[10px] tracking-[0.15em] uppercase">{stat.label}</span>
+                                    <span
+                                        className="text-[#4a4540] text-[10px] tracking-[0.15em] uppercase">{stat.label}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                {/* Publicaciones */}
-                <div className="max-w-2xl mx-auto px-6 py-8">
+                {/*publicaciones*/}
 
-                    {/* Titulo */}
+                <div className="max-w-2xl mx-auto px-6 py-8">
                     <div className="flex items-center gap-4 mb-6">
                         <span className="text-[#8a7d6e] text-[10px] tracking-[0.3em] uppercase">Publicaciones</span>
                         <div className="flex-1 h-px bg-[#3a3530]"></div>
                     </div>
 
-                    {/* 3 columnas. por ahora vacia, aca van las publicaciones despues */}
                     <div className="grid grid-cols-3 gap-2">
-                        {[1, 2, 3, 4, 5, 6].map(i => (
-                            // --> Placeholder de publicacion para cuando lo hagamos
+                        {/* Botón nuevo post */}
+                        {isOwner && (
                             <div
-                                key={i}
-                                className="
-                                    aspect-square border border-[#3a3530]
-                                    bg-[#221f1c] flex items-center justify-center
-                                    hover:border-[#4a4540] transition-colors duration-300
-                                "
+                                onClick={() => setShowCreateModal(true)}
+                                className="aspect-square border-2 border-dashed border-[#3a3530] bg-[#2a2622] flex flex-col items-center justify-center hover:border-[#c49a6c] hover:bg-[#221f1c] cursor-pointer transition-all duration-300 group"
                             >
-                                {/* Placeholder camara */}
-                                <svg className="w-6 h-6 text-[#3a3530]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
-                                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
+                                <span className="text-[#3a3530] group-hover:text-[#c49a6c] text-4xl font-thin">+</span>
+                                <span className="text-[#3a3530] group-hover:text-[#c49a6c] text-[8px] tracking-[0.2em] uppercase mt-2">Nuevo Post</span>
+                            </div>
+                        )}
+
+                        {/* ACÁ VA EL CÓDIGO NUEVO */}
+                        {myPosts.map(post => (
+                            <div key={post.id} className="border border-[#3a3530] bg-[#221f1c] overflow-hidden">
+                                <div className="grid grid-cols-3 gap-0.5 aspect-square">
+                                    {post.outfit?.clothes?.slice(0, 9).map(clothe => (
+                                        <div key={clothe.id} className="overflow-hidden">
+                                            {clothe.image_url
+                                                ? <img src={clothe.image_url} className="w-full h-full object-cover" />
+                                                : <div className="w-full h-full bg-[#2a2622] flex items-center justify-center">
+                                                    <span className="text-[#3a3530] text-[8px]">{clothe.name}</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="p-3 flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                        {user.avatar_url
+                                            ? <img src={user.avatar_url} className="w-5 h-5 rounded-full object-cover" />
+                                            : <span className="w-5 h-5 rounded-full bg-[#3a3530] flex items-center justify-center text-[#c49a6c] text-[8px]">
+                            {user.name?.charAt(0).toUpperCase()}
+                          </span>
+                                        }
+                                        <span className="text-[#c49a6c] text-[10px] tracking-[0.15em]">@{user.username}</span>
+                                        <span className="text-[#4a4540] text-[9px] ml-auto">{post.dateOfPost}</span>
+                                    </div>
+                                    <p className="text-[#6b6258] text-[10px] leading-relaxed">{post.descripcion}</p>
+                                    {isOwner && (
+                                        <div className="flex gap-2 mt-1">
+                                            <button onClick={() => {
+                                                setEditingPost(post);
+                                                setEditPostDesc(post.descripcion);
+                                            }}
+                                                    className="flex-1 py-1 border border-[#4a4540] hover:border-[#c49a6c] text-[#6b6258] hover:text-[#c49a6c] text-[9px] tracking-[0.15em] uppercase transition-all duration-300">
+                                                Editar
+                                            </button>
+                                            <button onClick={() => handleDeletePost(post.id)}
+                                                    className="flex-1 py-1 border border-[#4a4540] hover:border-red-900 text-[#4a4540] hover:text-red-700 text-[9px] tracking-[0.15em] uppercase transition-all duration-300">
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
+                </div> {/* cierre grid grid-cols-3 */}
+            </div> {/* cierre max-w-2xl publicaciones */}
+
+            {/* Acciones de la cuenta */}
+            {isOwner && (
+                <div className="max-w-2xl mx-auto px-6 pb-12 flex gap-4">
+                    <button onClick={logOut} className="px-6 py-3 border border-[#4a4540] hover:border-[#c49a6c] hover:text-[#c49a6c] text-[#6b6258] text-[10px] tracking-[0.2em] uppercase transition-all duration-300">
+                        Cerrar sesión
+                    </button>
+                    <button onClick={eliminateProfile} className="px-6 py-3 border border-[#4a4540] hover:border-red-900 hover:text-red-700 text-[#4a4540] text-[10px] tracking-[0.2em] uppercase transition-all duration-300">
+                        Eliminar cuenta
+                    </button>
                 </div>
+            )}
 
-                {/* Acciones de la cuentarda */}
-                {isOwner && (
-                    <div className="max-w-2xl mx-auto px-6 pb-12 flex gap-4">
-                        <button
-                            onClick={logOut}
-                            className="
-                                px-6 py-3 border border-[#4a4540]
-                                hover:border-[#c49a6c] hover:text-[#c49a6c]
-                                text-[#6b6258] text-[10px] tracking-[0.2em] uppercase
-                                transition-all duration-300
-                                "
-                        >
-                            Cerrar sesión
-                        </button>
-                        <button
-                            onClick={eliminateProfile}
-                            className="
-                                px-6 py-3 border border-[#4a4540]
-                                hover:border-red-900 hover:text-red-700
-                                text-[#4a4540] text-[10px] tracking-[0.2em] uppercase
-                                transition-all duration-300
-                                "
-                        >
-                            Eliminar cuenta
-                        </button>
-                    </div>
-                )}
-            </div>
 
-            {editMode && (
-                // Fondo oscuro semitransparente
+    {editMode && (
+// Fondo oscuro semitransparente
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
                     <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">
 
@@ -347,12 +476,12 @@ function MyProfile() {
                                 <button
                                     type="submit"
                                     className="
-                                        flex-1 py-3
-                                        bg-[#c49a6c] hover:bg-[#e8d5b0]
-                                        text-[#221f1c] text-xs font-semibold
-                                        tracking-[0.2em] uppercase
-                                        transition-all duration-300
-                                    "
+flex-1 py-3
+bg-[#c49a6c] hover:bg-[#e8d5b0]
+text-[#221f1c] text-xs font-semibold
+tracking-[0.2em] uppercase
+transition-all duration-300
+"
                                 >
                                     Guardar
                                 </button>
@@ -360,12 +489,12 @@ function MyProfile() {
                                     type="button"
                                     onClick={() => setEditMode(false)}
                                     className="
-                                        flex-1 py-3 border border-[#4a4540]
-                                        hover:border-[#6b6258]
-                                        text-[#6b6258] text-xs
-                                        tracking-[0.2em] uppercase
-                                        transition-all duration-300
-                                    "
+flex-1 py-3 border border-[#4a4540]
+hover:border-[#6b6258]
+text-[#6b6258] text-xs
+tracking-[0.2em] uppercase
+transition-all duration-300
+"
                                 >
                                     Cancelar
                                 </button>
@@ -374,8 +503,76 @@ function MyProfile() {
                     </div>
                 </div>
             )}
+            {editingPost && (
+                <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-6">
+                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">
+                        <h3 className="text-[#e8d5b0] text-lg font-light tracking-widest mb-1">Editar Post</h3>
+                        <div className="w-6 h-px bg-[#c49a6c] mb-8"></div>
+                        <form onSubmit={handleUpdatePost} className="flex flex-col gap-6">
+                            <div>
+                                <label className={labelClass}>Descripción</label>
+                                <textarea
+                                    value={editPostDesc}
+                                    onChange={(e) => setEditPostDesc(e.target.value)}
+                                    rows={3}
+                                    className={inputClass + " resize-none"}
+                                />
+                            </div>
+                            <div className="flex gap-4">
+                                <button type="submit" className="flex-1 py-3 bg-[#c49a6c] text-[#221f1c] text-xs font-semibold uppercase tracking-widest hover:bg-[#e8d5b0] transition-all">
+                                    Guardar
+                                </button>
+                                <button type="button" onClick={() => setEditingPost(null)} className="flex-1 py-3 border border-[#4a4540] text-[#6b6258] text-xs uppercase tracking-widest hover:border-[#c49a6c]">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-6">
+                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">
+                        <h3 className="text-[#e8d5b0] text-lg font-light tracking-widest mb-1">Nueva Publicación</h3>
+                        <div className="w-6 h-px bg-[#c49a6c] mb-8"></div>
+                        <form onSubmit={handleCreatePost} className="flex flex-col gap-6">
+                            <div>
+                                <label className={labelClass}>Seleccionar Outfit</label>
+                                <select
+                                    className={inputClass}
+                                    value={postFormData.outfitId}
+                                    onChange={(e) => setPostFormData({...postFormData, outfitId: e.target.value})}
+                                >
+                                    <option value="">-- Elegí un outfit --</option>
+                                    {outfits.map(o => (
+                                        <option key={o.id} value={o.id}>{o.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className={labelClass}>Descripción</label>
+                                <textarea
+                                    value={postFormData.descripcion}
+                                    onChange={(e) => setPostFormData({...postFormData, descripcion: e.target.value})}
+                                    placeholder="¿Qué cuenta este look hoy?"
+                                    rows={3}
+                                    className={inputClass + " resize-none"}
+                                />
+                            </div>
+                            <div className="flex gap-4">
+                                <button type="submit" className="flex-1 py-3 bg-[#c49a6c] text-[#221f1c] text-xs font-semibold uppercase tracking-widest hover:bg-[#e8d5b0] transition-all">
+                                    Publicar
+                                </button>
+                                <button type="button" onClick={() => setShowCreateModal(false)} className="flex-1 py-3 border border-[#4a4540] text-[#6b6258] text-xs uppercase tracking-widest hover:border-[#c49a6c]">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
-    );
+    )
 }
 
 export default MyProfile;

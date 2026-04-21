@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,8 +26,8 @@ public class Post {
     @Column(nullable = false, length = 500)
     private String descripcion;
 
-    @Column(name = "fecha_creacion")
-    private LocalDateTime fechaCreacion = LocalDateTime.now();
+    @Column(name = "date_of_post")
+    private LocalDate fechaCreacion;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

@@ -10,6 +10,7 @@ import com.virtualwardrobe.backend.models.user.UserRepositorie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -36,6 +37,7 @@ public class PostService {
         }
 
         Post pub = new Post();
+        pub.setFechaCreacion(LocalDate.now());
         pub.setDescripcion(dto.getDescripcion());
         pub.setUser(userRepository.getReferenceById(userId));
         pub.setOutfit(outfit);
@@ -45,7 +47,7 @@ public class PostService {
 
     // agarramo todos los posts
     public List<Post> obtenerTodas() {
-        return postRepositorie.findAll();
+        return postRepositorie.findAllByOrderByFechaCreacionDesc();
     }
 
     // agarrmo todos los posts de un usuario

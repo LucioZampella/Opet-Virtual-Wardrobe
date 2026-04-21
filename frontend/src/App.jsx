@@ -48,6 +48,8 @@ function App() {
                 <Route path="/login" element={
                     !token ? <Login onLoginSuccess={updateAuth} /> : <Navigate to="/feed" />
                 } />
+                <Route path="/profile" element={token ? <MyProfile /> : <Navigate to="/login" />} />
+                <Route path="/profile/:id" element={token ? <MyProfile /> : <Navigate to="/login" />} />
                 <Route path="/signup" element={
                     !token ? <SignUp /> : <Navigate to="/feed" />
                 } />
