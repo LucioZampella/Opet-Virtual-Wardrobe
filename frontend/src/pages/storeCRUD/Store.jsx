@@ -239,8 +239,6 @@ function Store() {
     };
 
     const deleteListing = async (listingId) => { // --> Borra la publicacion propia seleccionada por el usuario
-        if (!window.confirm("¿Estas seguro que queres borrar la publicación?")) return;
-
         try {
             const response = await fetch(`http://localhost:8080/store/${listingId}`, {
                 method: "DELETE",

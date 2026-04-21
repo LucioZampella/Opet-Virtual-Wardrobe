@@ -266,7 +266,6 @@ function Wardrobe() {
     };
 
     const deleteClothe = async (id) => { // --> Borra la prenda seleccionada por el usuario
-        if (!window.confirm("¿Estás seguro de que querés eliminar esta prenda?")) return;
 
         try {
             const response = await fetch(`http://localhost:8080/clothes/${id}`, {
@@ -280,7 +279,7 @@ function Wardrobe() {
             } else {
                 const errorMsg = await response.text();
                 console.error("Error al eliminar: " + errorMsg);
-                toast.error("Error al eliminar ", + errorMsg)
+                toast.error(errorMsg)
             }
         } catch (error) {
             toast.error("Error de conexión");

@@ -2,10 +2,13 @@ package com.virtualwardrobe.backend.models.clothe;
 
 import com.virtualwardrobe.backend.exceptions.InvalidClotheException;
 import com.virtualwardrobe.backend.exceptions.InvalidOutfitException;
+import com.virtualwardrobe.backend.exceptions.InvalidStoreException;
 import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.ColorRepository;
+import com.virtualwardrobe.backend.models.outfit.outfitCRUD.OutfitRepositorie;
+import com.virtualwardrobe.backend.models.store.storeListing.StoreListingRepositorie;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +24,13 @@ public class ClotheService {
     private ClotheRepositorie repo;
 
     @Autowired
+    private OutfitRepositorie outfitRepo;
+
+    @Autowired
     private ColorRepository colorRepository;
+
+    @Autowired
+    private StoreListingRepositorie storeRepo;
 
 
     @Autowired
@@ -72,8 +81,23 @@ public class ClotheService {
     public void eliminar(int id, int userId) {
         Clothe c = repo.findById(id)
                 .orElseThrow(() -> new InvalidClotheException("Prenda no encontrada"));
+
         if (c.getUser().getId() != userId) {
-            throw new UnauthorizedActionException("No tenés permiso para editar esta prenda");
+            throw new UnauthorizedActionException("No tenés permiso para eliminar esta prenda");
+        }
+
+        // Verificar si está en algún outfit
+        boolean enOutfit = outfitRepo.findAll().stream()
+                .anyMatch(o -> o.getClothes().stream().anyMatch(cl -> cl.getId() == id));
+        if (enOutfit) {
+            throw new InvalidOutfitException("No podés eliminar esta prenda porque está siendo usada en un outfit. Eliminá el outfit primero.");
+        }
+
+        // Verificar si tiene una publicación activa en la tienda
+        boolean enTienda = storeRepo.findAll().stream()
+                .anyMatch(s -> s.getClothesId() == id);
+        if (enTienda) {
+            throw new InvalidStoreException("No podés eliminar esta prenda porque tiene una publicación activa en la tienda. Eliminála primero.");
         }
 
         repo.deleteById(id);

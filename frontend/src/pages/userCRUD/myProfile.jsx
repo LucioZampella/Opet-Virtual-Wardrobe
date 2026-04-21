@@ -72,6 +72,7 @@ function MyProfile() {
             if (response.ok) {
                 toast.success("Usuario eliminado");
                 localStorage.removeItem("userId");
+                localStorage.removeItem("token");
                 window.location.href = "/login";
             } else {
                 const errorMsg = await response.text();
