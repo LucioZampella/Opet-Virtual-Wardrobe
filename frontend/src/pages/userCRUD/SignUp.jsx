@@ -11,7 +11,6 @@ function SignUp() {
     const [last_name, setLastName] = useState('');
     const [latitude, setLatitude] = useState(null);
     const [longitude, setLongitude] = useState(null);
-
     const navigate = useNavigate();
 
     const manageEntry = async (event) => {

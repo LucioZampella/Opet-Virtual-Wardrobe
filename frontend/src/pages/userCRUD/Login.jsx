@@ -3,12 +3,13 @@
 import {useNavigate} from "react-router-dom"; // --> Herramienta que oculta/muestra clips al instante sin hacer todo de nuevo
 import {useState} from "react"; // --> Recuerda lo que el usuario va tecleando
 import toast from "react-hot-toast";
+import { useAuth } from "../../modules/useAuth.js";
 function Login({onLoginSuccess}) {
 
     const [username, setUsername] = useState('');       //--> Variable email y funcion setEmail para modificarla
     const [password, setPassword] = useState(''); //--> Variable password y funcion setPassword para modificarla
-
     const navigate = useNavigate();
+    const { saveSession } = useAuth();
 
     const manageEntry = async (event) => {
         event.preventDefault(); //--> Esto para evitar que pegue pantallazo en blanco
@@ -22,8 +23,7 @@ function Login({onLoginSuccess}) {
 
             if (response.ok) {
                 const userLogged = await response.json();
-                localStorage.setItem("userId", userLogged.id); //--> Guarda el id del usuario en el navegador
-                localStorage.setItem("token", userLogged.token);
+                saveSession(userLogged);
                 onLoginSuccess();
                 toast.success("Te logeaste bien!")
                 navigate("/feed"); //--> Redirige al perfil si el login fue exitoso

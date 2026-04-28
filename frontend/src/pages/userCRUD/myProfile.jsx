@@ -4,50 +4,51 @@ const CLOUDINARY_CLOUD_NAME = "ducp0gbgq";
 const CLOUDINARY_UPLOAD_PRESET = "opet_avatars"; //--> Import para la api para guardar las fotos de perfil
 import toast from "react-hot-toast";
 import {useParams} from "react-router-dom";
+import { useAuth } from "../../modules/useAuth.js";
+import { useApi } from "../../modules/useApi.js";
 
 function MyProfile() {
     const { id } = useParams();
     const [user, setUser] = useState(null);
     const [editMode, setEditMode] = useState(false);
     const [formData, setFormData] = useState({});
-    const loggedUserId = localStorage.getItem("userId");
+    const { userId: loggedUserId, token, clearSession} = useAuth();
+    const { apiFetch } = useApi();
     const userId = id || loggedUserId;
-    const token = localStorage.getItem("token");
     const isOwner = String(loggedUserId) === String(userId);
     const [uploading, setUploading] = useState(false);
-    const [myPosts, setMyPosts] = useState([]); // mis psots
+    const [myPosts, setMyPosts] = useState([]); // mis posts
     const [showCreateModal, setShowCreateModal] = useState(false); // para poner el nuevo post
     const [postFormData, setPostFormData] = useState({descripcion: "", outfitId: ""});
-    const [outfits, setOutfits] = useState([]); // apra elegir outdfits
+    const [outfits, setOutfits] = useState([]);
     const [editingPost, setEditingPost] = useState(null);
     const [editPostDesc, setEditPostDesc] = useState("");
 
     // --> Al cargar la pagina busca los datos del usuario por su id
     useEffect(() => {
-        fetch(`http://localhost:8080/usuarios/profile/${userId}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                setUser(data);
-                setFormData(data);
-            })
-            .catch(error => console.error("Hubo un error al cargar el perfil", error));
+        apiFetch(`/usuarios/profile/${userId}`)
+            .then(res => res.json())
+            .then(data => { setUser(data); setFormData(data); })
+            .catch(err => console.error("Hubo un error al cargar el perfil", err));
     }, [userId]);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/api/posts/user/${userId}`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        })
+        apiFetch(`/api/posts/user/${userId}`)
             .then(res => res.json())
             .then(data => setMyPosts(data))
             .catch(err => console.error("Error cargando posts", err));
+        apiFetch('/outfit/my-outfits')
+            .then(res => res.json())
+            .then(data => setOutfits(data))
+            .catch(err => console.error("Error cargando outfits", err));
+    }, [userId, token]);
 
-        fetch(`http://localhost:8080/outfit/my-outfits`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        })
+    useEffect(() => {
+        apiFetch(`/api/posts/my-posts`)
+            .then(res => res.json())
+            .then(data => setMyPosts(data))
+            .catch(err => console.error("Error cargando posts", err));
+        apiFetch('/clothes/my-outfits')
             .then(res => res.json())
             .then(data => setOutfits(data))
             .catch(err => console.error("Error cargando outfits", err));
@@ -55,24 +56,17 @@ function MyProfile() {
 
     const logOut = (e) => {
         e.preventDefault();
-        localStorage.removeItem("token");
-        localStorage.removeItem("userId");
+        clearSession();
         window.location.href = "/login";
     };
 
     const eliminateProfile = async () => {
         if (!window.confirm("¿Estás seguro que querés eliminar tu cuenta?")) return;
         try {
-            const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            });
+            const response = apiFetch (`usuarios/{$userId]`, { method: "DELETE"});
             if (response.ok) {
                 toast.success("Usuario eliminado");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("token");
+                clearSession();
                 window.location.href = "/login";
             } else {
                 const errorMsg = await response.text();
@@ -91,12 +85,8 @@ function MyProfile() {
     const handleCreatePost = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:8080/api/posts`, {
+            const response = apiFech(`/api/posts`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
                 body: JSON.stringify(postFormData)
             });
             if (response.ok) {
@@ -106,19 +96,15 @@ function MyProfile() {
                 // Recargar posts (puedes volver a hacer el fetch o sumarlo al estado)
                 window.location.reload();
             }
-        } catch (error) {
+        } catch {
             toast.error("Error al crear el post");
         }
     };
     const handleUpdatePost = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:8080/api/posts/${editingPost.id}`, {
+            const response = await apiFetch(`/api/posts/${editingPost.id}`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
                 body: JSON.stringify(editPostDesc)
             });
             if (response.ok) {
@@ -138,10 +124,7 @@ function MyProfile() {
     const handleDeletePost = async (postId) => {
         if (!window.confirm("¿Seguro que querés eliminar este post?")) return;
         try {
-            const response = await fetch(`http://localhost:8080/api/posts/${postId}`, {
-                method: "DELETE",
-                headers: { "Authorization": `Bearer ${token}` }
-            });
+            const response = await apiFetch(`/api/posts/${postId}`, { method: "DELETE" });
             if (response.ok) {
                 toast.success("Post eliminado");
                 setMyPosts(prev => prev.filter(p => p.id !== postId));
@@ -157,13 +140,9 @@ function MyProfile() {
     const updateProfile = async (e) => {
         e.preventDefault(); // evita que se recargue la pagina antes del fetch
         try {
-            const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
+            const response = await apiFetch(`/usuarios/${userId}`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(editPostDesc)
             });
             if (response.ok) {
                 setUser(formData);
@@ -207,14 +186,10 @@ function MyProfile() {
                 avatar_url: url
             }; //--> Manda el cambio a la db
 
-            const response = await fetch(`http://localhost:8080/usuarios/${userId}`, {
+            const response = await apiFetch(`/usuarios/${userId}`, {
                 method: "PUT",
-                headers: {"Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
                 body: JSON.stringify(dataToUpdate)
             });
-
             if (!response.ok) {
                 const errorMsg = await response.text();
                 toast(
@@ -235,22 +210,6 @@ function MyProfile() {
             setUploading(false);
         }
     };
-
-    useEffect(() => {
-        fetch(`http://localhost:8080/api/posts/my-posts`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        })
-            .then(res => res.json())
-            .then(data => setMyPosts(data))
-            .catch(err => console.error("Error cargando posts", err));
-
-        fetch(`http://localhost:8080/outfit/my-outfits`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        })
-            .then(res => res.json())
-            .then(data => setOutfits(data))
-            .catch(err => console.error("Error cargando outfits", err));
-    }, [userId, token]);
 
     const inputClass = `
         w-full bg-transparent border-b border-[#4a4540]

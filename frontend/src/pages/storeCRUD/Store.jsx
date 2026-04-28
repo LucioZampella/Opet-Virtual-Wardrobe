@@ -1,8 +1,10 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar.jsx";
-import {STATUS} from "../../constants/statusOptions.js";
+import { STATUS } from "../../constants/statusOptions.js";
 import Search from "../../components/Search.jsx";
 import toast from "react-hot-toast";
+import { useAuth } from "../../modules/useAuth.js";
+import { useApi } from "../../modules/useApi.js";
 
 const EmptyForm = {
     price: "",
@@ -14,13 +16,15 @@ const EmptyForm = {
 
 function Store() {
 
+    const { userId: rawUserId } = useAuth();
+    const { apiFetch } = useApi();
+    const userId = parseInt(rawUserId);
+
     const [storeListing, setStoreListing] = useState([]);
     const [myClothes, setMyClothes] = useState([]);
     const [selectedClothe, setSelectedClothe] = useState(null);
     const [showCreateListing, setShowCreateListing] = useState(false);
     const [editingListing, setEditingListing] = useState(null);
-    const token = localStorage.getItem("token");
-    const userId = parseInt(localStorage.getItem("userId"));
     const [form, setForm] = useState(EmptyForm);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -38,11 +42,8 @@ function Store() {
     const fetchAllListings = async () => { // --> Trae todas las listings
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8080/store/home`, {
+            const response = await apiFetch(`/store/home`, {
                 method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
             });
 
             if (response.ok) {
@@ -80,9 +81,8 @@ function Store() {
                 }
             });
 
-            const response = await fetch(`http://localhost:8080/store/filter?${params}`, {
-                headers: { "Authorization": `Bearer ${token}`,
-                "Accept": "application/json"}
+            const response = await apiFetch(`/store/filter?${params}`, {
+                headers: { "Accept": "application/json" }
             });
 
             if (response.ok) {
@@ -104,9 +104,7 @@ function Store() {
     // --> me traigo todas mis prendas del usuario
     const fetchMyClothes = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/clothes/my-clothes`, {
-                headers: {"Authorization": `Bearer ${token}`}
-            });
+            const response = await apiFetch(`/clothes/my-clothes`);
             if (response.ok) {
                 const data = await response.json();
                 setMyClothes(data);
@@ -155,12 +153,8 @@ function Store() {
     const createStoreListing = async (e) => { // --> Crear una publicacion de venta
         e.preventDefault();
         try {
-            const response = await fetch(`http://localhost:8080/store`, {
+            const response = await apiFetch(`/store`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
                 body: JSON.stringify({
                     clothesId: selectedClothe.id,
                     price: Number(form.price),
@@ -200,12 +194,8 @@ function Store() {
         e.preventDefault();
 
         try {
-            const response = await fetch(`http://localhost:8080/store/${editingListing.listingId}`, {
+            const response = await apiFetch(`/store/${editingListing.listingId}`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
                 body: JSON.stringify({
                     name: form.name,
                     price: Number(form.price),
@@ -231,7 +221,7 @@ function Store() {
             } else {
                 const errorMsg = response.text();
                 console.error("No se pudo editar la prenda: ", errorMsg);
-                toast.error( errorMsg)
+                toast.error(errorMsg)
             }
         } catch (error) {
             console.error("Error de conexion: ", error);
@@ -240,9 +230,8 @@ function Store() {
 
     const deleteListing = async (listingId) => { // --> Borra la publicacion propia seleccionada por el usuario
         try {
-            const response = await fetch(`http://localhost:8080/store/${listingId}`, {
+            const response = await apiFetch(`/store/${listingId}`, {
                 method: "DELETE",
-                headers: {"Authorization": `Bearer ${token}`}
             });
 
             if (response.ok) {
@@ -251,7 +240,7 @@ function Store() {
             } else {
                 const errorMsg = response.text();
                 console.error("No se pudo eliminar la venta: ", errorMsg);
-                toast.error( errorMsg)
+                toast.error(errorMsg)
             }
         } catch (error) {
             console.error("Error de conexion: ", error);
@@ -274,6 +263,7 @@ function Store() {
         outline-none focus:border-[#c49a6c]
         transition-colors duration-300 cursor-pointer
     `;
+
     return (
         <div className="min-h-screen bg-[#2a2622]">
             <Navbar/>
