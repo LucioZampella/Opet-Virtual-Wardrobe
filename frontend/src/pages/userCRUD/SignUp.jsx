@@ -34,11 +34,9 @@ function SignUp() {
                 toast.success("Cuenta  creada exitosamente");
 
                 navigate("/login"); //--> Si se registro bien, lo manda al login
-            } else if (response.status === 409 || response.status === 400) {
-                const errorMessage = await response.text();
-                toast.error(errorMessage); //--> Muestra el error que tiro Java (email duplicado, etc)
-            } else {
-                toast.error("Sucedió un error inesperado");
+            } else if (!response.ok){
+                toast.error("Error " + await response.text())
+
             }
         } catch (error) {
             console.error("Error al conectar con el servidor:", error);

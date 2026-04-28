@@ -26,4 +26,6 @@ public interface StoreListingRepositorie extends JpaRepository<StoreListing, Int
                                    Integer fitId, List<Long> colorIds, String name);
 
     List<StoreListing> findAllByOrderByDateDesc();
+
+    Optional<StoreListing> findByClotheId(int clothe_id);
 }

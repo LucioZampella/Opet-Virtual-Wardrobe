@@ -96,6 +96,9 @@ function MyProfile() {
                 // Recargar posts (puedes volver a hacer el fetch o sumarlo al estado)
                 window.location.reload();
             }
+            else if (!response.ok){
+                toast.error("Error " + await response.text())
+            }
         } catch {
             toast.error("Error al crear el post");
         }

@@ -35,7 +35,14 @@ public class PostService {
         if (outfit.getUser().getId() != userId) {
             throw new UnauthorizedActionException("No tienes permiso para publicar este outfit");
         }
+        String nuevaDescripcion = dto.getDescripcion();
+        if (nuevaDescripcion.length() > 255) {
+            throw new InvalidPostException("La descripción no puede exceder los 255 caracteres.");
+        }
 
+        if (nuevaDescripcion.isEmpty()) {
+            throw new InvalidPostException("La descripcion  debe ser mayor que 1 caracter");
+        }
         Post pub = new Post();
         pub.setFechaCreacion(LocalDate.now());
         pub.setDescripcion(dto.getDescripcion());
@@ -62,6 +69,13 @@ public class PostService {
 
         if (pub.getUser().getId() != userId) {
             throw new UnauthorizedActionException("No eres el dueño de esta publicación");
+        }
+        if (nuevaDescripcion.length() > 255) {
+            throw new InvalidPostException("La descripción no puede exceder los 255 caracteres.");
+        }
+
+        if (nuevaDescripcion.isEmpty()) {
+            throw new InvalidPostException("La descripcion  debe ser mayor que 1 caracter");
         }
 
         pub.setDescripcion(nuevaDescripcion);

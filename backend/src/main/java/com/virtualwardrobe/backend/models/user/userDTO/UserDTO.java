@@ -1,6 +1,7 @@
 package com.virtualwardrobe.backend.models.user.userDTO;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +14,11 @@ public class UserDTO {
     @NotBlank( message = " El email no puede estar vacio")
     private String email;
     // si no pongo not blank se me genera un hash con una contraseña vacia que no deberia poder pasar
+
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$",
+            message = "La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un símbolo"
+    )
     @NotBlank(message = "Debe ingresar una contraseña")
     private String password;
 

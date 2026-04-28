@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class StoreListingService {
@@ -21,6 +22,10 @@ public class StoreListingService {
 
     public void crear(StoreListingDTO dto, int sellerId) {
         StoreListing ls = new StoreListing();
+        Optional<StoreListing> lst = repo.findByClotheId(dto.getClothesId());
+        if (lst.isPresent()) {
+            throw new InvalidStoreException("La prenda ya esta en venta");
+        }
 
         ls.setSellerId(sellerId);
         ls.setClothesId(dto.getClothesId());
