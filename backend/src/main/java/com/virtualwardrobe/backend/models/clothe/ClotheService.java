@@ -9,6 +9,8 @@ import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheResponseDTO;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.ColorRepository;
 import com.virtualwardrobe.backend.models.outfit.outfitCRUD.OutfitRepositorie;
+import com.virtualwardrobe.backend.models.preferences.PreferencesRepositorie;
+import com.virtualwardrobe.backend.models.preferences.PreferencesService;
 import com.virtualwardrobe.backend.models.store.storeListing.StoreListingRepositorie;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
@@ -25,6 +27,9 @@ public class ClotheService {
 
     @Autowired
     private ClotheRepositorie repo;
+
+    @Autowired
+    private PreferencesService preferencesService;
 
     @Autowired
     private OutfitRepositorie outfitRepo;
@@ -56,6 +61,7 @@ public class ClotheService {
         c.setTypeId(dto.getTypeId());
         c.setPreferenceLevel(dto.getPreferenceLevel());
         repo.save(c);
+        preferencesService.recalcularPreferences(user);
     }
 
     public void modificar(int id, ClotheDTO dto, int userId) {
@@ -79,6 +85,7 @@ public class ClotheService {
         c.setTypeId(dto.getTypeId());
         c.setPreferenceLevel(dto.getPreferenceLevel());
         repo.save(c);
+        preferencesService.recalcularPreferences(c.getUser());
     }
 
     public void eliminar(int id, int userId) {
@@ -103,7 +110,8 @@ public class ClotheService {
             throw new InvalidStoreException("No podés eliminar esta prenda porque tiene una publicación activa en la tienda. Eliminála primero.");
         }
 
-        repo.deleteById((long) id);
+        repo.deleteById(id);
+        preferencesService.recalcularPreferences(c.getUser());
     }
 
     public List<ClotheResponseDTO> getClothesForProfile(int userId) {
@@ -167,6 +175,6 @@ public class ClotheService {
                         boolean esIgual = colorIds.contains(idPrenda);
                         return esIgual;
                     });
-                }).collect(toList());
+                }).collect(Collectors.toList());
 }
 }
