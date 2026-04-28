@@ -110,7 +110,7 @@ public class ClotheService {
             throw new InvalidStoreException("No podés eliminar esta prenda porque tiene una publicación activa en la tienda. Eliminála primero.");
         }
 
-        repo.deleteById(id);
+        repo.deleteById(Long.valueOf(id));
         preferencesService.recalcularPreferences(c.getUser());
     }
 
