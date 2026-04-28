@@ -5,6 +5,7 @@ import com.virtualwardrobe.backend.exceptions.InvalidOutfitException;
 import com.virtualwardrobe.backend.exceptions.InvalidStoreException;
 import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
+import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheResponseDTO;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.ColorRepository;
 import com.virtualwardrobe.backend.models.outfit.outfitCRUD.OutfitRepositorie;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class ClotheService {
@@ -100,7 +103,13 @@ public class ClotheService {
             throw new InvalidStoreException("No podés eliminar esta prenda porque tiene una publicación activa en la tienda. Eliminála primero.");
         }
 
-        repo.deleteById(id);
+        repo.deleteById((long) id);
+    }
+
+    public List<ClotheResponseDTO> getClothesForProfile(int userId) {
+        return repo.findByUserId(userId).stream()
+                .map(c -> new ClotheResponseDTO(c.getId(), c.getImage_url()))
+                .toList();
     }
 
     public ClotheDTO buscarPorId(int id) {
@@ -158,6 +167,6 @@ public class ClotheService {
                         boolean esIgual = colorIds.contains(idPrenda);
                         return esIgual;
                     });
-                }).collect(Collectors.toList());
+                }).collect(toList());
 }
 }

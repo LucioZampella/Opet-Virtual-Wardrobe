@@ -1,6 +1,7 @@
 package com.virtualwardrobe.backend.models.clothe;
 
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
+import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheResponseDTO;
 import com.virtualwardrobe.backend.security.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,15 @@ public class ClotheController {
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
         return ResponseEntity.ok(service.listarPorUserId(userId));
     }
+
+    @GetMapping("/my_clothes/profile")
+    public ResponseEntity<List<ClotheResponseDTO>> getClothesForProfile(
+            @RequestHeader ("Authorization")String authHeader
+    ) {
+        int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
+        return ResponseEntity.ok(service.getClothesForProfile(userId));
+    }
+
 
     @GetMapping("/filter")
     public ResponseEntity<List<Clothe>> filtrar(

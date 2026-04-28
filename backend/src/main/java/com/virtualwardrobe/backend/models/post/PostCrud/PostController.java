@@ -1,6 +1,5 @@
 package com.virtualwardrobe.backend.models.post.PostCrud;
-
-import com.virtualwardrobe.backend.models.post.PostDTO.PostDTO;
+import com.virtualwardrobe.backend.models.post.PostDTO.PostRequestDTO;
 import com.virtualwardrobe.backend.security.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,7 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<?> createPost(
-            @RequestBody @Valid PostDTO dto,
+            @RequestBody @Valid PostRequestDTO dto,
             @RequestHeader("Authorization") String authHeader) {
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
         service.crear(dto, userId);

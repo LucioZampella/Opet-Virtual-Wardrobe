@@ -1,5 +1,6 @@
 package com.virtualwardrobe.backend.models.post.PostCrud;
 
+import com.virtualwardrobe.backend.models.clothe.Clothe;
 import com.virtualwardrobe.backend.models.outfit.outfitCRUD.Outfit;
 import com.virtualwardrobe.backend.models.user.User;
 import jakarta.persistence.*;
@@ -36,10 +37,17 @@ public class Post {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
+    @ManyToOne
+    @JoinColumn (name = "clothe_id", nullable = true)
+    private Clothe clothe;
 
     @ManyToOne
-    @JoinColumn(name = "outfit_id", nullable = false)
+    @JoinColumn(name = "outfit_id", nullable = true)
     private Outfit outfit;
+
+    public boolean isOutfit(){
+        return outfit!=null;
+    }
 
 
 }

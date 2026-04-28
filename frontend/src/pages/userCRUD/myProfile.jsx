@@ -19,10 +19,12 @@ function MyProfile() {
     const [uploading, setUploading] = useState(false);
     const [myPosts, setMyPosts] = useState([]); // mis posts
     const [showCreateModal, setShowCreateModal] = useState(false); // para poner el nuevo post
-    const [postFormData, setPostFormData] = useState({descripcion: "", outfitId: ""});
+    const [postFormData, setPostFormData] = useState({descripcion: "", outfitId: "", clotheId: ""});
     const [outfits, setOutfits] = useState([]);
+    const [clothes, setClothes] = useState([])
     const [editingPost, setEditingPost] = useState(null);
     const [editPostDesc, setEditPostDesc] = useState("");
+    const [postType, setPostType] = useState('OUTFIT'); // OUTFIT o CLOTHE
 
     // --> Al cargar la pagina busca los datos del usuario por su id
     useEffect(() => {
@@ -41,6 +43,13 @@ function MyProfile() {
             .then(res => res.json())
             .then(data => setOutfits(data))
             .catch(err => console.error("Error cargando outfits", err));
+        apiFetch('clothes/my-clothes/profile')
+            .then(res => res.json())
+            .then(data => {
+                console.log("Prendas recibidas:", data); // Mira si llegan datos aquí
+                setClothes(data);
+            })
+            .catch(err => console.error( "Error cargando prendas", err))
     }, [userId, token]);
 
     useEffect(() => {
@@ -48,10 +57,17 @@ function MyProfile() {
             .then(res => res.json())
             .then(data => setMyPosts(data))
             .catch(err => console.error("Error cargando posts", err));
-        apiFetch('/clothes/my-outfits')
+        apiFetch('/outfit/my-outfits')
             .then(res => res.json())
             .then(data => setOutfits(data))
             .catch(err => console.error("Error cargando outfits", err));
+        apiFetch('clothes/my-clothes/profile')
+            .then(res => res.json())
+            .then(data => {
+                console.log("Prendas recibidas:", data); // Mira si llegan datos aquí
+                setClothes(data);
+            })
+            .catch(err => console.error( "Error cargando prendas", err))
     }, [userId, token]);
 
     const logOut = (e) => {
@@ -92,7 +108,7 @@ function MyProfile() {
             if (response.ok) {
                 toast.success("Publicación creada");
                 setShowCreateModal(false);
-                setPostFormData({descripcion: "", outfitId: ""});
+                setPostFormData({descripcion: "", outfitId: "", clotheId: ""});
                 // Recargar posts (puedes volver a hacer el fetch o sumarlo al estado)
                 window.location.reload();
             }
@@ -355,30 +371,55 @@ transition-all duration-300
                         {/* ACÁ VA EL CÓDIGO NUEVO */}
                         {myPosts.map(post => (
                             <div key={post.id} className="border border-[#3a3530] bg-[#221f1c] overflow-hidden">
-                                <div className="grid grid-cols-3 gap-0.5 aspect-square">
-                                    {post.outfit?.clothes?.slice(0, 9).map(clothe => (
-                                        <div key={clothe.id} className="overflow-hidden">
-                                            {clothe.image_url
-                                                ? <img src={clothe.image_url} className="w-full h-full object-cover" />
-                                                : <div className="w-full h-full bg-[#2a2622] flex items-center justify-center">
-                                                    <span className="text-[#3a3530] text-[8px]">{clothe.name}</span>
+                                {/* LÓGICA DE IMAGEN DINÁMICA */}
+                                <div className="aspect-square bg-[#1a1816]">
+                                    {post.outfit ? (
+                                        /* Si es Outfit: Grilla de 3x3 */
+                                        <div className="grid grid-cols-3 gap-0.5 h-full">
+                                            {post.outfit.clothes?.slice(0, 9).map(clothe => (
+                                                <div key={clothe.id} className="overflow-hidden">
+                                                    {clothe.image_url ? (
+                                                        <img src={clothe.image_url} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-[#2a2622] flex items-center justify-center">
+                                                            <span className="text-[#3a3530] text-[8px]">{clothe.name}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            }
+                                            ))}
                                         </div>
-                                    ))}
+                                    ) : post.clothe ? (
+                                        /* Si es Prenda: Imagen única completa */
+                                        <div className="w-full h-full">
+                                            {post.clothe.image_url ? (
+                                                <img src={post.clothe.image_url} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full bg-[#2a2622] flex items-center justify-center">
+                                                    <span className="text-[#c49a6c] text-[10px] tracking-widest">{post.clothe.name}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : null}
                                 </div>
+
+                                {/* INFO DEL POST */}
                                 <div className="p-3 flex flex-col gap-2">
                                     <div className="flex items-center gap-2">
-                                        {user.avatar_url
-                                            ? <img src={user.avatar_url} className="w-5 h-5 rounded-full object-cover" />
-                                            : <span className="w-5 h-5 rounded-full bg-[#3a3530] flex items-center justify-center text-[#c49a6c] text-[8px]">
-                            {user.name?.charAt(0).toUpperCase()}
-                          </span>
-                                        }
+                                        {user.avatar_url ? (
+                                            <img src={user.avatar_url} className="w-5 h-5 rounded-full object-cover" />
+                                        ) : (
+                                            <span className="w-5 h-5 rounded-full bg-[#3a3530] flex items-center justify-center text-[#c49a6c] text-[8px]">
+                        {user.name?.charAt(0).toUpperCase()}
+                    </span>
+                                        )}
                                         <span className="text-[#c49a6c] text-[10px] tracking-[0.15em]">@{user.username}</span>
+                                        {/* Badge para saber qué es */}
+                                        <span className="text-[7px] border border-[#c49a6c]/30 px-1 text-[#c49a6c] uppercase ml-1">
+                    {post.outfit ? 'Outfit' : 'Prenda'}
+                </span>
                                         <span className="text-[#4a4540] text-[9px] ml-auto">{post.dateOfPost}</span>
                                     </div>
-                                    <p className="text-[#6b6258] text-[10px] leading-relaxed">{post.descripcion}</p>
+                                    <p className="text-[#6b6258] text-[10px] leading-relaxed line-clamp-2">{post.descripcion}</p>
                                     {isOwner && (
                                         <div className="flex gap-2 mt-1">
                                             <button onClick={() => {
@@ -503,38 +544,72 @@ transition-all duration-300
             )}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-6">
-                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">
+                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8 max-h-[90vh] overflow-y-auto">
                         <h3 className="text-[#e8d5b0] text-lg font-light tracking-widest mb-1">Nueva Publicación</h3>
-                        <div className="w-6 h-px bg-[#c49a6c] mb-8"></div>
+                        <div className="w-6 h-px bg-[#c49a6c] mb-6"></div>
+
+                        {/* SELECTOR DE TIPO */}
+                        <div className="flex gap-4 mb-6">
+                            <button
+                                onClick={() => setPostFormData({...postFormData, type: 'OUTFIT', clotheId: null})}
+                                className={`flex-1 py-2 text-[9px] tracking-[0.2em] uppercase border ${postFormData.type === 'OUTFIT' ? 'border-[#c49a6c] text-[#c49a6c]' : 'border-[#3a3530] text-[#4a4540]'}`}
+                            >
+                                Outfit
+                            </button>
+                            <button
+                                onClick={() => setPostFormData({...postFormData, type: 'CLOTHE', outfitId: null})}
+                                className={`flex-1 py-2 text-[9px] tracking-[0.2em] uppercase border ${postFormData.type === 'CLOTHE' ? 'border-[#c49a6c] text-[#c49a6c]' : 'border-[#3a3530] text-[#4a4540]'}`}
+                            >
+                                Prenda
+                            </button>
+                        </div>
+
                         <form onSubmit={handleCreatePost} className="flex flex-col gap-6">
-                            <div>
-                                <label className={labelClass}>Seleccionar Outfit</label>
-                                <select
-                                    className={inputClass}
-                                    value={postFormData.outfitId}
-                                    onChange={(e) => setPostFormData({...postFormData, outfitId: e.target.value})}
-                                >
-                                    <option value="">-- Elegí un outfit --</option>
-                                    {outfits.map(o => (
-                                        <option key={o.id} value={o.id}>{o.name}</option>
-                                    ))}
-                                </select>
+                            {/* LISTA DE SELECCIÓN CON FOTOS */}
+                            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1 bg-[#1a1816]">
+                                {postFormData.type === 'OUTFIT' ? (
+                                    outfits.map(o => (
+                                        <div
+                                            key={o.id}
+                                            onClick={() => setPostFormData({...postFormData, outfitId: o.id})}
+                                            className={`aspect-square border cursor-pointer relative ${postFormData.outfitId === o.id ? 'border-[#c49a6c]' : 'border-[#3a3530]'}`}
+                                        >
+                                            <div className="grid grid-cols-2 h-full opacity-60">
+                                                {o.clothes?.slice(0,4).map(c => <img key={c.id} src={c.image_url} className="w-full h-full object-cover"/>)}
+                                            </div>
+                                            <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[7px] text-[#c49a6c] text-center truncate p-0.5 uppercase tracking-tighter">{o.name}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    clothes.map(c => (
+                                        <div
+                                            key={c.id}
+                                            onClick={() => setPostFormData({...postFormData, clotheId: c.id})}
+                                            className={`aspect-square border cursor-pointer relative overflow-hidden ${postFormData.clotheId === c.id ? 'border-[#c49a6c]' : 'border-[#3a3530]'}`}
+                                        >
+                                            <img src={c.image_url} className="w-full h-full object-cover" />
+                                            <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[7px] text-[#c49a6c] text-center truncate p-0.5 uppercase tracking-tighter">{c.name}</span>
+                                        </div>
+                                    ))
+                                )}
                             </div>
+
                             <div>
                                 <label className={labelClass}>Descripción</label>
                                 <textarea
                                     value={postFormData.descripcion}
                                     onChange={(e) => setPostFormData({...postFormData, descripcion: e.target.value})}
-                                    placeholder="¿Qué cuenta este look hoy?"
+                                    placeholder="Escribe algo sobre esto..."
                                     rows={3}
                                     className={inputClass + " resize-none"}
                                 />
                             </div>
+
                             <div className="flex gap-4">
-                                <button type="submit" className="flex-1 py-3 bg-[#c49a6c] text-[#221f1c] text-xs font-semibold uppercase tracking-widest hover:bg-[#e8d5b0] transition-all">
+                                <button type="submit" className="flex-1 py-3 bg-[#c49a6c] text-[#221f1c] text-xs font-semibold uppercase tracking-widest hover:bg-[#e8d5b0]">
                                     Publicar
                                 </button>
-                                <button type="button" onClick={() => setShowCreateModal(false)} className="flex-1 py-3 border border-[#4a4540] text-[#6b6258] text-xs uppercase tracking-widest hover:border-[#c49a6c]">
+                                <button type="button" onClick={() => setShowCreateModal(false)} className="flex-1 py-3 border border-[#4a4540] text-[#6b6258] text-xs uppercase tracking-widest">
                                     Cancelar
                                 </button>
                             </div>

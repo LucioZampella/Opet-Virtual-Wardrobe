@@ -1,11 +1,14 @@
 package com.virtualwardrobe.backend.models.post.PostCrud;
 
+import com.virtualwardrobe.backend.exceptions.InvalidClotheException;
 import com.virtualwardrobe.backend.exceptions.InvalidOutfitException;
 import com.virtualwardrobe.backend.exceptions.InvalidPostException;
 import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
+import com.virtualwardrobe.backend.models.clothe.Clothe;
+import com.virtualwardrobe.backend.models.clothe.ClotheRepositorie;
 import com.virtualwardrobe.backend.models.outfit.outfitCRUD.Outfit;
 import com.virtualwardrobe.backend.models.outfit.outfitCRUD.OutfitRepositorie;
-import com.virtualwardrobe.backend.models.post.PostDTO.PostDTO;
+import com.virtualwardrobe.backend.models.post.PostDTO.PostRequestDTO;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,17 +28,48 @@ public class PostService {
     @Autowired
     private UserRepositorie userRepository;
 
-    // 1. CREAR
-    public void crear(PostDTO dto, int userId) {
-        // Validamos que el outfit exista
-        Outfit outfit = outfitRepository.findById(dto.getOutfitId())
-                .orElseThrow(() -> new InvalidOutfitException("Outfit no encontrado"));
+    @Autowired
+    private ClotheRepositorie clotheRepository;
 
-        // Validamos que el outfit sea del usuario )
-        if (outfit.getUser().getId() != userId) {
-            throw new UnauthorizedActionException("No tienes permiso para publicar este outfit");
-        }
+    // 1. CREAR
+    public void crear(PostRequestDTO dto, int userId) {
+        // Validamos que el outfit exista
+        Post pub = new Post();
         String nuevaDescripcion = dto.getDescripcion();
+        verificadorLongitud(nuevaDescripcion);
+
+        pub.setFechaCreacion(LocalDate.now());
+        pub.setDescripcion(dto.getDescripcion());
+
+        if (dto.getClothesId() != null){
+            Clothe c = clotheRepository.findById(dto.getClothesId())
+                    .orElseThrow(() -> new InvalidClotheException("Prenda no encontrada "));
+
+            if (c.getUser().getId() != userId) {
+                throw new UnauthorizedActionException("No tienes permiso para publicar esta prenda");
+
+            }
+            pub.setClothe(c);
+        }
+        if (dto.getOutfitId() != null){
+            Outfit outfit = outfitRepository.findById(dto.getOutfitId())
+                    .orElseThrow(() -> new InvalidOutfitException("Outfit no encontrado"));
+
+            // Validamos que el outfit sea del usuario )
+            if (outfit.getUser().getId() != userId) {
+                throw new UnauthorizedActionException("No tienes permiso para publicar este outfit");
+
+            }
+            pub.setOutfit(outfit);
+        }
+
+        pub.setUser(userRepository.getReferenceById(userId));
+
+
+        postRepositorie.save(pub);
+    }
+
+    private static void verificadorLongitud(String nuevaDescripcion) {
         if (nuevaDescripcion.length() > 255) {
             throw new InvalidPostException("La descripción no puede exceder los 255 caracteres.");
         }
@@ -43,13 +77,6 @@ public class PostService {
         if (nuevaDescripcion.isEmpty()) {
             throw new InvalidPostException("La descripcion  debe ser mayor que 1 caracter");
         }
-        Post pub = new Post();
-        pub.setFechaCreacion(LocalDate.now());
-        pub.setDescripcion(dto.getDescripcion());
-        pub.setUser(userRepository.getReferenceById(userId));
-        pub.setOutfit(outfit);
-
-        postRepositorie.save(pub);
     }
 
     // agarramo todos los posts
@@ -70,13 +97,7 @@ public class PostService {
         if (pub.getUser().getId() != userId) {
             throw new UnauthorizedActionException("No eres el dueño de esta publicación");
         }
-        if (nuevaDescripcion.length() > 255) {
-            throw new InvalidPostException("La descripción no puede exceder los 255 caracteres.");
-        }
-
-        if (nuevaDescripcion.isEmpty()) {
-            throw new InvalidPostException("La descripcion  debe ser mayor que 1 caracter");
-        }
+        verificadorLongitud(nuevaDescripcion);
 
         pub.setDescripcion(nuevaDescripcion);
         postRepositorie.save(pub);

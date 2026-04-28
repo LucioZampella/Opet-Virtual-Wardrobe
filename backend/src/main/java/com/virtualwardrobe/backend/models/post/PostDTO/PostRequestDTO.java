@@ -11,11 +11,11 @@ import lombok.Setter;
 @Setter
 @Getter
 
-public class PostDTO {
-    @NotBlank(message = "La descripción no puede estar vacía")
+public class PostRequestDTO {
     private String descripcion;
+    private Integer clothesId; // Opcional
+    private Integer outfitId;  // Opcional
 
-    @NotNull(message = "Debes seleccionar un outfit")
-    private Integer outfitId;
-
+    // Getters y Setters
 }
+
