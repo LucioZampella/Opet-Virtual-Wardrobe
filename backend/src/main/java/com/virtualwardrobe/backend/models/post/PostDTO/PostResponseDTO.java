@@ -13,6 +13,5 @@ public class PostResponseDTO {
     private String caption;
     private String type; // "CLOTHES" o "OUTFIT"
     private Object content; // Aquí irá el detalle de la prenda o el outfit
-
-    // Getters y Setters
+    private double score;
 }

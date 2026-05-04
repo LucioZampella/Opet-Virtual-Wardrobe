@@ -58,7 +58,8 @@ public class PreferencesService {
             for (Integer attributeId : attributeIds) {
                 int coincidence = clothe.getPreferenceLevel();
                 scoreMap.merge(attributeId, coincidence, Integer::sum);
-                totalScore += coincidence;
+                totalScore += coincidence; // --> Accedo a cada prenda del usuario que coincida
+                // con el tipo de la ropa pedida y sumo la preferencia total para ese tipo
             }
 
             if (totalScore == 0) return;
@@ -67,7 +68,6 @@ public class PreferencesService {
             scoreMap.forEach((attributeId, rawScore) -> {
                 int normalizedScore = (rawScore * 100) / finalTotal;
                 guardarYOActualizar(user, type, attributeId, normalizedScore);
-
             });
         }
     }

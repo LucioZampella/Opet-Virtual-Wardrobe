@@ -20,8 +20,6 @@ public class PreferencesController {
 
     @Autowired
     private JwtUtil jwtUtil;
-    @Autowired
-    private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
 
     @GetMapping("/{userId}")
     public ResponseEntity<List<UserPreferences>> obtenerTodas(@RequestHeader("Authorization") String authHeader) {

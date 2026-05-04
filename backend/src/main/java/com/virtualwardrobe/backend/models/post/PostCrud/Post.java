@@ -49,5 +49,4 @@ public class Post {
         return outfit!=null;
     }
 
-
 }
