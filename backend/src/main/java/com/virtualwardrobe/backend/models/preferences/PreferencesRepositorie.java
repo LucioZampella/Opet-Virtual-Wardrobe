@@ -9,13 +9,13 @@ import java.util.Optional;
 
 public interface PreferencesRepositorie extends JpaRepository<UserPreferences, Integer> {
 
-    List<UserPreferences> findByUser_UserId(Integer userId);
+    List<UserPreferences> findByUserId(Integer userId);
 
     // --> Estas son las preferencias de un usuario filtradas por tipo de atributo
-    List<UserPreferences> findByUser_UserIdAndAttributeType(Integer userId, AttributeType attributeType);
+    List<UserPreferences> findByUserIdAndAttributeType(Integer userId, AttributeType attributeType);
 
     // --> Una preferencia específica (para actualizarla sin duplicar)
-    Optional<UserPreferences> findByUser_UserIdAndAttributeTypeAndAttributeId(
+    Optional<UserPreferences> findByUserIdAndAttributeTypeAndAttributeId(
             Integer userId,
             AttributeType attributeType,
             Integer attributeId

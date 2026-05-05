@@ -10,7 +10,7 @@ import Friends from "./pages/Friends.jsx";
 import Wardrobe from "./pages/clothesCRUD/Wardrobe.jsx";
 import Store from "./pages/storeCRUD/Store.jsx";
 import OutfitBuilder from "./pages/outfitCRUD/OutfitBuilder.jsx";
-import Search from "./components/Search.jsx";
+import Search from "./pages/searching/Search.jsx";
 
 
 

@@ -7,6 +7,7 @@ import com.virtualwardrobe.backend.models.preferences.PreferencesService;
 import com.virtualwardrobe.backend.models.preferences.UserPreferences;
 import com.virtualwardrobe.backend.models.clothe.Clothe;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,20 +23,20 @@ public class SearchFeedService {
     @Autowired
     private PreferencesService preferencesService;
 
-    public List<PostResponseDTO> generarFeed(Integer userId) {
-        List<UserPreferences> myPreferences = preferencesService.obtenerTodas(userId);
-        List<Post> postCandidates = postRepo.findAllByOrderByFechaCreacionDesc();
+    public Page<PostResponseDTO> generarFeed(Integer userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+        Page<Post> postPage = postRepo.findAll(pageable); //--> Dado un size, cargamos simplente
+        // los n post que van a estar antes de que se tenga que recargar otra vez scrolleando
 
-        List<PostResponseDTO> finalList = new ArrayList<>();
-        
-        for (Post post : postCandidates) {
-            double score = calcularScore(post, myPreferences);
-            PostResponseDTO dto = convertToDto(post, score);
-            finalList.add(dto);
-        }
-        finalList.sort(Comparator.comparingDouble(PostResponseDTO::getScore).reversed());
+        List<PostResponseDTO> dtos = postPage.getContent().stream()
+                .map(post -> {
+                    double score = calcularScore(post, preferencesService.obtenerTodas(userId));
+                    return convertToDto(post, score);
+                })
+                .sorted(Comparator.comparingDouble(PostResponseDTO::getScore).reversed())
+                .toList();
 
-        return finalList;
+        return new PageImpl<>(dtos, pageable, postPage.getTotalElements());
     }
 
     private double calcularScore(Post post, List<UserPreferences> prefs) {

@@ -35,16 +35,16 @@ public class PreferencesService {
 
     }
     public List<UserPreferences> obtenerTodas(Integer userId) {
-        return repo.findByUser_UserId(userId);
+        return repo.findByUserId(userId);
     }
 
     public List<UserPreferences> obtenerPorType(Integer userId, AttributeType type) {
-        return repo.findByUser_UserIdAndAttributeType(userId, type);
+        return repo.findByUserIdAndAttributeType(userId, type);
     }
 
 
     public void eliminarTodas(Integer userId) {
-        List<UserPreferences> preferences = repo.findByUser_UserId(userId);
+        List<UserPreferences> preferences = repo.findByUserId(userId);
         repo.deleteAll(preferences);
     }
 
@@ -74,7 +74,7 @@ public class PreferencesService {
 
     private void guardarYOActualizar(User user, AttributeType type, Integer attributeId, Integer score) {
 
-        Optional<UserPreferences> existing = repo.findByUser_UserIdAndAttributeTypeAndAttributeId(
+        Optional<UserPreferences> existing = repo.findByUserIdAndAttributeTypeAndAttributeId(
                 user.getId(), type, attributeId
         );
 

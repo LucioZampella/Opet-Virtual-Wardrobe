@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar.jsx";
 import { STATUS } from "../../constants/statusOptions.js";
-import Search from "../../components/Search.jsx";
+import Search from "../searching/Search.jsx";
 import toast from "react-hot-toast";
 import { useAuth } from "../../modules/useAuth.js";
 import { useApi } from "../../modules/useApi.js";
@@ -27,7 +27,6 @@ function Store() {
     const [editingListing, setEditingListing] = useState(null);
     const [form, setForm] = useState(EmptyForm);
     const [loading, setLoading] = useState(false);
-    const [uploading, setUploading] = useState(false);
     const [filters, setFilters] = useState({
         min: 0,
         max: 10000001,
