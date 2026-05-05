@@ -28,16 +28,32 @@ public class SearchFeedService {
         Page<Post> postPage = postRepo.findAll(pageable); //--> Dado un size, cargamos simplente
         // los n post que van a estar antes de que se tenga que recargar otra vez scrolleando
 
-        List<PostResponseDTO> dtos = postPage.getContent().stream()
-                .map(post -> {
+        return getPostResponseDTOS(userId, pageable, postPage);
+    }
+
+    public Page<PostResponseDTO> generarConFiltros(Integer typeId, Integer sizeId,
+                                                   Integer materialId, Integer fitId,
+                                                   List<Long> colorIds, int userId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+        Page<Post> postPage = postRepo.findFilteredClothes(typeId, sizeId, materialId, fitId, colorIds, pageable);
+
+        return getPostResponseDTOS(userId, pageable, postPage);
+
+    }
+
+    private Page<PostResponseDTO> getPostResponseDTOS(int userId, Pageable pageable, Page<Post> postPage) {
+        List<PostResponseDTO> dtos = postPage.getContent().stream().
+                map(post -> {
                     double score = calcularScore(post, preferencesService.obtenerTodas(userId));
                     return convertToDto(post, score);
                 })
-                .sorted(Comparator.comparingDouble(PostResponseDTO::getScore).reversed())
+                .sorted(Comparator.comparingDouble(PostResponseDTO:: getScore).reversed())
                 .toList();
 
         return new PageImpl<>(dtos, pageable, postPage.getTotalElements());
     }
+
 
     private double calcularScore(Post post, List<UserPreferences> prefs) {
         double totalScore = 0.0;

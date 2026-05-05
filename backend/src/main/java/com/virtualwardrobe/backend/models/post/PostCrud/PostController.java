@@ -3,11 +3,15 @@ import com.virtualwardrobe.backend.models.post.PostDTO.PostRequestDTO;
 import com.virtualwardrobe.backend.security.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RestController
@@ -63,4 +67,17 @@ public class PostController {
     public ResponseEntity<List<Post>> getPostsByUser(@PathVariable int userId) {
         return ResponseEntity.ok(service.obtenerPorUsuario(userId));
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<Page<Post>> filterPosts(
+            @RequestParam(required = false) Integer typeId,
+            @RequestParam(required = false) Integer sizeId,
+            @RequestParam(required = false) Integer materialId,
+            @RequestParam(required = false) Integer fitId,
+            @RequestParam(required = false) List<Long> colorIds,
+            @PageableDefault(size = 20) Pageable pageable) { // Importa Pageable de spring.data.domain
+
+        return ResponseEntity.ok(service.filtrar(typeId, sizeId, materialId, fitId, colorIds, pageable));
+    }
+
 }

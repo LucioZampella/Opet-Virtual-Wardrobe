@@ -9,8 +9,11 @@ import com.virtualwardrobe.backend.models.clothe.ClotheRepositorie;
 import com.virtualwardrobe.backend.models.outfit.outfitCRUD.Outfit;
 import com.virtualwardrobe.backend.models.outfit.outfitCRUD.OutfitRepositorie;
 import com.virtualwardrobe.backend.models.post.PostDTO.PostRequestDTO;
+import com.virtualwardrobe.backend.models.store.storeListing.StoreListing;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -41,7 +44,7 @@ public class PostService {
         pub.setFechaCreacion(LocalDate.now());
         pub.setDescripcion(dto.getDescripcion());
 
-        if (dto.getClothesId() != null){
+        if (dto.getClothesId() != null) {
             Clothe c = clotheRepository.findById(dto.getClothesId())
                     .orElseThrow(() -> new InvalidClotheException("Prenda no encontrada "));
 
@@ -51,7 +54,7 @@ public class PostService {
             }
             pub.setClothe(c);
         }
-        if (dto.getOutfitId() != null){
+        if (dto.getOutfitId() != null) {
             Outfit outfit = outfitRepository.findById(dto.getOutfitId())
                     .orElseThrow(() -> new InvalidOutfitException("Outfit no encontrado"));
 
@@ -113,5 +116,13 @@ public class PostService {
         }
 
         postRepositorie.delete(pub);
+    }
+
+    public Page<Post> filtrar(Integer typeId, Integer sizeId, Integer materialId, Integer fitId, List<Long> colorIds, Pageable pageable) {
+        if (typeId != null || sizeId != null) {
+            return postRepositorie.findFilteredClothes(typeId, sizeId, materialId, fitId, colorIds, pageable);
+        }
+
+        return postRepositorie.findFilteredOutfits(materialId, fitId, colorIds, pageable);
     }
 }

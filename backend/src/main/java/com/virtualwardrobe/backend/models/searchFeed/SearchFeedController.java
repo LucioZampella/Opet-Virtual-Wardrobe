@@ -32,4 +32,19 @@ public class SearchFeedController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<Page<PostResponseDTO>> filtrar(
+            @RequestParam(required = false) Integer typeId,
+            @RequestParam(required = false) Integer sizeId,
+            @RequestParam(required = false) Integer materialId,
+            @RequestParam(required = false) Integer fitId,
+            @RequestParam(required = false) List<Long> colorIds,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestHeader("Authorization") String authHeader) {
+
+            int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
+        return ResponseEntity.ok(searchFeedService.generarConFiltros(typeId, sizeId, materialId, fitId, colorIds, userId, page, size));
+        }
 }

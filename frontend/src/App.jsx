@@ -11,6 +11,7 @@ import Wardrobe from "./pages/clothesCRUD/Wardrobe.jsx";
 import Store from "./pages/storeCRUD/Store.jsx";
 import OutfitBuilder from "./pages/outfitCRUD/OutfitBuilder.jsx";
 import Search from "./pages/searching/Search.jsx";
+import SearchFeed from "./pages/searching/SearchFeed.jsx";
 
 
 
@@ -63,7 +64,7 @@ function App() {
                 <Route path="/wardrobe" element={token ? <Wardrobe /> : <Navigate to="/login" />} />
                 <Route path="/store" element={token ? <Store /> : <Navigate to="/login" />} />
                 <Route path="/outfit-builder" element={token ? <OutfitBuilder /> : <Navigate to="/login" />} />
-                <Route path="/search" element={token ? <Search /> : <Navigate to="/login" />} />
+                <Route path="/search" element={token ? <SearchFeed /> : <Navigate to="/login" />} />
 
                 <Route path="*" element={<Navigate to={token ? "/feed" : "/login"} />} />
             </Routes>

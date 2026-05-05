@@ -1,0 +1,7 @@
+POST http://localhost:8080/test/seed-posts
+
+###
+GET  http://localhost:8080/api/posts/feed
+
+###
+GET  http://localhost:8080/api/posts/my-posts

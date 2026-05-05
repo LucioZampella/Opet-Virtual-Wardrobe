@@ -38,16 +38,18 @@ public class SecurityConfig {
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/usuarios/login", "/usuarios/signup").permitAll()// rutas públicas
-                        .anyRequest().authenticated()                        // el resto requiere token
+                        // Agregamos /test/** para que puedas usar el Seeder sin token
+                        // Agregamos /api/** para que el feed sea accesible (siempre que el token sea válido)
+                        .requestMatchers("/usuarios/login", "/usuarios/signup").permitAll()
+                        .requestMatchers("/test/**").permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // sin sesiones, solo JWT
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // registrar filtro
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 }
-
-
