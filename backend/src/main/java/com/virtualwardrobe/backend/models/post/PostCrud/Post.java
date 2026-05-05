@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 public class Post {
 
     @jakarta.persistence.Id
-    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
