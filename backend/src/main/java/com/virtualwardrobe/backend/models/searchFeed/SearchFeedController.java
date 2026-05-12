@@ -19,7 +19,7 @@ public class SearchFeedController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @GetMapping("/{userId}")
+    @GetMapping("/feed")
     public ResponseEntity<Page<PostResponseDTO>> getFeed(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam(defaultValue = "0") int page,
@@ -35,6 +35,7 @@ public class SearchFeedController {
 
     @GetMapping("/filter")
     public ResponseEntity<Page<PostResponseDTO>> filtrar(
+            @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer typeId,
             @RequestParam(required = false) Integer sizeId,
             @RequestParam(required = false) Integer materialId,
@@ -45,6 +46,6 @@ public class SearchFeedController {
             @RequestHeader("Authorization") String authHeader) {
 
             int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        return ResponseEntity.ok(searchFeedService.generarConFiltros(typeId, sizeId, materialId, fitId, colorIds, userId, page, size));
+        return ResponseEntity.ok(searchFeedService.generarConFiltros(name, typeId, sizeId, materialId, fitId, colorIds, userId, page, size));
         }
 }

@@ -362,7 +362,7 @@ transition-all duration-300
                         <div className="relative overflow-hidden w-full">
                             <div className="animate-infinite-carousel flex gap-4">
                                 {/* Duplicamos myPosts para el efecto infinito */}
-                                {[...myPosts, ...myPosts].map((post, index) => (
+                                {myPosts.map((post, index) => (
                                     <div
                                         key={`${post.id}-${index}`}
                                         className="w-72 flex-shrink-0 border border-[#3a3530] bg-[#221f1c] overflow-hidden hover:border-[#c49a6c] transition-colors duration-300 shadow-xl"

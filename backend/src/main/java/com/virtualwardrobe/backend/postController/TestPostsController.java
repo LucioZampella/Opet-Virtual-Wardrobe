@@ -1,4 +1,4 @@
-package com.virtualwardrobe.backend;
+package com.virtualwardrobe.backend.postController;
 
 import com.virtualwardrobe.backend.models.clothe.Clothe;
 import com.virtualwardrobe.backend.models.clothe.ClotheRepositorie;
@@ -21,6 +21,7 @@ import java.util.Random;
 
 @RestController
 @RequestMapping("/test")
+@Profile("dev")
 public class TestPostsController {
 
     @Autowired
@@ -47,6 +48,7 @@ public class TestPostsController {
             @RequestParam(defaultValue = "200") int cantidad,
             @RequestParam(defaultValue = "50") int porcentajeOutfits
     ) {
+        System.out.println("== INICIANDO SEEDER DE POSTS ==");
         List<User> users = userRepo.findAll();
         List<Clothe> clothes = clotheRepo.findAll();
         List<Outfit> outfits = outfitRepo.findAll();

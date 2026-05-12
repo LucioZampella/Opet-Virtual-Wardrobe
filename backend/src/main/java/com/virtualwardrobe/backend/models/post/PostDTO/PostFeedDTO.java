@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class PostFeedDTO {
     private String descripcion;
     private Integer clothesId;
+    private String image_url;
     private Integer outfitId;
     private LocalDate fechaCreacion;
     private Integer score;

@@ -25,18 +25,18 @@ public class SearchFeedService {
 
     public Page<PostResponseDTO> generarFeed(Integer userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
-        Page<Post> postPage = postRepo.findAll(pageable); //--> Dado un size, cargamos simplente
+        Page<Post> postPage = postRepo.findAll(pageable); // --> Dado un size, cargamos simplente
         // los n post que van a estar antes de que se tenga que recargar otra vez scrolleando
 
         return getPostResponseDTOS(userId, pageable, postPage);
     }
 
-    public Page<PostResponseDTO> generarConFiltros(Integer typeId, Integer sizeId,
+    public Page<PostResponseDTO> generarConFiltros(String name, Integer typeId, Integer sizeId,
                                                    Integer materialId, Integer fitId,
                                                    List<Long> colorIds, int userId, int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
-        Page<Post> postPage = postRepo.findFilteredClothes(typeId, sizeId, materialId, fitId, colorIds, pageable);
+        Page<Post> postPage = postRepo.findFilteredClothes(name, typeId, sizeId, materialId, fitId, colorIds, pageable);
 
         return getPostResponseDTOS(userId, pageable, postPage);
 
@@ -48,7 +48,7 @@ public class SearchFeedService {
                     double score = calcularScore(post, preferencesService.obtenerTodas(userId));
                     return convertToDto(post, score);
                 })
-                .sorted(Comparator.comparingDouble(PostResponseDTO:: getScore).reversed())
+                .sorted(Comparator.comparingDouble(PostResponseDTO::getScore).reversed())
                 .toList();
 
         return new PageImpl<>(dtos, pageable, postPage.getTotalElements());
@@ -57,14 +57,12 @@ public class SearchFeedService {
 
     private double calcularScore(Post post, List<UserPreferences> prefs) {
         double totalScore = 0.0;
-        
+
         if (post.getOutfit() != null) { //--> Si es un outfit
             for (Clothe prenda : post.getOutfit().getClothes()) {
                 totalScore += evaluarPrenda(prenda, prefs);
             }
-        }
-        
-        else if (post.getClothe() != null) { //--> Si es una clothe
+        } else if (post.getClothe() != null) { //--> Si es una clothe
             totalScore += evaluarPrenda(post.getClothe(), prefs);
         }
 
@@ -115,17 +113,21 @@ public class SearchFeedService {
 
     private PostResponseDTO convertToDto(Post post, double score) {
         PostResponseDTO dto = new PostResponseDTO();
-
         dto.setId(post.getId());
         dto.setCaption(post.getDescripcion());
         dto.setScore(score);
+        dto.setUsername(post.getUser().getUsername());
 
         if (post.getOutfit() != null) {
             dto.setType("OUTFIT");
-            dto.setContent(post.getOutfit());
+            dto.setImage_url(post.getOutfit().getClothes()
+                    .stream().findFirst()
+                    .map(Clothe::getImage_url).orElse(null));
+            dto.setTitle(post.getOutfit().getName());
         } else if (post.getClothe() != null) {
             dto.setType("CLOTHES");
-            dto.setContent(post.getClothe());
+            dto.setImage_url(post.getClothe().getImage_url());
+            dto.setTitle(post.getClothe().getName());
         }
 
         return dto;

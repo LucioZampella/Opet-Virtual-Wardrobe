@@ -60,18 +60,26 @@ function Feed() {
                                 </div>
                             </div>
 
-                            {/* Grid de prendas del outfit */}
-                            <div className="grid grid-cols-3 gap-0.5">
-                            {post.outfit?.clothes?.slice(0, 9).map(clothe => (
-                                    <div key={clothe.id} className="aspect-square overflow-hidden">
-                                        {clothe.image_url
-                                            ? <img src={clothe.image_url} className="w-full h-full object-cover" />
-                                            : <div className="w-full h-full bg-[#2a2622] flex items-center justify-center">
-                                                <span className="text-[#3a3530] text-[9px]">{clothe.name}</span>
-                                            </div>
-                                        }
+                            <div className="relative bg-[#2a2622]">
+                                {post.image_url ? (
+                                    /* 1. Si el DTO ya trae la imagen principal, usamos esa */
+                                    <img src={post.image_url} className="w-full aspect-square object-cover" />
+                                ) : post.outfit ? (
+                                    /* 2. Si es un outfit y no hay imagen principal, mostramos el grid */
+                                    <div className="grid grid-cols-2 gap-0.5">
+                                        {post.outfit.clothes?.slice(0, 4).map(clothe => (
+                                            <img key={clothe.id} src={clothe.image_url} className="w-full aspect-square object-cover" />
+                                        ))}
                                     </div>
-                                ))}
+                                ) : post.clothe?.image_url ? (
+                                    /* 3. Si es una prenda suelta y no usamos el DTO */
+                                    <img src={post.clothe.image_url} className="w-full aspect-square object-cover" />
+                                ) : (
+                                    /* 4. Placeholder si no hay nada */
+                                    <div className="aspect-square flex items-center justify-center text-[#3a3530]">
+                                        <p className="text-[10px] tracking-widest">SIN IMAGEN</p>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Footer del post */}

@@ -118,11 +118,11 @@ public class PostService {
         postRepositorie.delete(pub);
     }
 
-    public Page<Post> filtrar(Integer typeId, Integer sizeId, Integer materialId, Integer fitId, List<Long> colorIds, Pageable pageable) {
+    public Page<Post> filtrar(String name, Integer typeId, Integer sizeId, Integer materialId, Integer fitId, List<Long> colorIds, Pageable pageable) {
         if (typeId != null || sizeId != null) {
-            return postRepositorie.findFilteredClothes(typeId, sizeId, materialId, fitId, colorIds, pageable);
+            return postRepositorie.findFilteredClothes(name, typeId, sizeId, materialId, fitId, colorIds, pageable);
         }
 
-        return postRepositorie.findFilteredOutfits(materialId, fitId, colorIds, pageable);
+        return postRepositorie.findFilteredOutfits(name, materialId, fitId, colorIds, pageable);
     }
 }

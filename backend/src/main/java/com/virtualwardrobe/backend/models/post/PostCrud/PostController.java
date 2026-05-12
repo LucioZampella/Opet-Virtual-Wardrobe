@@ -70,6 +70,7 @@ public class PostController {
 
     @GetMapping("/filter")
     public ResponseEntity<Page<Post>> filterPosts(
+            @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer typeId,
             @RequestParam(required = false) Integer sizeId,
             @RequestParam(required = false) Integer materialId,
@@ -77,7 +78,7 @@ public class PostController {
             @RequestParam(required = false) List<Long> colorIds,
             @PageableDefault(size = 20) Pageable pageable) { // Importa Pageable de spring.data.domain
 
-        return ResponseEntity.ok(service.filtrar(typeId, sizeId, materialId, fitId, colorIds, pageable));
+        return ResponseEntity.ok(service.filtrar(name, typeId, sizeId, materialId, fitId, colorIds, pageable));
     }
 
 }
