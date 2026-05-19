@@ -43,7 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 2. Verificar que el header tenga el formato "Bearer token"
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7); // saca el "Bearer " y queda solo el token
+            token = authHeader.substring(7); // saca el "Bearer" y queda solo el token
             username = jwtUtil.extraerUsername(token);
         }
 

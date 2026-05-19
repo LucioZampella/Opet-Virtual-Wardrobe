@@ -10,8 +10,8 @@ import lombok.Setter;
 
 public class ClotheResponseDTO {
     int id;
-    String imageUrl;
+    String image_url;
 
-    public ClotheResponseDTO(int id, String imageUrl) {
+    public ClotheResponseDTO(int id, String image_url) {
     }
 }

@@ -38,7 +38,7 @@ public class Clothe {
     @Column
     private String url_model;
 
-    @Column
+    @Column(name = "image_url")
     private String image_url;
 
     @Column(name = "type_id")

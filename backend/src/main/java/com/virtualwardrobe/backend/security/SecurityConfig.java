@@ -38,10 +38,8 @@ public class SecurityConfig {
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        // Agregamos /test/** para que puedas usar el Seeder sin token
-                        // Agregamos /api/** para que el feed sea accesible (siempre que el token sea válido)
-                        .requestMatchers("/usuarios/login", "/usuarios/signup").permitAll()
                         .requestMatchers("/test/**").permitAll()
+                        .requestMatchers("/usuarios/login", "/usuarios/signup").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )

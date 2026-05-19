@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar.jsx";
 import Search from "../searching/Search.jsx";
 import GenericSelect from "../../constants/GenericSelect";
@@ -20,56 +20,65 @@ function SearchFeed() {
         fitId:           "",
         colorIds:        [],
         preferenceLevel: "",
+        name: ""
     });
 
-    const fetchPosts = useCallback(async (currentPage, currentFilters) => {
-        setLoading(true);
-        try {
-            const params = new URLSearchParams();
-            params.append("page", currentPage);
-            params.append("size", 20);
-
-            Object.keys(currentFilters).forEach(key => {
-                const value = currentFilters[key];
-                if (value !== "" && value !== null && value !== undefined) {
-                    if (Array.isArray(value)) {
-                        value.forEach(v => params.append(key, v));
-                    } else {
-                        params.append(key, value);
-                    }
-                }
-            });
-
-            const isFiltering = Object.values(currentFilters).some(
-                v => v !== "" && v !== null && !(Array.isArray(v) && v.length === 0)
-            );
-            const endpoint = isFiltering
-                ? `/api/posts/filter?${params}`
-                : `/api/posts/feed?${params}`;
-
-            const response = await apiFetch(endpoint);
-
-            if (response.ok) {
-                const data = await response.json();
-                const posts = data.content ?? data;
-                setPosts(prev => (currentPage === 0 ? posts : [...prev, ...posts]));
-                setHasMore(!data.last ?? posts.length === 20);
-            } else {
-                console.error("Error al cargar los posts:", response.status);
-                toast.error("Error al cargar los posts, intentá más tarde");
-            }
-        } catch (error) {
-            console.error("Error de conexión:", error);
-            toast.error("Error de conexión");
-        } finally {
-            setLoading(false);
-        }
-    }, [apiFetch]);
-
     useEffect(() => {
-        fetchPosts(page, filters);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, filters]);
+        let isSubscribed = true;
+
+        const loadData = async () => {
+            if (!isSubscribed) return;
+            setLoading(true);
+            try {
+                const params = new URLSearchParams();
+                params.append("page", page);
+                params.append("size", 20);
+
+                Object.keys(filters).forEach(key => {
+                    const value = filters[key];
+                    if (value !== "" && value !== null && value !== undefined) {
+                        if (Array.isArray(value)) {
+                            value.forEach(v => params.append(key, v));
+                        } else {
+                            params.append(key, value);
+                        }
+                    }
+                });
+
+                const isFiltering = Object.values(filters).some(
+                    v => v !== "" && v !== null && !(Array.isArray(v) && v.length === 0)
+                );
+                const endpoint = isFiltering
+                    ? `/api/feed/filter?${params}`
+                    : `/api/feed/feed?${params}`;;
+
+                const response = await apiFetch(endpoint);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const newIncomingPosts = data.content ?? data;
+
+                    if (isSubscribed) {
+                        setPosts(prev => {
+                            if (page === 0) return newIncomingPosts;
+                            const combined = [...prev, ...newIncomingPosts];
+                            return Array.from(new Map(combined.map(p => [p.id, p])).values());
+                        });
+                        setHasMore(data.last !== undefined ? !data.last: newIncomingPosts.length === 20);
+                    }
+                } else {
+                    toast.error("Error al cargar los posts, intentá más tarde");
+                }
+            } catch {
+                toast.error("Error de conexión");
+            } finally {
+                if (isSubscribed) setLoading(false);
+            }
+        };
+
+        loadData();
+        return () => { isSubscribed = false; };
+    }, [page, filters]); // ← apiFetch and fetchPosts removed
 
     const handleLoadMore = () => setPage(prev => prev + 1);
 
@@ -96,6 +105,17 @@ function SearchFeed() {
         v => v !== "" && !(Array.isArray(v) && v.length === 0)
     );
 
+    const handleSearching = (searchValue) => {
+        setSearchQuery(searchValue);
+
+        setFilters(prev => ({
+            ...prev,
+            name: searchValue
+        }));
+
+        setPage(0);
+    };
+
     return (
         <div className="min-h-screen bg-[#2a2622]">
             <Navbar />
@@ -113,10 +133,9 @@ function SearchFeed() {
                 {/* Search bar */}
                 <Search
                     value={searchQuery}
-                    onChange={setSearchQuery}
+                    onChange={handleSearching}
                     placeholder="BUSCAR OUTFITS..."
                 />
-
                 {/* Filters */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 pb-4">
                     <GenericSelect

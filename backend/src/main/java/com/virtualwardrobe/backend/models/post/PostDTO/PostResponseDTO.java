@@ -7,11 +7,12 @@ import lombok.Setter;
 @Data
 @Getter
 @Setter
-// El DTO que devuelves al Frontend (para el Feed)
 public class PostResponseDTO {
     private int id;
     private String caption;
-    private String type; // "CLOTHES" o "OUTFIT"
-    private Object content; // Aquí irá el detalle de la prenda o el outfit
+    private String type;
+    private String image_url;
+    private String title;
+    private String username;
     private double score;
 }
