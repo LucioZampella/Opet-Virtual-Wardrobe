@@ -1,15 +1,16 @@
 package com.virtualwardrobe.backend.models.clothe;
 
-import com.virtualwardrobe.backend.exceptions.InvalidClotheException;
-import com.virtualwardrobe.backend.exceptions.InvalidOutfitException;
-import com.virtualwardrobe.backend.exceptions.InvalidStoreException;
-import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
+import com.virtualwardrobe.backend.exceptions.ClotheException.InvalidClotheException;
+import com.virtualwardrobe.backend.exceptions.OutfitException.InvalidOutfitException;
+import com.virtualwardrobe.backend.exceptions.StoreException.InvalidStoreException;
+import com.virtualwardrobe.backend.exceptions.AuthorizationException.UnauthorizedActionException;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheDTO;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.ClotheResponseDTO;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.ColorRepository;
+import com.virtualwardrobe.backend.models.notification.facade.NotificationFacade;
+import com.virtualwardrobe.backend.models.notification.facade.strategy.EmailNotificationStrategy;
 import com.virtualwardrobe.backend.models.outfit.outfitCRUD.OutfitRepositorie;
-import com.virtualwardrobe.backend.models.preferences.PreferencesRepositorie;
 import com.virtualwardrobe.backend.models.preferences.PreferencesService;
 import com.virtualwardrobe.backend.models.store.storeListing.StoreListingRepositorie;
 import com.virtualwardrobe.backend.models.user.User;
@@ -19,8 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 public class ClotheService {
@@ -33,16 +32,14 @@ public class ClotheService {
 
     @Autowired
     private OutfitRepositorie outfitRepo;
-
     @Autowired
     private ColorRepository colorRepository;
-
     @Autowired
     private StoreListingRepositorie storeRepo;
-
-
     @Autowired
     private UserRepositorie UserRepo;
+    @Autowired
+    private  NotificationFacade notificationFacade;
 
     public void crear(ClotheDTO dto, int userId) {
         Clothe c = new Clothe();
@@ -62,6 +59,7 @@ public class ClotheService {
         c.setPreferenceLevel(dto.getPreferenceLevel());
         repo.save(c);
         preferencesService.recalcularPreferences(user);
+        notificationFacade.notificate(userId,userId,"CREATE","Tu prenda se a creado correctamente");
     }
 
     public void modificar(int id, ClotheDTO dto, int userId) {

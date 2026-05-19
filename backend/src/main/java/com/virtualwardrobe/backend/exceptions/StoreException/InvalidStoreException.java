@@ -1,11 +1,11 @@
-package com.virtualwardrobe.backend.exceptions;
+package com.virtualwardrobe.backend.exceptions.StoreException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class InvalidUserException extends RuntimeException {
-    public InvalidUserException(String message) {
+public class InvalidStoreException extends RuntimeException {
+    public InvalidStoreException(String message) {
         super(message);
     }
 }
