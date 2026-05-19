@@ -1,9 +1,8 @@
 package com.virtualwardrobe.backend.models.store.storeListing;
 
 
-import com.virtualwardrobe.backend.exceptions.InvalidStoreException;
-import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
-import com.virtualwardrobe.backend.models.clothe.Clothe;
+import com.virtualwardrobe.backend.exceptions.StoreException.InvalidStoreException;
+import com.virtualwardrobe.backend.exceptions.AuthorizationException.UnauthorizedActionException;
 import com.virtualwardrobe.backend.models.store.storeListing.storeListingDTO.ListingResponseDTO;
 import com.virtualwardrobe.backend.models.store.storeListing.storeListingDTO.StoreListingDTO;
 import com.virtualwardrobe.backend.models.store.storeListing.storeListingDTO.UpdateListingDTO;

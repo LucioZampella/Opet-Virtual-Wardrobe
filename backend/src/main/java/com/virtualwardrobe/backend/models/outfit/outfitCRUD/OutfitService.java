@@ -1,14 +1,13 @@
 package com.virtualwardrobe.backend.models.outfit.outfitCRUD;
 
-import com.virtualwardrobe.backend.exceptions.InvalidOutfitException;
-import com.virtualwardrobe.backend.exceptions.InvalidStoreException;
-import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
+import com.virtualwardrobe.backend.exceptions.OutfitException.InvalidOutfitException;
+import com.virtualwardrobe.backend.exceptions.StoreException.InvalidStoreException;
+import com.virtualwardrobe.backend.exceptions.AuthorizationException.UnauthorizedActionException;
 import com.virtualwardrobe.backend.models.clothe.Clothe;
 import com.virtualwardrobe.backend.models.clothe.ClotheRepositorie;
 import com.virtualwardrobe.backend.models.outfit.outfitDTO.OutfitDTO;
 import com.virtualwardrobe.backend.models.outfit.outfitResponse.OutfitResponse;
 import com.virtualwardrobe.backend.models.post.PostCrud.PostRepositorie;
-import com.virtualwardrobe.backend.models.store.storeListing.StoreListingRepositorie;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
 import org.springframework.beans.factory.annotation.Autowired;
