@@ -5,7 +5,11 @@ package com.virtualwardrobe.backend.security;
 //
 
 
-import com.virtualwardrobe.backend.exceptions.*;
+import com.virtualwardrobe.backend.exceptions.AuthorizationException.UnauthorizedActionException;
+import com.virtualwardrobe.backend.exceptions.ClotheException.InvalidClotheException;
+import com.virtualwardrobe.backend.exceptions.OutfitException.InvalidOutfitException;
+import com.virtualwardrobe.backend.exceptions.StoreException.InvalidStoreException;
+import com.virtualwardrobe.backend.exceptions.UserException.InvalidUserException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;

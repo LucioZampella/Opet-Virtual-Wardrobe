@@ -1,7 +1,8 @@
 package com.virtualwardrobe.backend.models.user.userServices;
 
-import com.virtualwardrobe.backend.exceptions.InvalidUserException;
-import com.virtualwardrobe.backend.exceptions.UnauthorizedActionException;
+import com.virtualwardrobe.backend.exceptions.UserException.InvalidUserException;
+import com.virtualwardrobe.backend.exceptions.AuthorizationException.UnauthorizedActionException;
+import com.virtualwardrobe.backend.models.notification.facade.NotificationFacade;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
 import com.virtualwardrobe.backend.models.user.response.LoginResponse;
@@ -11,7 +12,6 @@ import com.virtualwardrobe.backend.security.CustomUserDetails;
 import com.virtualwardrobe.backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +34,9 @@ public class UserService {
     @Autowired
     private UserDetailsServiceimp userDetailsService;
 
+    @Autowired
+    private NotificationFacade notificationFacade;
+
     public void crear(UserDTO dto) {
         // username sin espacios y email en minuscula y sin espacios
 
@@ -54,6 +57,7 @@ public class UserService {
         user.setLastName(dto.getLastName());
         user.setLatitude(dto.getLatitude());
         user.setLongitude(dto.getLongitude());
+        notificationFacade.notificate(user.getId(),user.getId(),"CREATE","Your account has been created");
         repo.save(user);
     }
 
