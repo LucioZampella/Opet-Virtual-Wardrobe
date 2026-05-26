@@ -17,6 +17,7 @@ public class GroqApiClient {
     @Value("${groq.api.key}")
     private String apiKey;
 
+    // Cambiado a Llama 3.3 o 3.1 estándar si el "instant" te genera demasiado formateo extraño
     private final String modelId = "llama-3.1-8b-instant";
     private final String groqUrl = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -31,14 +32,15 @@ public class GroqApiClient {
 
     public String sendPropt(String prompt) {
         try {
-            String requestBody = String.format("""
-            {
-                "model": "%s",
-                "messages": [
-                    { "role": "user", "content": %s }
-                ]
-            }
-            """, modelId, objectMapper.writeValueAsString(prompt));
+
+            String requestBody = objectMapper.createObjectNode()
+                    .put("model", modelId)
+                    .put("temperature", 0.1)
+                    .set("messages", objectMapper.createArrayNode()
+                            .add(objectMapper.createObjectNode()
+                                    .put("role", "user")
+                                    .put("content", prompt)))
+                    .toString();
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(groqUrl))
@@ -49,12 +51,21 @@ public class GroqApiClient {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // ← AGREGÁ ESTO para ver qué responde Groq
             System.out.println("STATUS: " + response.statusCode());
             System.out.println("BODY: " + response.body());
 
             JsonNode json = objectMapper.readTree(response.body());
-            return json.get("choices").get(0).get("message").get("content").asText();
+
+            if (response.statusCode() == 200) {
+                if (json.has("choices") && json.get("choices").isArray() && json.get("choices").size() > 0) {
+                    return json.get("choices").get(0).get("message").get("content").asText();
+                }
+                throw new RuntimeException("Estructura de respuesta inesperada de Groq.");
+            } else {
+                // Si da 401, 400, etc., exponemos el error real en la consola
+                String errorMsg = json.has("error") ? json.get("error").get("message").asText() : "Error desconocido";
+                throw new RuntimeException("Groq API Error (" + response.statusCode() + "): " + errorMsg);
+            }
 
         } catch (Exception e) {
             throw new RuntimeException("Error al llamar a Groq: " + e.getMessage(), e);

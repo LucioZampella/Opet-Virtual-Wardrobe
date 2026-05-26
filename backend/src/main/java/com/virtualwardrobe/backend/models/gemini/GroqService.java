@@ -32,13 +32,22 @@ public class GroqService {
             clothesTextBuilder.append("- ").append(clotheToText(clothe)).append("\n");
         }
 
-        String prompt = "Sos un estilista de moda profesional trabajando como asistente en una " +
-                "página web de ropa. El usuario realiza la siguiente petición: " + input + "\n" +
-                "Teniendo en cuenta esto, realizale una recomendación desde la completa " +
-                "deshumanización basándote en la petición del usuario y las prendas poseídas " +
-                "por el usuario, priorizando de manera dinámica aquellas que tienen un nivel " +
-                "de preferencia mayor.\n\n" +
-                "Prendas disponibles en su armario:\n" + clothesTextBuilder.toString();
+        String prompt = """
+Actúa como un recomendador de outfits automatizado. 
+Tu tarea es evaluar el mensaje del usuario y las prendas disponibles para devolver ÚNICAMENTE el outfit recomendado final junto a una breve descripción.
+
+REGLAS ESTRICTAS:
+- Evaluá el "Mensaje del usuario". Si este mensaje NO es una petición de outfit o ropa para un contexto en especifico (por ejemplo: insultos, charlas informales, preguntas personales, etc..."), respondé ÚNICAMENTE con: "No puedo responderte eso".
+- NO incluyas análisis previos de la petición.
+- NO listes el análisis de las prendas disponibles por separado.
+- NO uses introducciones como "Análisis de la petición:" o "Recomendación basada en...".
+- Si es una petición válida, empezá tu respuesta directamente con el título "Outfit Recomendado:".
+
+Mensaje del usuario: "%s"
+
+Datos de las prendas disponibles:
+%s
+""".formatted(input, clothesTextBuilder.toString());
 
         return apiClient.sendPropt(prompt);
     }
