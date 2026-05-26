@@ -26,6 +26,14 @@ function MyProfile() {
     const [editingPost, setEditingPost] = useState(null);
     const [editPostDesc, setEditPostDesc] = useState("");
     const [postType, setPostType] = useState('OUTFIT'); // OUTFIT o CLOTHE
+    const [stats, setStats] = useState(null);
+
+    useEffect(() => {
+        apiFetch(`/api/stats/user/${userId}`)
+            .then(res => res.json())
+            .then(data => setStats(data))
+            .catch(err => console.error("Error cargando stats", err));
+    }, [userId]);
 
     // --> Al cargar la pagina busca los datos del usuario por su id
     useEffect(() => {
@@ -34,7 +42,6 @@ function MyProfile() {
             .then(data => { setUser(data); setFormData(data); })
             .catch(err => console.error("Hubo un error al cargar el perfil", err));
     }, [userId]);
-
 
     useEffect(() => {
         apiFetch(`/api/posts/my-posts`)
@@ -152,7 +159,7 @@ function MyProfile() {
         try {
             const response = await apiFetch(`/usuarios/${userId}`, {
                 method: "PUT",
-                body: JSON.stringify(editPostDesc)
+                body: JSON.stringify(formData)
             });
             if (response.ok) {
                 setUser(formData);
@@ -219,6 +226,144 @@ function MyProfile() {
         } finally {
             setUploading(false);
         }
+    };
+
+    const StatsSection = () => {
+        if (!stats) return null;
+
+        const colors = ['#c49a6c','#8a7d6e','#6b6258','#4a4540','#3a3530'];
+        const total = stats.totalClothes;
+
+        const BarGroup = ({ data, label }) => {
+            if (!data || data.length === 0) return null;
+            const max = Math.max(...data.map(d => d.count));
+            return (
+                <div className="border border-[#3a3530] bg-[#221f1c] p-5">
+                    <p className="text-[9px] tracking-[0.25em] uppercase text-[#6b6258] mb-4">{label}</p>
+                    <div className="flex flex-col gap-3">
+                        {data.map((d, i) => (
+                            <div key={i} className="flex items-center gap-3">
+                                <span className="text-[10px] text-[#8a7d6e] w-20 text-right shrink-0">{d.label}</span>
+                                <div className="flex-1 h-[2px] bg-[#2a2622]">
+                                    <div
+                                        className="h-full bg-[#c49a6c] transition-all duration-700"
+                                        style={{ width: `${(d.count / max) * 100}%` }}
+                                    />
+                                </div>
+                                <span className="text-[10px] text-[#4a4540] w-5 text-right">{d.count}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const DonutColor = () => {
+            if (!stats.byColor || stats.byColor.length === 0) return null;
+            return (
+                <div className="border border-[#3a3530] bg-[#221f1c] p-5">
+                    <p className="text-[9px] tracking-[0.25em] uppercase text-[#6b6258] mb-4">Por color</p>
+                    <div className="flex flex-col gap-2">
+                        {stats.byColor.map((d, i) => (
+                            <div key={i} className="flex items-center gap-3">
+                                <div className="w-2 h-2 shrink-0" style={{ background: colors[i % colors.length] }} />
+                                <span className="text-[10px] text-[#8a7d6e] flex-1">{d.label}</span>
+                                <span className="text-[10px] text-[#4a4540]">{d.count}</span>
+                                <span className="text-[9px] text-[#3a3530] w-8 text-right">
+                                {total > 0 ? Math.round((d.count / total) * 100) : 0}%
+                            </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const TopClothes = () => {
+            if (!stats.topClothesByOutfitUsage || stats.topClothesByOutfitUsage.length === 0) return null;
+            const max = Math.max(...stats.topClothesByOutfitUsage.map(d => d.timesUsedInOutfit));
+            return (
+                <div className="border border-[#3a3530] bg-[#221f1c] p-5">
+                    <p className="text-[9px] tracking-[0.25em] uppercase text-[#6b6258] mb-4">Más usadas en outfits</p>
+                    <div className="flex flex-col gap-3">
+                        {stats.topClothesByOutfitUsage.map((d, i) => (
+                            <div key={i} className="flex items-center gap-3">
+                                <span className="text-[10px] text-[#3a3530] w-4">{i + 1}</span>
+                                {d.imageUrl
+                                    ? <img src={d.imageUrl} className="w-8 h-8 object-cover border border-[#3a3530] shrink-0" />
+                                    : <div className="w-8 h-8 bg-[#2a2622] border border-[#3a3530] shrink-0" />
+                                }
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[10px] text-[#e8d5b0] truncate">{d.clotheName}</p>
+                                    <p className="text-[9px] text-[#4a4540]">{d.timesUsedInOutfit} usos</p>
+                                </div>
+                                <div className="w-12 h-[2px] bg-[#2a2622]">
+                                    <div
+                                        className="h-full bg-[#c49a6c]"
+                                        style={{ width: `${(d.timesUsedInOutfit / max) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        return (
+            <div className="max-w-2xl mx-auto px-6 py-8">
+
+                {/* Título sección */}
+                <div className="flex items-center gap-4 mb-6">
+                    <span className="text-[#8a7d6e] text-[10px] tracking-[0.3em] uppercase">Estadísticas</span>
+                    <div className="flex-1 h-px bg-[#3a3530]" />
+                </div>
+
+                {/* Métricas resumen */}
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                    {[
+                        { label: "Prendas", value: stats.totalClothes },
+                        { label: "Outfits", value: stats.totalOutfits },
+                        { label: "Coincidencia prom.", value: `${Math.round(stats.avgOutfitCoincidenceLevel)}` },
+                    ].map(m => (
+                        <div key={m.label} className="bg-[#221f1c] border border-[#3a3530] p-4">
+                            <p className="text-[28px] font-light text-[#e8d5b0] tracking-wide">{m.value}</p>
+                            <p className="text-[9px] tracking-[0.2em] uppercase text-[#4a4540] mt-1">{m.label}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Preferencia promedio */}
+                <div className="border border-[#3a3530] bg-[#221f1c] p-5 mb-6">
+                    <p className="text-[9px] tracking-[0.25em] uppercase text-[#6b6258] mb-3">Nivel de preferencia promedio</p>
+                    <div className="flex items-baseline gap-2 mb-3">
+                        <span className="text-[32px] font-light text-[#c49a6c]">{Math.round(stats.avgPreferenceLevel)}</span>
+                        <span className="text-[9px] text-[#4a4540] tracking-[0.2em] uppercase">/ 100</span>
+                    </div>
+                    <div className="h-[2px] bg-[#2a2622] relative">
+                        <div
+                            className="h-full bg-[#c49a6c] transition-all duration-700"
+                            style={{ width: `${stats.avgPreferenceLevel}%` }}
+                        />
+                        <div
+                            className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#c49a6c]"
+                            style={{ left: `${stats.avgPreferenceLevel}%` }}
+                        />
+                    </div>
+                </div>
+
+                {/* Grilla de gráficos */}
+                <div className="grid grid-cols-2 gap-3">
+                    <BarGroup data={stats.byType} label="Por tipo" />
+                    <DonutColor />
+                    <BarGroup data={stats.bySize} label="Por talle" />
+                    <BarGroup data={stats.byFit} label="Por fit" />
+                    <BarGroup data={stats.byMaterial} label="Por material" />
+                    <TopClothes />
+                </div>
+
+            </div>
+        );
     };
 
     const inputClass = `
@@ -419,6 +564,8 @@ transition-all duration-300
                         </div>
                     </div>
                 </div>
+
+                <StatsSection />
 
             {/* Acciones de la cuenta */}
             {isOwner && (
