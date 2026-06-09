@@ -24,8 +24,12 @@ public class FriendsService {
     private NotificationFacade notificationFacade;
 
     public void create (int user_id, int friend_id){
-        User user = userRepositorie.findById(user_id).get();
-        User friend = userRepositorie.findById(friend_id).get();
+        System.out.println("Creando");
+        System.out.println(">>> create llamado con followerId=" + user_id + " followingId=" + friend_id);
+        User user = userRepositorie.findById(user_id)
+                .orElseThrow(() -> new RuntimeException("Usuario follower no encontrado: " + user_id));
+        User friend = userRepositorie.findById(friend_id)
+                .orElseThrow(() -> new RuntimeException("Usuario follower no encontrado: " + friend_id));
         // user es ele que manda la proposal
         // firend es la que la recibe
 
@@ -34,13 +38,17 @@ public class FriendsService {
         friends.setFollower(user);
         friends.setStatus(false);
         friends.setCreatedAt(LocalDateTime.now());
-        updateForCreation(friends.getId());
+        Follower saved = repo.save(friends);
+        repo.flush();
         notificationFacade.notificate(user.getId(),friend.getId(),"APPLICATION", "El usuario" + user.getUsername() + "Te ha seguido");
+        System.out.println(">>> Follower guardado con ID: " + saved.getId());
+        updateForCreation(saved.getId());
     }
     public void delete (int id, int userId){
-        Follower f = repo.findById(id).orElseThrow(() -> new InvalidFollowerException("no hay ningun seguimiento  con ese id"));
+        Follower f = repo.findByFollowerIdAndFollowingId(id,userId).orElseThrow(() -> new RuntimeException("Seguimiento no existe"));
+        System.out.println("Eliminadno");
         updateForDeletion(f);
-        if (f.getFollower().getId() != userId) {
+        if (f.getFollower().getId() != id) {
             throw new UnauthorizedActionException("No tenés permiso para eliminar este seguimiento ");
         }
         System.out.println("El seguimiento ha sido eliminado");

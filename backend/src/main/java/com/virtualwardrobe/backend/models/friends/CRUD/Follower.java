@@ -21,7 +21,7 @@ public class Follower {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "friends_id")
-    private int id;
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "follower_id")

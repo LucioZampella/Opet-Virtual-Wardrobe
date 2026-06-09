@@ -24,12 +24,17 @@ public class GroqController {
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
 
         String input = payload.get("input");
+        if (payload.get("lat") == null || payload.get("lon") == null) {
+            return ResponseEntity.badRequest().body("Faltan las coordenadas geográficas (lat y lon).");
+        }
+        double lat = Double.parseDouble(payload.get("lat").toString());
+        double lon = Double.parseDouble(payload.get("lon").toString());
 
         if (input == null || input.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("El mensaje de entrada no puede estar vacío.");
         }
 
-        String recomendacion = geminiService.getRecommendation(input, userId);
+        String recomendacion = geminiService.getRecommendation(input, userId,lat,lon);
         return ResponseEntity.ok(recomendacion);
     }
 }
