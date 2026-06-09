@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class SearchFeedService {
@@ -114,20 +116,24 @@ public class SearchFeedService {
     private PostResponseDTO convertToDto(Post post, double score) {
         PostResponseDTO dto = new PostResponseDTO();
         dto.setId(post.getId());
-        dto.setCaption(post.getDescripcion());
         dto.setScore(score);
         dto.setUsername(post.getUser().getUsername());
+        dto.setCaption(post.getDescripcion()); // solo una vez
 
         if (post.getOutfit() != null) {
             dto.setType("OUTFIT");
-            dto.setImage_url(post.getOutfit().getClothes()
-                    .stream().findFirst()
-                    .map(Clothe::getImage_url).orElse(null));
             dto.setTitle(post.getOutfit().getName());
+            List<String> images = post.getOutfit().getClothes().stream()
+                    .map(Clothe::getImage_url)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            dto.setClothesImages(images);
+            // debug temporal:
+            System.out.println("Outfit images: " + images);
         } else if (post.getClothe() != null) {
             dto.setType("CLOTHES");
-            dto.setImage_url(post.getClothe().getImage_url());
             dto.setTitle(post.getClothe().getName());
+            dto.setImage_url(post.getClothe().getImage_url());
         }
 
         return dto;
