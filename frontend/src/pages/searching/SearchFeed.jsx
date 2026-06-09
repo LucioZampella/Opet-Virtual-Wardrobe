@@ -228,14 +228,18 @@ function SearchFeed() {
                                     flex flex-col overflow-hidden cursor-pointer
                                 "
                             >
-                                {/* Post image */}
+                                {/* Post image / clothes grid */}
                                 <div className="relative aspect-square bg-[#2a2622]">
-                                    {post.image_url ? (
-                                        <img
-                                            src={post.image_url}
-                                            alt={post.title ?? "Outfit"}
-                                            className="w-full h-full object-cover"
-                                        />
+                                    {post.clothesImages && post.clothesImages.length > 0 ? (
+                                        <div className="grid grid-cols-3 gap-0.5 w-full h-full">
+                                            {post.clothesImages.slice(0, 6).map((url, i) => (
+                                                <div key={i} className="aspect-square overflow-hidden">
+                                                    <img src={url} className="w-full h-full object-cover" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : post.image_url ? (
+                                        <img src={post.image_url} alt={post.title ?? "Outfit"} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <svg className="w-8 h-8 text-[#3a3530]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,6 +255,12 @@ function SearchFeed() {
                                     {post.title && (
                                         <p className="text-[#e8d5b0] text-sm tracking-wide truncate">
                                             {post.title}
+                                        </p>
+                                    )}
+
+                                    {post.caption && (
+                                        <p className="text-[#6b6258] text-[10px] tracking-wide leading-relaxed line-clamp-2">
+                                            {post.caption}
                                         </p>
                                     )}
 

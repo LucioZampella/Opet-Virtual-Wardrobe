@@ -208,8 +208,13 @@ function OutfitBuilder() {
                                                     <div
                                                         key={clothe.id}
                                                         onClick={() => toggleClothe(clothe)}
-                                                        className={`cursor-pointer border aspect-square overflow-hidden transition-all duration-300 ${seleccionada ? 'border-[#c49a6c]' : 'border-[#3a3530] hover:border-[#4a4540]'}`}
+                                                        className={`cursor-pointer border aspect-square overflow-hidden transition-all duration-300 relative ${seleccionada ? 'border-[#c49a6c] ring-1 ring-[#c49a6c] brightness-110 scale-95' : 'border-[#3a3530] hover:border-[#4a4540] opacity-60'}`}
                                                     >
+                                                        {seleccionada && (
+                                                            <div className="absolute inset-0 bg-[#c49a6c]/20 z-10 flex items-center justify-center pointer-events-none">
+                                                                <span className="text-[#c49a6c] text-lg">✓</span>
+                                                            </div>
+                                                        )}
                                                         {clothe.image_url
                                                             ? <img src={clothe.image_url} className="w-full h-full object-cover" />
                                                             : <div className="w-full h-full flex items-center justify-center bg-[#2a2622]">
@@ -274,8 +279,13 @@ function OutfitBuilder() {
                                                     <div
                                                         key={clothe.id}
                                                         onClick={() => toggleClothe(clothe)}
-                                                        className={`cursor-pointer border aspect-square overflow-hidden transition-all duration-300 ${seleccionada ? 'border-[#c49a6c]' : 'border-[#3a3530] hover:border-[#4a4540]'}`}
+                                                        className={`cursor-pointer border aspect-square overflow-hidden transition-all duration-300 relative ${seleccionada ? 'border-[#c49a6c] ring-1 ring-[#c49a6c] brightness-110 scale-95' : 'border-[#3a3530] hover:border-[#4a4540] opacity-60'}`}
                                                     >
+                                                        {seleccionada && (
+                                                            <div className="absolute inset-0 bg-[#c49a6c]/20 z-10 flex items-center justify-center pointer-events-none">
+                                                                <span className="text-[#c49a6c] text-lg">✓</span>
+                                                            </div>
+                                                        )}
                                                         {clothe.image_url
                                                             ? <img src={clothe.image_url} className="w-full h-full object-cover" />
                                                             : <div className="w-full h-full flex items-center justify-center bg-[#2a2622]">
