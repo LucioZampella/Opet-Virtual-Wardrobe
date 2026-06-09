@@ -37,6 +37,12 @@ function Wardrobe() {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
 
+    const [showChat, setShowChat] = useState(false);
+    const [chatMessages, setChatMessages] = useState([]);
+    const [chatInput, setChatInput] = useState("");
+    const [chatLoading, setChatLoading] = useState(false);
+
+
     const fetchClothes = async () => { // --> Trae todas las prendas del usuario loggeado
         setLoading(true);
         try {
@@ -290,6 +296,37 @@ function Wardrobe() {
     const getLabelById = (lista, id) => { // --> Al filtrar por una categoria, en vez de mostrar el id muestra su label (en vez de 1, muestra remera)
         const item = lista.find(i => i.id === id);
         return item ? item.label : "—";
+    };
+
+    const sendChatMessage = async () => {
+        if (!chatInput.trim()) return;
+
+        const userMessage = chatInput.trim();
+        setChatInput("");
+        setChatMessages(prev => [...prev, { role: "user", text: userMessage }]);
+        setChatLoading(true);
+
+        try {
+            const response = await fetch("http://localhost:8080/api/gemini/recommendation", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ input: userMessage })
+            });
+
+            if (response.ok) {
+                const text = await response.text();
+                setChatMessages(prev => [...prev, { role: "assistant", text }]);
+            } else {
+                toast.error("Error al contactar al groq");
+            }
+        } catch (error) {
+            toast.error("Error de conexión: " + error);
+        } finally {
+            setChatLoading(false);
+        }
     };
 
     const inputClass = `
@@ -816,6 +853,93 @@ function Wardrobe() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Botón flotante para abrir el chat */}
+            <button
+                onClick={() => setShowChat(true)}
+                className="
+        fixed bottom-6 right-6 z-40
+        w-14 h-14 rounded-full
+        bg-[#c49a6c] hover:bg-[#e8d5b0]
+        text-[#221f1c] text-xl
+        shadow-lg transition-all duration-300
+        flex items-center justify-center
+    "
+            >
+                ✦
+            </button>
+
+            {/* Panel del chat */}
+            {showChat && (
+                <div className="fixed bottom-24 right-6 z-50 w-80 bg-[#221f1c] border border-[#3a3530] flex flex-col shadow-2xl"
+                     style={{ height: "420px" }}>
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-[#3a3530]">
+                        <div>
+                            <p className="text-[#e8d5b0] text-xs tracking-widest uppercase">GROQ</p>
+                            <p className="text-[#6b6258] text-[10px] tracking-wide">Preguntale a Groq una recomendación basada en tu ropero</p>
+                        </div>
+                        <button
+                            onClick={() => setShowChat(false)}
+                            className="text-[#4a4540] hover:text-[#e8d5b0] transition-colors text-lg"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    {/* Mensajes */}
+                    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+                        {chatMessages.length === 0 && (
+                            <p className="text-[#4a4540] text-xs tracking-wide text-center mt-8">
+                                Preguntame qué ponerte hoy, cómo combinar una prenda, o pedime un outfit para una ocasión especial.
+                            </p>
+                        )}
+                        {chatMessages.map((msg, i) => (
+                            <div
+                                key={i}
+                                className={`text-xs leading-relaxed px-3 py-2 max-w-[85%] ${
+                                    msg.role === "user"
+                                        ? "bg-[#2a2622] text-[#e8d5b0] self-end border border-[#4a4540]"
+                                        : "bg-[#c49a6c]/10 text-[#c49a6c] self-start border border-[#c49a6c]/20"
+                                }`}
+                            >
+                                {msg.text}
+                            </div>
+                        ))}
+                        {chatLoading && (
+                            <p className="text-[#6b6258] text-[10px] tracking-[0.2em] uppercase animate-pulse self-start">
+                                Pensando...
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Input */}
+                    <div className="flex border-t border-[#3a3530]">
+                        <input
+                            value={chatInput}
+                            onChange={e => setChatInput(e.target.value)}
+                            onKeyDown={e => e.key === "Enter" && !chatLoading && sendChatMessage()}
+                            placeholder="¿Qué me pongo hoy?"
+                            disabled={chatLoading}
+                            className="
+                    flex-1 bg-transparent px-4 py-3
+                    text-[#e8d5b0] text-xs placeholder-[#4a4540]
+                    outline-none
+                "
+                        />
+                        <button
+                            onClick={sendChatMessage}
+                            disabled={chatLoading || !chatInput.trim()}
+                            className="
+                    px-4 text-[#c49a6c] hover:text-[#e8d5b0]
+                    disabled:text-[#4a4540] transition-colors text-sm
+                "
+                        >
+                            →
+                        </button>
                     </div>
                 </div>
             )}
