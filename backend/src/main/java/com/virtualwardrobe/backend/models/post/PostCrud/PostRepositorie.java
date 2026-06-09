@@ -45,4 +45,7 @@ public interface PostRepositorie extends JpaRepository<Post, Long> {
                 @Param("fitId") Integer fitId,
                 @Param("colorIds") List<Long> colorIds,
                 Pageable pageable);
+
+    @Query("SELECT p FROM Post p WHERE p.user.id IN :amigoIds")
+    Page<Post> findByUserIdIn(List<Integer> amigoIds, Pageable pageable);
 }

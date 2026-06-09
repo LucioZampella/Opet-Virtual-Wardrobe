@@ -25,14 +25,8 @@ public class FriendsService {
     private NotificationFacade notificationFacade;
 
     public void create (int user_id, int friend_id){
-        System.out.println("Creando");
-        System.out.println(">>> create llamado con followerId=" + user_id + " followingId=" + friend_id);
-        User user = userRepositorie.findById(user_id)
-                .orElseThrow(() -> new RuntimeException("Usuario follower no encontrado: " + user_id));
-        User friend = userRepositorie.findById(friend_id)
-                .orElseThrow(() -> new RuntimeException("Usuario follower no encontrado: " + friend_id));
-        // user es ele que manda la proposal
-        // firend es la que la recibe
+        User user = userRepositorie.findById(user_id).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        User friend = userRepositorie.findById(friend_id).orElseThrow(() -> new RuntimeException("Amigo no encontrado"));
 
         Follower friends = new Follower();
         friends.setFollowing(friend);
@@ -53,6 +47,7 @@ public class FriendsService {
             throw new UnauthorizedActionException("No tenés permiso para eliminar este seguimiento ");
         }
         System.out.println("El seguimiento ha sido eliminado");
+
         repo.delete(f);
     }
     public void updateForCreation (int id){
