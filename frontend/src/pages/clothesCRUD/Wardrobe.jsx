@@ -37,6 +37,10 @@ function Wardrobe() {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
 
+    const [isCreating, setIsCreating] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [deletingIds, setDeletingIds] = useState({});
+
     const [showChat, setShowChat] = useState(false);
     const [chatMessages, setChatMessages] = useState([]);
     const [chatInput, setChatInput] = useState("");
@@ -175,10 +179,14 @@ function Wardrobe() {
     const createClothe = async (e) => { // --> Crea una prenda tras un submit
         e.preventDefault();
 
+        if (isCreating) return;
+
         if (!form.image_url) {
             toast.error("Primero subí una foto de la prenda");
             return;
         }
+
+        setIsCreating(true)
 
         try {
             const response = await fetch(`http://localhost:8080/clothes`, {
@@ -211,6 +219,8 @@ function Wardrobe() {
             }
         } catch (error) {
             console.error("Error de conexión con el servidor: ", error);
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -230,6 +240,9 @@ function Wardrobe() {
 
     const updateClothe = async (e) => { // --> Guarda el edit que el usuario hizo a la prenda
         e.preventDefault();
+        if (isUpdating) return;
+
+        setIsUpdating(true);
 
         try {
             const response = await fetch(`http://localhost:8080/clothes/${editingClothe.id}`, {
@@ -268,10 +281,16 @@ function Wardrobe() {
             }
         } catch (error) {
             console.error("Error de conexión: ", error);
+        } finally {
+            setIsUpdating(false);
         }
     };
 
     const deleteClothe = async (id) => { // --> Borra la prenda seleccionada por el usuario
+
+        if (deletingIds[id]) return;
+
+        setDeletingIds(prev => ({ ...prev, [id]: true }));
 
         try {
             const response = await fetch(`http://localhost:8080/clothes/${id}`, {
@@ -290,6 +309,8 @@ function Wardrobe() {
         } catch (error) {
             toast.error("Error de conexión");
             console.error(error);
+        } finally {
+            setDeletingIds(prev => ({ ...prev, [id]: false }));
         }
     };
 
