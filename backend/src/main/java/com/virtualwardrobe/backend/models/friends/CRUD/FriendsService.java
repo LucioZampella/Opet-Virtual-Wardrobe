@@ -3,6 +3,7 @@ package com.virtualwardrobe.backend.models.friends.CRUD;
 import com.virtualwardrobe.backend.exceptions.AuthorizationException.UnauthorizedActionException;
 import com.virtualwardrobe.backend.exceptions.FollowerException.InvalidFollowerException;
 import com.virtualwardrobe.backend.exceptions.OutfitException.InvalidOutfitException;
+import com.virtualwardrobe.backend.models.notification.CRUD.Notification;
 import com.virtualwardrobe.backend.models.notification.facade.NotificationFacade;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
@@ -32,18 +33,19 @@ public class FriendsService {
         friends.setFollower(user);
         friends.setStatus(false);
         friends.setCreatedAt(LocalDateTime.now());
-
-        friends = repo.save(friends);
-
-        updateForCreation(friends.getId());
-
-        notificationFacade.notificate(user.getId(), friend.getId(), "APPLICATION", "El usuario " + user.getUsername() + " te ha seguido");
+        Follower saved = repo.save(friends);
+        repo.flush();
+        notificationFacade.notificate(user.getId(),friend.getId(),"APPLICATION", "El usuario" + user.getUsername() + "Te ha seguido");
+        System.out.println(">>> Follower guardado con ID: " + saved.getId());
+        updateForCreation(saved.getId());
     }
-    public void delete (int followerId, int followingId){
-        Follower f = repo.findByFollowerIdAndFollowingId(followerId, followingId)
-                .orElseThrow(() -> new InvalidFollowerException("No se encontró ningún seguimiento activo entre estos usuarios"));
+    public void delete (int id, int userId){
+        Follower f = repo.findByFollowerIdAndFollowingId(id,userId).orElseThrow(() -> new RuntimeException("Seguimiento no existe"));
+        System.out.println("Eliminadno");
         updateForDeletion(f);
-
+        if (f.getFollower().getId() != id) {
+            throw new UnauthorizedActionException("No tenés permiso para eliminar este seguimiento ");
+        }
         System.out.println("El seguimiento ha sido eliminado");
 
         repo.delete(f);

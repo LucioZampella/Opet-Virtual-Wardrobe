@@ -327,14 +327,47 @@ function Wardrobe() {
         setChatMessages(prev => [...prev, { role: "user", text: userMessage }]);
         setChatLoading(true);
 
+        // 1. Creamos una función interna para obtener las coordenadas con una Promesa
+        const obtenerCoordenadas = () => {
+            return new Promise((resolve) => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            resolve({
+                                lat: position.coords.latitude,
+                                lon: position.coords.longitude
+                            });
+                        },
+                        (error) => {
+                            console.error("Permiso de GPS denegado, usando coordenadas por defecto.", error);
+                            // Coordenadas por defecto (ej. Buenos Aires) por si el usuario dice que no
+                            resolve({ lat: -34.6037, lon: -58.3816 });
+                        }
+                    );
+                } else {
+                    console.error("El navegador no soporta geolocalización.");
+                    resolve({ lat: -34.6037, lon: -58.3816 });
+                }
+            });
+        };
+
         try {
+            // 2. Esperamos a que el navegador nos dé la latitud y longitud
+            const { lat, lon } = await obtenerCoordenadas();
+
+            // 3. Hacemos el fetch mandando el input junto con el clima
             const response = await fetch("http://localhost:8080/api/gemini/recommendation", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ input: userMessage })
+                // Ahora viaja todo junto en el body
+                body: JSON.stringify({
+                    input: userMessage,
+                    lat: lat,
+                    lon: lon
+                })
             });
 
             if (response.ok) {

@@ -1,5 +1,6 @@
 package com.virtualwardrobe.backend.models.gemini;
 
+import com.virtualwardrobe.backend.models.WeatherAPI.WeatherService;
 import com.virtualwardrobe.backend.models.clothe.Clothe;
 import com.virtualwardrobe.backend.models.clothe.ClotheRepositorie;
 import com.virtualwardrobe.backend.models.clothe.clotheDTO.clotheProperties.color.Color;
@@ -22,7 +23,10 @@ public class GroqService {
     @Autowired
     private GroqApiClient apiClient;
 
-    public String getRecommendation(String input, int userId) {
+    @Autowired
+    private WeatherService weatherService;
+
+    public String getRecommendation(String input, int userId,double lat, double lon) {
         List<Clothe> clothes = clotheRepo.findByUserId(userId);
 
         List<Clothe> sorted = getSortedPreferences(clothes);
@@ -31,23 +35,34 @@ public class GroqService {
         for (Clothe clothe : sorted) {
             clothesTextBuilder.append("- ").append(clotheToText(clothe)).append("\n");
         }
+        String climaActual = weatherService.getWeatherSummary(lat, lon);
 
         String prompt = """
 Actúa como un recomendador de outfits automatizado. 
 Tu tarea es evaluar el mensaje del usuario y las prendas disponibles para devolver ÚNICAMENTE el outfit recomendado final junto a una breve descripción.
-
+[GUÍA ESTRICTA DE TEMPERATURA (SENTIDO COMÚN)]
+- Si la temperatura es MENOR a 15°C: Hace FRÍO. Es OBLIGATORIO incluir abrigos (Buzo, Campera, Impermeable, Saco) y pantalones largos. Está PROHIBIDO recomendar shorts, bermudas o musculosas.
+- Si la temperatura está entre 15°C y 22°C: El clima está templado/fresco. Recomienda jeans, camisas o remeras con un buzo liviano por si refresca.
+- Si la temperatura es MAYOR a 22°C: Hace calor. Puedes recomendar shorts, remeras de manga corta, tops y musculosas.
+[MANEJO DE PRENDAS FALTANTES (ZAFAR Y RECOMENDAR)]
+- Si el clima exige una prenda abrigada (ej. pantalón largo o campera) pero el usuario NO la tiene en su lista de [PRENDAS DISPONIBLES], debes armar el mejor outfit posible para zafar con lo que SÍ tiene (ej. usar shorts pero con doble abrigo arriba, o vestidos con campera).
+- Está TERMINANTEMENTE PROHIBIDO inventar prendas que no estén en la lista.
+- Si tuviste que armar un outfit "para zafar" porque le faltaba ropa ideal para el frío/calor, debes agregar al final de todo una sección llamada "Consejo de compra:" sugiriendo de onda qué prenda le convendría comprar para completar su ropero.
 REGLAS ESTRICTAS:
 - Evaluá el "Mensaje del usuario". Si este mensaje NO es una petición de outfit o ropa para un contexto en especifico (por ejemplo: insultos, charlas informales, preguntas personales, etc..."), respondé ÚNICAMENTE con: "No puedo responderte eso".
+- REGLA CLIMÁTICA: Es obligatorio que adaptes el outfit al "Clima actual en tiempo real". Si hace frío (menos de 15°C) no recomiendes shorts o musculosas; si llueve, prioriza abrigos impermeables si hay disponibles. El outfit debe ser realista para el clima indicado.
 - NO incluyas análisis previos de la petición.
 - NO listes el análisis de las prendas disponibles por separado.
 - NO uses introducciones como "Análisis de la petición:" o "Recomendación basada en...".
 - Si es una petición válida, empezá tu respuesta directamente con el título "Outfit Recomendado:".
+Está TERMINANTEMENTE PROHIBIDO que comiences tu respuesta diciendo "No puedo determinar el clima", "Como IA no tengo acceso", o "Según la temperatura proporcionada". No te excuses ni des explicaciones de tus capacidades
 
 Mensaje del usuario: "%s"
 
 Datos de las prendas disponibles:
 %s
-""".formatted(input, clothesTextBuilder.toString());
+Clima actual : %s
+""".formatted(input, clothesTextBuilder.toString(),climaActual);
 
         return apiClient.sendPropt(prompt);
     }

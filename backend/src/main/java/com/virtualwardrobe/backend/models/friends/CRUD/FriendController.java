@@ -29,6 +29,7 @@ public class FriendController {
     public ResponseEntity<?> createFollower(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody FollowRequest body) {
+        System.out.println("llego al controller ");
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
         service.create(body.getFollowerId(), body.getFollowingId());
         return ResponseEntity.ok().build();
@@ -39,6 +40,7 @@ public class FriendController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam int followerId,
             @RequestParam int followingId) {
+        System.out.println("Llegueee");
         service.delete(followerId, followingId);
         return ResponseEntity.ok().build();
     }
