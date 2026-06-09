@@ -3,6 +3,7 @@ package com.virtualwardrobe.backend.models.friends.CRUD;
 import com.virtualwardrobe.backend.exceptions.AuthorizationException.UnauthorizedActionException;
 import com.virtualwardrobe.backend.exceptions.FollowerException.InvalidFollowerException;
 import com.virtualwardrobe.backend.exceptions.OutfitException.InvalidOutfitException;
+import com.virtualwardrobe.backend.models.notification.CRUD.Notification;
 import com.virtualwardrobe.backend.models.notification.facade.NotificationFacade;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
