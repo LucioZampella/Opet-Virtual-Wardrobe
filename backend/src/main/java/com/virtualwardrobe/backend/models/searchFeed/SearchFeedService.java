@@ -1,5 +1,7 @@
 package com.virtualwardrobe.backend.models.searchFeed;
 
+import com.virtualwardrobe.backend.models.friends.CRUD.Follower;
+import com.virtualwardrobe.backend.models.friends.CRUD.FriendsService;
 import com.virtualwardrobe.backend.models.post.PostCrud.Post;
 import com.virtualwardrobe.backend.models.post.PostCrud.PostRepositorie;
 import com.virtualwardrobe.backend.models.post.PostDTO.PostResponseDTO;
@@ -25,6 +27,9 @@ public class SearchFeedService {
     @Autowired
     private PreferencesService preferencesService;
 
+    @Autowired
+    private FriendsService friendsService;
+
     public Page<PostResponseDTO> generarFeed(Integer userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
         Page<Post> postPage = postRepo.findAll(pageable); // --> Dado un size, cargamos simplente
@@ -42,6 +47,25 @@ public class SearchFeedService {
 
         return getPostResponseDTOS(userId, pageable, postPage);
 
+    }
+
+    public Page<PostResponseDTO> generarFeedAmigos(Integer userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+
+        List<Follower> friends = friendsService.findAllFriendsOfUser(userId);
+
+        List<Integer> friendsId = friends.stream()
+                .map(f -> f.getFollower().getId() == userId ? f.getFollowing().getId() : f.getFollower().getId())
+                .distinct()
+                .toList();
+
+        if (friendsId.isEmpty()) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+
+        Page<Post> postPage = postRepo.findByUserIdIn(friendsId, pageable);
+
+        return getPostResponseDTOS(userId, pageable, postPage);
     }
 
     private Page<PostResponseDTO> getPostResponseDTOS(int userId, Pageable pageable, Page<Post> postPage) {
@@ -116,9 +140,11 @@ public class SearchFeedService {
     private PostResponseDTO convertToDto(Post post, double score) {
         PostResponseDTO dto = new PostResponseDTO();
         dto.setId(post.getId());
+        dto.setUserId(post.getUser().getId());
         dto.setScore(score);
         dto.setUsername(post.getUser().getUsername());
-        dto.setCaption(post.getDescripcion()); // solo una vez
+        dto.setCaption(post.getDescripcion());
+        dto.setAvatarUrl(post.getUser().getAvatar_url());
 
         if (post.getOutfit() != null) {
             dto.setType("OUTFIT");

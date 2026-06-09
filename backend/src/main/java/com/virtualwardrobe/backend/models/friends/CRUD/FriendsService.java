@@ -24,26 +24,28 @@ public class FriendsService {
     private NotificationFacade notificationFacade;
 
     public void create (int user_id, int friend_id){
-        User user = userRepositorie.findById(user_id).get();
-        User friend = userRepositorie.findById(friend_id).get();
-        // user es ele que manda la proposal
-        // firend es la que la recibe
+        User user = userRepositorie.findById(user_id).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        User friend = userRepositorie.findById(friend_id).orElseThrow(() -> new RuntimeException("Amigo no encontrado"));
 
         Follower friends = new Follower();
         friends.setFollowing(friend);
         friends.setFollower(user);
         friends.setStatus(false);
         friends.setCreatedAt(LocalDateTime.now());
+
+        friends = repo.save(friends);
+
         updateForCreation(friends.getId());
-        notificationFacade.notificate(user.getId(),friend.getId(),"APPLICATION", "El usuario" + user.getUsername() + "Te ha seguido");
+
+        notificationFacade.notificate(user.getId(), friend.getId(), "APPLICATION", "El usuario " + user.getUsername() + " te ha seguido");
     }
-    public void delete (int id, int userId){
-        Follower f = repo.findById(id).orElseThrow(() -> new InvalidFollowerException("no hay ningun seguimiento  con ese id"));
+    public void delete (int followerId, int followingId){
+        Follower f = repo.findByFollowerIdAndFollowingId(followerId, followingId)
+                .orElseThrow(() -> new InvalidFollowerException("No se encontró ningún seguimiento activo entre estos usuarios"));
         updateForDeletion(f);
-        if (f.getFollower().getId() != userId) {
-            throw new UnauthorizedActionException("No tenés permiso para eliminar este seguimiento ");
-        }
+
         System.out.println("El seguimiento ha sido eliminado");
+
         repo.delete(f);
     }
     public void updateForCreation (int id){

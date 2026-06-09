@@ -38,17 +38,16 @@ public class UserService {
     private NotificationFacade notificationFacade;
 
     public void crear(UserDTO dto) {
-        // username sin espacios y email en minuscula y sin espacios
-
         validarTodasLasLongitudes(dto);
+
         if (repo.findByEmail(dto.getEmail()).isPresent()) {
             throw new InvalidUserException("Email ya existente");
         }
 
         if (repo.findByUsername(dto.getUsername()).isPresent()) {
-            throw new InvalidUserException("Username ya existente"); // -> Manejan el caso en que ya existe
-            // ese username/email al querer registrarse
+            throw new InvalidUserException("Username ya existente");
         }
+
         User user = new User();
         user.setUsername(dto.getUsername().trim());
         user.setEmail(dto.getEmail().trim().toLowerCase());
@@ -57,8 +56,17 @@ public class UserService {
         user.setLastName(dto.getLastName());
         user.setLatitude(dto.getLatitude());
         user.setLongitude(dto.getLongitude());
-        notificationFacade.notificate(user.getId(),user.getId(),"CREATE","Your account has been created");
-        repo.save(user);
+
+        // 1. Guardamos primero para que la DB genere el ID autoincremental
+        User usuarioGuardado = repo.save(user);
+
+        // 2. Ahora que usuarioGuardado.getId() tiene un ID real (ej: 14), notificamos
+        notificationFacade.notificate(
+                usuarioGuardado.getId(),
+                usuarioGuardado.getId(),
+                "CREATE",
+                "Your account has been created"
+        );
     }
 
     public void modificar(int id, UpdateUserDTO user, String usernameFromToken) {
@@ -70,8 +78,7 @@ public class UserService {
         }
         validarTodasLasLongitudesUpdate(user);
         u.setName(user.getName());
-        u.setLastName(user.getLastName());
-        u.setBio(user.getBio());
+        u.setLastName(user.getLastName());u.setBio(user.getBio());
         u.setAvatar_url(user.getAvatar_url());
         repo.save(u);
     }
