@@ -40,5 +40,13 @@ public class WeatherService {
 
             return "No disponible (usar criterio general de estación).";
         }
+
+    }
+    public String getRawWeather(double lat, double lon) {
+        String url = String.format(
+                "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=metric&lang=es",
+                lat, lon, API_KEY
+        );
+        return restClient.get().uri(url).retrieve().body(String.class);
     }
 }

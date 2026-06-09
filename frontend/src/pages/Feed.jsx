@@ -7,6 +7,7 @@ function Feed() {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
     const token = localStorage.getItem("token");
+    const [climaFeed, setClimaFeed] = useState({ temperatura: "", emoji: "", estado: "" });
 
     useEffect(() => {
         setLoading(true);
@@ -18,6 +19,71 @@ function Feed() {
             .catch(err => console.error("Error cargando feed:", err))
             .finally(() => setLoading(false));
     }, []);
+    // traer logica del clima
+
+    useEffect(() => {
+        const obtenerClimaDelFeed = async () => {
+            // 2. Activamos la geolocalización de JavaScript
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const { latitude, longitude } = position.coords;
+
+                        try {
+                            // 3. Le pegamos a tu nuevo endpoint pasando lat y lon por QueryParams
+                            const response = await fetch(
+                                `http://localhost:8080/api/weather/feed-summary?lat=${latitude}&lon=${longitude}`,
+                                {
+                                    method: "GET",
+                                    headers: {
+                                        "Authorization": `Bearer ${token}`, // Si tu endpoint requiere JWT
+                                        "Content-Type": "application/json"
+                                    }
+                                }
+                            );
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                // 4. Guardamos el objeto { temperatura, emoji, estado } en el estado
+                                setClimaFeed(data);
+                            } else {
+                                console.error("Error al traer el clima para el feed");
+                                setClimaFeed({ temperatura: "--", emoji: "🤷‍♂️", estado: "Clima no disponible" });
+                            }
+                        } catch (error) {
+                            console.error("Error de red al buscar el clima:", error);
+                            setClimaFeed({ temperatura: "--", emoji: "🤷‍♂️", estado: "Error de conexión" });
+                        }
+                    },
+                    (error) => {
+                        console.error("El usuario denegó el GPS para el widget del feed:", error);
+                        // Fallback opcional: Mandar coordenadas por defecto si el usuario dice que no
+                        conseguirClimaPorDefecto(token);
+                    }
+                );
+            } else {
+                setClimaFeed({ temperatura: "--", emoji: "❌", estado: "GPS no soportado" });
+            }
+        };
+
+        obtenerClimaDelFeed();
+    }, [token]); // Se ejecuta una sola vez al cargar el componente
+
+    // Función auxiliar por si el GPS falla o es rechazado (Usa coordenadas de BsAs por defecto)
+    const conseguirClimaPorDefecto = async (jwtToken) => {
+        try {
+            const response = await fetch(
+                `http://localhost:8080/api/weather/feed-summary?lat=-34.6037&lon=-58.3816`,
+                { headers: { "Authorization": `Bearer ${jwtToken}` } }
+            );
+            if (response.ok) {
+                const data = await response.json();
+                setClimaFeed(data);
+            }
+        } catch (e) {
+            setClimaFeed({ temperatura: "--", emoji: "🤷‍♂️", estado: "Error" });
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#2a2622]">
@@ -34,10 +100,23 @@ function Feed() {
                 {loading && (
                     <p className="text-[#6b6258] text-xs text-center tracking-[0.3em] uppercase animate-pulse mt-10">Cargando...</p>
                 )}
-
+                <div className="flex items-center gap-2 bg-zinc-800 p-3 rounded-xl border border-zinc-700 w-fit shadow-md">
+            <span className="text-2xl animate-bounce" role="img" aria-label="clima-emoji">
+                {climaFeed.emoji}
+            </span>
+                    <div className="flex flex-col">
+                <span className="text-white font-bold text-sm">
+                    {climaFeed.temperatura}
+                </span>
+                        <span className="text-xs text-zinc-400 capitalize">
+                    {climaFeed.estado}
+                </span>
+                    </div>
+                </div>
                 {!loading && posts.length === 0 && (
                     <p className="text-[#6b6258] text-xs text-center tracking-[0.3em] uppercase mt-10">No hay publicaciones todavía.</p>
                 )}
+
 
                 {/* Posts */}
                 <div className="flex flex-col gap-8">

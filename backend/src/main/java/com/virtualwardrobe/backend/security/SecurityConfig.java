@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/test/**").permitAll()
                         .requestMatchers("/usuarios/login", "/usuarios/signup").permitAll()
                         .requestMatchers("/websocket/**").permitAll()
+                        .requestMatchers("/api/weather/**").permitAll()
                         .requestMatchers("/api/friends/**").authenticated()  // más específico primero
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
