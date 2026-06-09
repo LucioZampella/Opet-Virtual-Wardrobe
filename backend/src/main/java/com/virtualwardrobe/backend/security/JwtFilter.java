@@ -53,6 +53,7 @@ public class JwtFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             if (jwtUtil.validateToken(token, username)) {
+                System.out.println(">>> Token válido para: " + username);
                 // 4. Si el token es válido, autenticar al usuario en Spring Security
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
@@ -60,6 +61,8 @@ public class JwtFilter extends OncePerRequestFilter {
                         );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            }else {
+                System.out.println("Token inválido o expirado para user: " + username);
             }
         }
         // 5. Dejar pasar el request al controller

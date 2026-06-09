@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/friends")
+@RequestMapping("/api/friends")
 public class FriendController {
 
     @Autowired
@@ -20,38 +20,35 @@ public class FriendController {
     private FriendsService service;
 
     @GetMapping
-    public ResponseEntity<?> getAllFriends(
+    public ResponseEntity<?> getAllFriendsOfUser(
             @RequestHeader("Authorization") String authHeader) {
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        return  ResponseEntity.ok(service.findAll(userId));
+        return  ResponseEntity.ok(service.findAllFriendsOfUser(userId));
     }
-    @PostMapping
-    public ResponseEntity<?> createFriend(@RequestBody
-                                   @RequestHeader("Authorization") String authHeader,
-                               int friend_id) {
-        int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        service.create(userId, friend_id);
-        return ResponseEntity.ok().build();
-    }
-    @PostMapping
-    public ResponseEntity<?> updateFriend (
-            @RequestBody
+    @PostMapping("/follow")
+    public ResponseEntity<?> createFollower(
             @RequestHeader("Authorization") String authHeader,
-            int friend_id
-    ){
+            @RequestBody FollowRequest body) {
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        service.update(friend_id, userId);
+        service.create(body.getFollowerId(), body.getFollowingId());
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping
-    public ResponseEntity<?> deleteFriend (
+    @DeleteMapping("/unfollow")
+    public ResponseEntity<?> deleteFollower(
             @RequestHeader("Authorization") String authHeader,
-            int friend_id
-    ){
-        int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        service.delete(friend_id,userId);
+            @RequestParam int followerId,
+            @RequestParam int followingId) {
+        service.delete(followerId, followingId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> checkFollowing(
+            @RequestParam int followerId,
+            @RequestParam int followingId) {
+        boolean result = service.isFollowing(followerId, followingId);
+        return ResponseEntity.ok(result);
     }
 
 }

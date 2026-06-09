@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 
-public class Friend {
+public class Follower {
 
     @jakarta.persistence.Id
     @Id
@@ -24,17 +24,18 @@ public class Friend {
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "follower_id")
+    private User follower;
 
     @ManyToOne
-    @JoinColumn(name = "friend_id")
-    private User friend;
+    @JoinColumn(name = "following_id")
+    private User following;
 
     @Column(name = "status")
-    private boolean status; // False -> pending; True -> accepted
+    private boolean status; // False -> not friends; True -> friends
 
     @Column (name= "created_at")
     private LocalDateTime createdAt;
+
 
 }
