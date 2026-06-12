@@ -387,6 +387,17 @@ function Wardrobe() {
         }
     };
 
+    const ClotheLink = ({ clotheId, clotheName, onNavigate }) => (
+        <span
+            onClick={() => onNavigate(clotheId)}
+            className="text-[#6ba3d4] underline cursor-pointer hover:text-[#7ab5e8] transition-colors"
+            role="button"
+            tabIndex="0"
+        >
+        {clotheName}
+    </span>
+    );
+
     const handleClotheClick = (clotheId) => {
         setShowChat(false);
         const element = document.getElementById(`clothe-${clotheId}`);
@@ -450,16 +461,6 @@ function Wardrobe() {
         transition-colors duration-300 cursor-pointer
     `;
 
-    const ClotheLink = ({ clotheId, clotheName, onNavigate }) => (
-        <span
-            onClick={() => onNavigate(clotheId)}
-            className="text-[#6ba3d4] underline cursor-pointer hover:text-[#7ab5e8] transition-colors"
-            role="button"
-            tabIndex="0"
-        >
-        {clotheName}
-    </span>
-    );
 
     return (
         <div className="min-h-screen bg-[#2a2622]">
@@ -1023,7 +1024,7 @@ function Wardrobe() {
                                 }`}
                             >
                                 {msg.clothes ?
-                                    renderClotheLinks(msg.text, msg.clothes)
+                                    renderClotheLinks(msg.text, msg.clothes, handleClotheClick)
                                     : msg.text
                                 }
                             </div>
