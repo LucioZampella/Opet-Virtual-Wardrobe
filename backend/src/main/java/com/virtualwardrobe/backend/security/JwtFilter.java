@@ -68,4 +68,12 @@ public class JwtFilter extends OncePerRequestFilter {
         // 5. Dejar pasar el request al controller
         filterChain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // Si la ruta es login o signup, el filtro ni siquiera se ejecuta
+        return path.equals("/usuarios/signup") || path.equals("/usuarios/login");
+    }
+
 }
