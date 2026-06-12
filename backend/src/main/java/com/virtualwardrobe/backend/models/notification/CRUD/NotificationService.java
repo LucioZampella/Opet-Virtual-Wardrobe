@@ -27,12 +27,14 @@ public class NotificationService {
         notification.setDate(LocalDateTime.now());
         notification.setAlready_read(false);
         notification.setUser_id(createrDTO.getUser_id());
+        repo.save(notification);
     }
     //agarro la notification y la leo es decir Already_read -> True
     public void update(int notificationId){
         Notification n =  repo.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException("Notification not found") );
         n.setAlready_read(true);
+        repo.save(n);
     }
 
     public void delete(int notificationId, int userId){
@@ -53,6 +55,13 @@ public class NotificationService {
 
     public Notification getById(int notificationId){
         return repo.findById(notificationId).orElseThrow(() -> new NotificationNotFoundException("Notification not found") );
+    }
+    public void markAsRead(int notificationId, int userId) {
+        Notification notif = repo.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notificación no encontrada"));
+        if (notif.getUser_id() != userId) throw new RuntimeException("No autorizado");
+        notif.setAlready_read(true);
+        repo.save(notif);
     }
 
 }

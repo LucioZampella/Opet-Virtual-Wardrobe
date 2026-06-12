@@ -4,6 +4,8 @@ import com.virtualwardrobe.backend.exceptions.AuthorizationException.Unauthorize
 import com.virtualwardrobe.backend.exceptions.FollowerException.InvalidFollowerException;
 import com.virtualwardrobe.backend.exceptions.OutfitException.InvalidOutfitException;
 import com.virtualwardrobe.backend.models.notification.CRUD.Notification;
+import com.virtualwardrobe.backend.models.notification.CRUD.NotificationService;
+import com.virtualwardrobe.backend.models.notification.DTO.CreaterDTO;
 import com.virtualwardrobe.backend.models.notification.facade.NotificationFacade;
 import com.virtualwardrobe.backend.models.user.User;
 import com.virtualwardrobe.backend.models.user.UserRepositorie;
@@ -23,6 +25,8 @@ public class FriendsService {
     private UserRepositorie userRepositorie;
     @Autowired
     private NotificationFacade notificationFacade;
+    @Autowired
+    private NotificationService  serv;
 
     public void create (int user_id, int friend_id){
         System.out.println("Creando");
@@ -31,9 +35,16 @@ public class FriendsService {
                 .orElseThrow(() -> new RuntimeException("Usuario follower no encontrado: " + user_id));
         User friend = userRepositorie.findById(friend_id)
                 .orElseThrow(() -> new RuntimeException("Usuario follower no encontrado: " + friend_id));
+        Optional<Follower> alreadyExists = repo.findByFollowerIdAndFollowingId(user_id, friend_id);
+        if (alreadyExists.isPresent()) throw new RuntimeException("Ya existe una solicitud o seguimiento");
+
         // user es ele que manda la proposal
         // firend es la que la recibe
-
+        CreaterDTO dto = new CreaterDTO();
+        dto.setDescription("Un nuevo usuario te quiere seguir");
+        dto.setType("FOLLOW_REQUEST");
+        dto.setUser_id(friend_id);
+        serv.create(dto,user_id);
         Follower friends = new Follower();
         friends.setFollowing(friend);
         friends.setFollower(user);
@@ -43,40 +54,33 @@ public class FriendsService {
         repo.flush();
         notificationFacade.notificate(user.getId(),friend.getId(),"APPLICATION", "El usuario" + user.getUsername() + "Te ha seguido");
         System.out.println(">>> Follower guardado con ID: " + saved.getId());
-        updateForCreation(saved.getId());
-    }
-    public void delete (int id, int userId){
-        Follower f = repo.findByFollowerIdAndFollowingId(id,userId).orElseThrow(() -> new RuntimeException("Seguimiento no existe"));
-        System.out.println("Eliminadno");
-        updateForDeletion(f);
-        if (f.getFollower().getId() != id) {
-            throw new UnauthorizedActionException("No tenés permiso para eliminar este seguimiento ");
-        }
-        System.out.println("El seguimiento ha sido eliminado");
-        repo.delete(f);
-    }
-    public void updateForCreation (int id){
 
-        Follower f = repo.findById(id).orElseThrow();
-        // busco si existe la el seguimiento al reves
-        Optional<Follower> friend = repo.findByFollowerIdAndFollowingId(f.getFollowing().getId(),f.getFollower().getId());
-        if(friend.isPresent()){
-            friend.get().setStatus(true);
-            f.setStatus(true);
-            repo.save(friend.get());
-            notificationFacade.notificate(f.getFollower().getId(),f.getFollowing().getId(),"Application", "El usuario" + f.getFollowing().getUsername() + "y tu  ahora son amigos!");
-        }
-        repo.save(f);
     }
-    public void updateForDeletion (Follower f){
-        if(f.isStatus()){
-            Optional<Follower> friend = repo.findByFollowerIdAndFollowingId(f.getFollowing().getId(),f.getFollower().getId());
-            if(friend.isPresent()){
-                friend.get().setStatus(false);
-                repo.save(friend.get());
-            }
-        }
+
+    public void reject(int followerId, int followingId) {
+        Follower request = repo.findByFollowerIdAndFollowingId(followerId, followingId)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+        repo.delete(request);
     }
+
+    public void accept(int followerId, int followingId) {
+        Follower request = repo.findByFollowerIdAndFollowingId(followerId, followingId)
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
+
+        if (request.isStatus()) throw new RuntimeException("Ya estás siguiendo a este usuario");
+
+        request.setStatus(true); // true = aceptado
+        repo.save(request);
+        CreaterDTO dto = new CreaterDTO();
+        dto.setDescription("El usuario ha aceptado tu solicitud!");
+        dto.setType("Application");
+        dto.setUser_id(followerId);
+        serv.create(dto, followerId);
+        notificationFacade.notificate(followingId, followerId, "FOLLOW_ACCEPTED",
+                "El usuario " + request.getFollowing().getUsername() + " aceptó tu solicitud");
+    }
+
     public List<Follower> findAllFriendsOfUser(int id){
         return repo.findAllFriendsOfUser(id);
     }

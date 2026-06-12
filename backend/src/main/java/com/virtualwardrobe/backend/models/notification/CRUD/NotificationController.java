@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/api/notifications")
 public class NotificationController {
 
     @Autowired
@@ -43,5 +43,13 @@ public class NotificationController {
         service.delete(id,userId);
         return ResponseEntity.ok().build();
     }
-    
+
+    @PatchMapping("/{id}/read")
+    public ResponseEntity<?> markAsRead(
+            @PathVariable int id,
+            @RequestHeader("Authorization") String authHeader) {
+        int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
+        service.markAsRead(id, userId);
+        return ResponseEntity.ok().build();
+    }
 }

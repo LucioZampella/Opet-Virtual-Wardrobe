@@ -41,7 +41,17 @@ public class FriendController {
             @RequestParam int followerId,
             @RequestParam int followingId) {
         System.out.println("Llegueee");
-        service.delete(followerId, followingId);
+        service.reject(followerId, followingId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/accept")
+    public ResponseEntity<?> acceptFollower(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam int followerId,
+            @RequestParam int followingId) {
+        System.out.println("Llegueee");
+        service.accept(followerId, followingId);
         return ResponseEntity.ok().build();
     }
 
