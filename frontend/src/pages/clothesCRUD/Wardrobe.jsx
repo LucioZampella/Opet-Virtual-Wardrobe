@@ -4,6 +4,7 @@ import GenericSelect from "../../constants/GenericSelect";
 const CLOUDINARY_CLOUD_NAME = "ducp0gbgq";
 const CLOUDINARY_UPLOAD_PRESET = "opet_clothes";
 import { CLOTHING_TYPES, COLORS, SIZES, FITS, MATERIALS } from "../../constants/clotheOptions.js";
+import { FAQ_QUESTIONS } from "../../constants/faqOptions.js";
 import toast from "react-hot-toast";
 
 const EmptyForm = {
@@ -42,7 +43,8 @@ function Wardrobe() {
     const [deletingIds, setDeletingIds] = useState({});
 
     const [showChat, setShowChat] = useState(false);
-    const [chatMessages, setChatMessages] = useState([]);
+    const [chatHistory, setChatHistory] = useState([]);
+    const [currentChatId, setCurrentChatId] = useState(null);
     const [chatInput, setChatInput] = useState("");
     const [chatLoading, setChatLoading] = useState(false);
 
@@ -73,6 +75,7 @@ function Wardrobe() {
 
     useEffect(() => {
         fetchClothes();
+        loadChatHistory();
     }, []);
 
     const fetchWithFilters = async (newFilters) => { // --> Trae todas las prendas pero ahora con filtros especificos
@@ -319,15 +322,75 @@ function Wardrobe() {
         return item ? item.label : "—";
     };
 
+    const loadChatHistory = () => {
+        const saved = localStorage.getItem("chatHistory");
+        if (saved) {
+            const history = JSON.parse(saved);
+            setChatHistory(history);
+            if (history.length > 0 && !currentChatId) {
+                setCurrentChatId(history[0].id);
+            }
+        } else {
+            createNewChat();
+        }
+    };
+
+    const saveChatHistory = (newHistory) => {
+        localStorage.setItem("chatHistory", JSON.stringify(newHistory));
+        setChatHistory(newHistory);
+    };
+
+    const createNewChat = () => {
+        const newChat = {
+            id: Date.now(),
+            title: "Nuevo chat",
+            messages: [],
+            createdAt: new Date().toISOString()
+        };
+        const newHistory = [newChat, ...chatHistory];
+        saveChatHistory(newHistory);
+        setCurrentChatId(newChat.id);
+    };
+
+    const getCurrentChat = () => {
+        return chatHistory.find(chat => chat.id === currentChatId);
+    };
+
+    const updateCurrentChat = (messages) => {
+        const newHistory = chatHistory.map(chat => 
+            chat.id === currentChatId 
+                ? { ...chat, messages, title: messages[0]?.text?.substring(0, 30) + "..." || "Sin título" }
+                : chat
+        );
+        saveChatHistory(newHistory);
+    };
+
+    const deleteChat = (chatId) => {
+        const newHistory = chatHistory.filter(chat => chat.id !== chatId);
+        saveChatHistory(newHistory);
+        if (currentChatId === chatId) {
+            if (newHistory.length > 0) {
+                setCurrentChatId(newHistory[0].id);
+            } else {
+                createNewChat();
+            }
+        }
+    };
+
     const sendChatMessage = async () => {
         if (!chatInput.trim()) return;
+        sendChatMessageWithText(chatInput.trim());
+    };
 
-        const userMessage = chatInput.trim();
+    const sendChatMessageWithText = async (userMessage) => {
         setChatInput("");
-        setChatMessages(prev => [...prev, { role: "user", text: userMessage }]);
+        
+        const currentChat = getCurrentChat();
+        const updatedMessages = [...currentChat.messages, { role: "user", text: userMessage }];
+        updateCurrentChat(updatedMessages);
+        
         setChatLoading(true);
 
-        // 1. Creamos una función interna para obtener las coordenadas con una Promesa
         const obtenerCoordenadas = () => {
             return new Promise((resolve) => {
                 if (navigator.geolocation) {
@@ -340,7 +403,6 @@ function Wardrobe() {
                         },
                         (error) => {
                             console.error("Permiso de GPS denegado, usando coordenadas por defecto.", error);
-                            // Coordenadas por defecto (ej. Buenos Aires) por si el usuario dice que no
                             resolve({ lat: -34.6037, lon: -58.3816 });
                         }
                     );
@@ -352,17 +414,14 @@ function Wardrobe() {
         };
 
         try {
-            // 2. Esperamos a que el navegador nos dé la latitud y longitud
             const { lat, lon } = await obtenerCoordenadas();
 
-            // 3. Hacemos el fetch mandando el input junto con el clima
             const response = await fetch("http://localhost:8080/api/gemini/recommendation", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                // Ahora viaja todo junto en el body
                 body: JSON.stringify({
                     input: userMessage,
                     lat: lat,
@@ -372,11 +431,12 @@ function Wardrobe() {
 
             if (response.ok) {
                 const data = await response.json();
-                setChatMessages(prev => [...prev, {
+                const finalMessages = [...updatedMessages, {
                     role: "assistant",
                     text: data.recommendation,
                     clothes: data.clothes
-                }]);
+                }];
+                updateCurrentChat(finalMessages);
             } else {
                 toast.error("Error al contactar al groq");
             }
@@ -993,28 +1053,83 @@ function Wardrobe() {
                 <div className="fixed bottom-24 right-6 z-50 w-80 bg-[#221f1c] border border-[#3a3530] flex flex-col shadow-2xl"
                      style={{ height: "420px" }}>
 
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-[#3a3530]">
-                        <div>
-                            <p className="text-[#e8d5b0] text-xs tracking-widest uppercase">GROQ</p>
-                            <p className="text-[#6b6258] text-[10px] tracking-wide">Preguntale a Groq una recomendación basada en tu ropero</p>
+                    {/* Header con pestañas */}
+                    <div className="border-b border-[#3a3530]">
+                        <div className="flex items-center justify-between px-4 py-3">
+                            <div>
+                                <p className="text-[#e8d5b0] text-xs tracking-widest uppercase">GROQ</p>
+                                <p className="text-[#6b6258] text-[10px] tracking-wide">Preguntale a Groq una recomendación</p>
+                            </div>
+                            <button
+                                onClick={() => setShowChat(false)}
+                                className="text-[#4a4540] hover:text-[#e8d5b0] transition-colors text-lg"
+                            >
+                                ✕
+                            </button>
                         </div>
-                        <button
-                            onClick={() => setShowChat(false)}
-                            className="text-[#4a4540] hover:text-[#e8d5b0] transition-colors text-lg"
-                        >
-                            ✕
-                        </button>
+
+                        {/* Pestañas de chats */}
+                        <div className="flex gap-1 px-2 pb-2 overflow-x-auto">
+                            {chatHistory.map(chat => (
+                                <div
+                                    key={chat.id}
+                                    className="flex items-center gap-1 bg-[#2a2622] rounded px-2 py-1 text-[10px] flex-shrink-0"
+                                >
+                                    <button
+                                        onClick={() => setCurrentChatId(chat.id)}
+                                        className={`tracking-wide transition-colors ${
+                                            currentChatId === chat.id
+                                                ? "text-[#c49a6c]"
+                                                : "text-[#6b6258] hover:text-[#8a7d6e]"
+                                        }`}
+                                    >
+                                        {chat.title}
+                                    </button>
+                                    <button
+                                        onClick={() => deleteChat(chat.id)}
+                                        className="text-[#4a4540] hover:text-red-600 transition-colors"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                onClick={createNewChat}
+                                className="text-[#4a4540] hover:text-[#c49a6c] text-xs tracking-widest px-2 py-1 flex-shrink-0 transition-colors"
+                            >
+                                + Nuevo
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Preguntas frecuentes */}
+                    {getCurrentChat().messages.length === 0 && (
+                        <div className="px-4 py-2 border-b border-[#3a3530] bg-[#2a2622]">
+                            <p className="text-[#6b6258] text-[9px] tracking-widest uppercase mb-2">Preguntas frecuentes</p>
+                            <div className="flex flex-col gap-1">
+                                {FAQ_QUESTIONS.map(faq => (
+                                    <button
+                                        key={faq.id}
+                                        onClick={() => {
+                                            sendChatMessageWithText(faq.question);
+                                        }}
+                                        className="text-left text-[9px] tracking-wide text-[#8a7d6e] hover:text-[#c49a6c] border border-[#3a3530] hover:border-[#4a4540] px-2 py-1.5 rounded transition-all"
+                                    >
+                                        {faq.question}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Mensajes */}
                     <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-                        {chatMessages.length === 0 && (
+                        {getCurrentChat().messages.length === 0 && (
                             <p className="text-[#4a4540] text-xs tracking-wide text-center mt-8">
                                 Preguntame qué ponerte hoy, cómo combinar una prenda, o pedime un outfit para una ocasión especial.
                             </p>
                         )}
-                        {chatMessages.map((msg, i) => (
+                        {getCurrentChat().messages.map((msg, i) => (
                             <div
                                 key={i}
                                 className={`text-xs leading-relaxed px-3 py-2 max-w-[85%] ${
