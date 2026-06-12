@@ -1,4 +1,4 @@
-package com.virtualwardrobe.backend.models.gemini;
+package com.virtualwardrobe.backend.models.ia;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
