@@ -16,8 +16,8 @@ const EmptyForm = {
 
 function Store() {
 
-    const { userId: rawUserId } = useAuth();
-    const { apiFetch } = useApi();
+    const {userId: rawUserId} = useAuth();
+    const {apiFetch} = useApi();
     const userId = parseInt(rawUserId);
 
     const [storeListing, setStoreListing] = useState([]);
@@ -81,7 +81,7 @@ function Store() {
             });
 
             const response = await apiFetch(`/store/filter?${params}`, {
-                headers: { "Accept": "application/json" }
+                headers: {"Accept": "application/json"}
             });
 
             if (response.ok) {
@@ -287,10 +287,10 @@ function Store() {
                 </div>
 
                 <Search
-                    value = {filters.name}
+                    value={filters.name}
                     onChange={handleSearching}
                     placeholder="BUSCAR..."
-                    />
+                />
 
                 {loading && <p className="text-[#6b6258] text-xs text-center mt-10 animate-pulse">Cargando...</p>}
 
@@ -335,29 +335,31 @@ function Store() {
                 </div>
             </div>
 
-            {/* como creo una publicacion de tienda  */}
+            {/* Nueva Publicación Modal */}
             {showCreateListing && (
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
                     <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">
                         <h3 className="text-[#e8d5b0] text-lg font-light tracking-widest mb-1">Nueva publicación</h3>
                         <div className="w-6 h-px bg-[#c49a6c] mb-8"></div>
 
-                        <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto mb-6">
+                        {/* Selector de prendas optimizado estéticamente */}
+                        <div
+                            className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto mb-6 p-1 bg-[#1a1816]/50 border border-[#3a3530]/40 rounded-sm">
                             {myClothes.map(clothe => (
                                 <div
                                     key={clothe.id}
                                     onClick={() => setSelectedClothe(clothe)}
                                     className={`
-                                    cursor-pointer border aspect-square overflow-hidden
-                                    transition-all duration-300
-                                    ${selectedClothe?.id === clothe.id
-                                        ? 'border-[#c49a6c]'
-                                        : 'border-[#3a3530] hover:border-[#4a4540]'}
-                                `}
+                                        cursor-pointer border aspect-square overflow-hidden
+                                        transition-all duration-300
+                                        ${selectedClothe?.id === clothe.id
+                                        ? 'border-[#c49a6c] shadow-[0_0_10px_rgba(196,154,108,0.15)] scale-[0.98]'
+                                        : 'border-[#3a3530] hover:border-[#4a4540] hover:scale-[1.02]'}
+                                    `}
                                 >
                                     {clothe.image_url
                                         ? <img src={clothe.image_url} className="w-full h-full object-cover"/>
-                                        : <div className="w-full h-full flex items-center justify-center">
+                                        : <div className="w-full h-full flex items-center justify-center bg-[#2a2622]">
                                             <span
                                                 className="text-[#4a4540] text-[9px] text-center px-1">{clothe.name}</span>
                                         </div>
@@ -411,6 +413,8 @@ function Store() {
                     </div>
                 </div>
             )}
+
+            {/* Editar Publicación Modal */}
             {editingListing && (
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
                     <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">
@@ -474,4 +478,5 @@ function Store() {
         </div>
     );
 }
+
 export default Store;

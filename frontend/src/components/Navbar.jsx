@@ -1,15 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import NotificationBell from "./NotificationBell.jsx";
 
 function Navbar() {
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
+    // Obtenemos el token directamente para que esté disponible en todo el componente
+    const token = localStorage.getItem("token");
+
     useEffect(() => {
         const userId = localStorage.getItem("userId");
-        const token = localStorage.getItem("token");
 
-        if (userId) {
+        if (userId && token) {
             fetch(`http://localhost:8080/usuarios/profile/${userId}`, {
                 method: "GET",
                 headers: {
@@ -23,7 +26,7 @@ function Navbar() {
                 })
                 .catch(error => console.error("Error al cargar usuario en Navbar:", error));
         }
-    }, []);
+    }, [token]); // Agregamos token al array de dependencias por buena práctica
 
     return (
         <>
@@ -35,7 +38,7 @@ function Navbar() {
                 flex items-center justify-between px-6
                 h-14
             ">
-                {/* Div vacío para centrar el logo perfectamente */}
+                {/* Div vacío modificado para darle balance al lado izquierdo */}
                 <div className="w-10"></div>
 
                 <img
@@ -45,11 +48,14 @@ function Navbar() {
                     onClick={() => navigate("/feed")}
                 />
 
-                <div className="flex items-center">
+                {/* Contenedor derecho alineado */}
+                <div className="flex items-center gap-2">
+
+                    {/* LA CAMPANA CON EL TOKEN ACCESIBLE */}
+                    <NotificationBell token={token} />
+
                     <button
-                        onClick={() =>
-                            navigate('/profile')
-                    }
+                        onClick={() => navigate('/profile')}
                         className="group flex items-center gap-2"
                     >
                         {user ? (
@@ -59,12 +65,12 @@ function Navbar() {
                                 alt="Mi Perfil"
                             />
                         ) : (
-                            // 2. Corregido: El div del skeleton ahora está bien envuelto
                             <div className="h-9 w-9 rounded-full bg-[#3a3530] animate-pulse" />
                         )}
                     </button>
                 </div>
-            </div> {/* 3. Corregido: Faltaba cerrar este div de la barra superior */}
+
+            </div>
 
             {/* Barra inferior de navegación */}
             <div className="
@@ -73,8 +79,7 @@ function Navbar() {
                 flex justify-around items-center
                 h-16
             ">
-                <button onClick={() => navigate("/feed")}
-                        className="flex flex-col items-center gap-1 text-[#6b6258] hover:text-[#c49a6c] transition-colors duration-300">
+                <button onClick={() => navigate("/feed")} className="flex flex-col items-center gap-1 text-[#6b6258] hover:text-[#c49a6c] transition-colors duration-300">
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9.75L12 3l9 6.75V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.75z"/></svg>
                     <span className="text-[9px] tracking-[0.15em] uppercase">Inicio</span>
                 </button>
@@ -109,4 +114,3 @@ function Navbar() {
 }
 
 export default Navbar;
-

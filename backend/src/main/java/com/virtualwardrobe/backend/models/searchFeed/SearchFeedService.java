@@ -1,5 +1,7 @@
 package com.virtualwardrobe.backend.models.searchFeed;
 
+import com.virtualwardrobe.backend.models.friends.CRUD.Follower;
+import com.virtualwardrobe.backend.models.friends.CRUD.FriendsService;
 import com.virtualwardrobe.backend.models.post.PostCrud.Post;
 import com.virtualwardrobe.backend.models.post.PostCrud.PostRepositorie;
 import com.virtualwardrobe.backend.models.post.PostDTO.PostResponseDTO;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class SearchFeedService {
@@ -22,6 +26,9 @@ public class SearchFeedService {
 
     @Autowired
     private PreferencesService preferencesService;
+
+    @Autowired
+    private FriendsService friendsService;
 
     public Page<PostResponseDTO> generarFeed(Integer userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
@@ -40,6 +47,25 @@ public class SearchFeedService {
 
         return getPostResponseDTOS(userId, pageable, postPage);
 
+    }
+
+    public Page<PostResponseDTO> generarFeedAmigos(Integer userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+
+        List<Follower> friends = friendsService.findAllFriendsOfUser(userId);
+
+        List<Integer> friendsId = friends.stream()
+                .map(f -> f.getFollower().getId() == userId ? f.getFollowing().getId() : f.getFollower().getId())
+                .distinct()
+                .toList();
+
+        if (friendsId.isEmpty()) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+
+        Page<Post> postPage = postRepo.findByUserIdIn(friendsId, pageable);
+
+        return getPostResponseDTOS(userId, pageable, postPage);
     }
 
     private Page<PostResponseDTO> getPostResponseDTOS(int userId, Pageable pageable, Page<Post> postPage) {
@@ -114,20 +140,26 @@ public class SearchFeedService {
     private PostResponseDTO convertToDto(Post post, double score) {
         PostResponseDTO dto = new PostResponseDTO();
         dto.setId(post.getId());
-        dto.setCaption(post.getDescripcion());
+        dto.setUserId(post.getUser().getId());
         dto.setScore(score);
         dto.setUsername(post.getUser().getUsername());
+        dto.setCaption(post.getDescripcion());
+        dto.setAvatarUrl(post.getUser().getAvatar_url());
 
         if (post.getOutfit() != null) {
             dto.setType("OUTFIT");
-            dto.setImage_url(post.getOutfit().getClothes()
-                    .stream().findFirst()
-                    .map(Clothe::getImage_url).orElse(null));
             dto.setTitle(post.getOutfit().getName());
+            List<String> images = post.getOutfit().getClothes().stream()
+                    .map(Clothe::getImage_url)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            dto.setClothesImages(images);
+            // debug temporal:
+            System.out.println("Outfit images: " + images);
         } else if (post.getClothe() != null) {
             dto.setType("CLOTHES");
-            dto.setImage_url(post.getClothe().getImage_url());
             dto.setTitle(post.getClothe().getName());
+            dto.setImage_url(post.getClothe().getImage_url());
         }
 
         return dto;

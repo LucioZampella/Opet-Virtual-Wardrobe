@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import FollowButton from "../FollowButton/FollowButton.jsx";
 import Navbar from "../../components/Navbar.jsx";
 const CLOUDINARY_CLOUD_NAME = "ducp0gbgq";
 import { CLOTHING_TYPES, SINGLE_ONLY_TYPES } from "../../constants/clotheOptions.js";
@@ -449,20 +450,24 @@ transition-opacity duration-300">
                                 )}
                             </div>
 
-                            {/* editar perfil */}
-                            {isOwner && (
+                            {isOwner ? (
+                                // Si soy el dueño, veo mis opciones de edición
                                 <button
                                     onClick={() => setEditMode(true)}
-                                    className="
-flex-shrink-0 px-5 py-2
+                                    className="flex-shrink-0 px-5 py-2
 border border-[#4a4540] hover:border-[#c49a6c]
 text-[#8a7d6e] hover:text-[#c49a6c]
 text-[10px] tracking-[0.2em] uppercase
-transition-all duration-300
-"
+transition-all duration-300"
                                 >
-                                    Editar
+                                    Editar Perfil
                                 </button>
+                            ) : (
+                                // Si NO soy el dueño, aparece el botón reutilizable de seguir
+                                <FollowButton
+                                    currentUserId={loggedUserId}  // Tu ID (el que está logueado)
+                                    profileUserId={userId}        // El ID del perfil que estás visitando
+                                />
                             )}
                         </div>
 
