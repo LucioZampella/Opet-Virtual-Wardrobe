@@ -371,8 +371,12 @@ function Wardrobe() {
             });
 
             if (response.ok) {
-                const text = await response.text();
-                setChatMessages(prev => [...prev, { role: "assistant", text }]);
+                const data = await response.json();
+                setChatMessages(prev => [...prev, {
+                    role: "assistant",
+                    text: data.recommendation,
+                    clothes: data.clothes
+                }]);
             } else {
                 toast.error("Error al contactar al groq");
             }
@@ -381,6 +385,52 @@ function Wardrobe() {
         } finally {
             setChatLoading(false);
         }
+    };
+
+    const handleClotheClick = (clotheId) => {
+        setShowChat(false);
+        const element = document.getElementById(`clothe-${clotheId}`);
+        if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    };
+
+    const renderClotheLinks = (text, clothes, onNavigate) => {
+        if (!clothes || clothes.length === 0) {
+            return text;
+        }
+
+        let parts = [text];
+        clothes.forEach(clothe => {
+            parts = parts.flatMap(part => {
+                if (typeof part === 'string') {
+                    const regex = new RegExp(`(${clothe.name})`, 'gi');
+
+                    if (!regex.test(part)) {
+                        return part;
+                    }
+
+                    const regex2 = new RegExp(`(${clothe.name})`, 'gi');
+
+                    return part.split(regex2).map((substring, i) => {
+                        if (i % 2 === 1) {
+                            return (
+                                <ClotheLink
+                                    key={`${clothe.id}-${i}`}
+                                    clotheId={clothe.id}
+                                    clotheName={clothe.name}
+                                    onNavigate={onNavigate}
+                                />
+                            );
+                        }
+                        return substring;
+                    });
+                }
+                return part;
+            });
+        });
+
+        return parts;
     };
 
     const inputClass = `
@@ -399,6 +449,17 @@ function Wardrobe() {
         outline-none focus:border-[#c49a6c]
         transition-colors duration-300 cursor-pointer
     `;
+
+    const ClotheLink = ({ clotheId, clotheName, onNavigate }) => (
+        <span
+            onClick={() => onNavigate(clotheId)}
+            className="text-[#6ba3d4] underline cursor-pointer hover:text-[#7ab5e8] transition-colors"
+            role="button"
+            tabIndex="0"
+        >
+        {clotheName}
+    </span>
+    );
 
     return (
         <div className="min-h-screen bg-[#2a2622]">
@@ -509,6 +570,7 @@ function Wardrobe() {
                         {clothes.map(clothe => (
                             <div
                                 key={clothe.id}
+                                id={`clothe-${clothe.id}`}
                                 className="
                                     bg-[#221f1c] border border-[#3a3530]
                                     hover:border-[#4a4540] transition-all duration-300
@@ -960,7 +1022,10 @@ function Wardrobe() {
                                         : "bg-[#c49a6c]/10 text-[#c49a6c] self-start border border-[#c49a6c]/20"
                                 }`}
                             >
-                                {msg.text}
+                                {msg.clothes ?
+                                    renderClotheLinks(msg.text, msg.clothes)
+                                    : msg.text
+                                }
                             </div>
                         ))}
                         {chatLoading && (
