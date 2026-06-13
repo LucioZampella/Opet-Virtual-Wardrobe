@@ -156,4 +156,10 @@ public class UserService {
             throw new RuntimeException("Error 400: " + nombreCampo + " debe tener entre " + min + " y " + max + " caracteres");
         }
     }
+    public List<UsuarioSearchDTO> buscarUsuarios(String query) {
+        return repo.searchByUsernameOrName(query)
+                .stream()
+                .map(u -> new UsuarioSearchDTO(u.getId(), u.getUsername(), u.getName(), u.getAvatar_url()))
+                .toList();
+    }
 }

@@ -55,6 +55,10 @@ public class UserController {
         UserResponseDTO u = service.buscarPorId(id);
         return ResponseEntity.ok().body(u);
     }
+    @GetMapping("/search")
+    public ResponseEntity<List<UsuarioSearchDTO>> buscar(@RequestParam String query) {
+        return ResponseEntity.ok(service.buscarUsuarios(query));
+    }
 
     @GetMapping("/list")
     public List<User> getAllUsers() {

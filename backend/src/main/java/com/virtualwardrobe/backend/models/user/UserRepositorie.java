@@ -1,5 +1,7 @@
 package com.virtualwardrobe.backend.models.user;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,6 +22,10 @@ public interface UserRepositorie extends JpaRepository<User, Integer> {
     //existsById(id) --> verifica si existe
     Optional<User> findByEmail(String email); //--> Optional para evitar que explote en caso de null
     Optional<User> findByUsername(String username);
+    @Query("SELECT u FROM User u WHERE " +
+            "LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(u.name) LIKE LOWER(CONCAT('%', :query, '%'))")
+    List<User> searchByUsernameOrName(@Param("query") String query);
 
 }
 
