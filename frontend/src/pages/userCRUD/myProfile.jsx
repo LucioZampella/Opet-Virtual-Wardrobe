@@ -620,19 +620,6 @@ transition-opacity duration-300">
                     </div>
                 )}
 
-                <StatsSection />
-
-            {/* Acciones de la cuenta */}
-            {isOwner && (
-                <div className="max-w-2xl mx-auto px-6 pb-12 flex gap-4">
-                    <button onClick={logOut} className="px-6 py-3 border border-[#4a4540] hover:border-[#c49a6c] hover:text-[#c49a6c] text-[#6b6258] text-[10px] tracking-[0.2em] uppercase transition-all duration-300">
-                        Cerrar sesión
-                    </button>
-                    <button onClick={eliminateProfile} className="px-6 py-3 border border-[#4a4540] hover:border-red-900 hover:text-red-700 text-[#4a4540] text-[10px] tracking-[0.2em] uppercase transition-all duration-300">
-                        Eliminar cuenta
-                    </button>
-                </div>
-            )}
 
 
     {editMode && (
