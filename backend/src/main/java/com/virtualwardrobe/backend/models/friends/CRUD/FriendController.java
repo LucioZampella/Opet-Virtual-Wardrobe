@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/friends")
@@ -61,6 +63,21 @@ public class FriendController {
             @RequestParam int followingId) {
         boolean result = service.isFollowing(followerId, followingId);
         return ResponseEntity.ok(result);
+    }
+    @GetMapping("/status")
+    public ResponseEntity<?> getFollowStatus(
+            @RequestParam int followerId,
+            @RequestParam int followingId) {
+        Optional<Follower> follower = service.findByFollowerIdAndFollowingId(followerId, followingId);
+        if (follower.isEmpty()) return ResponseEntity.ok(Map.of("status", "none"));
+        if (!follower.get().isStatus()) return ResponseEntity.ok(Map.of("status", "pending"));
+        return ResponseEntity.ok(Map.of("status", "following"));
+    }
+    @GetMapping("/is-following")
+    public ResponseEntity<Boolean> isFollowing(
+            @RequestParam int followerId,
+            @RequestParam int followingId) {
+        return ResponseEntity.ok(service.isFollowing(followerId, followingId));
     }
 
 }

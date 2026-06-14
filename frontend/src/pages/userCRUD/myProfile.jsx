@@ -28,6 +28,7 @@ function MyProfile() {
     const [editPostDesc, setEditPostDesc] = useState("");
     const [postType, setPostType] = useState('OUTFIT'); // OUTFIT o CLOTHE
     const [stats, setStats] = useState(null);
+    const [isFollowing, setIsFollowing] = useState(false);
 
     useEffect(() => {
         apiFetch(`/api/stats/user/${userId}`)
@@ -61,6 +62,14 @@ function MyProfile() {
             })
             .catch(err => console.error( "Error cargando prendas", err))
     }, [userId, token]);
+    useEffect(() => {
+        if (!isOwner && userId && loggedUserId) {
+            apiFetch(`/api/friends/is-following?followerId=${loggedUserId}&followingId=${userId}`)
+                .then(res => res.json())
+                .then(data => setIsFollowing(data))
+                .catch(err => console.error("Error chequeando follow", err));
+        }
+    }, [userId, loggedUserId]);
 
     const logOut = (e) => {
         e.preventDefault();
@@ -90,6 +99,21 @@ function MyProfile() {
         //--> con "..." trae todo lo anterior no modificado, y luego define que la
         // variable a cambiar tenga el valor ingresado al modificar
     };
+    // cambio si me perfil es privado o no
+    const handleTogglePrivacy = async () => {
+        try {
+            const response = await apiFetch(`/usuarios/privacy`, { method: "PUT" });
+            if (response.ok) {
+                setUser(prev => ({ ...prev, isPrivate: !prev.isPrivate }));
+                toast.success(user.isPrivate ? "Perfil ahora público" : "Perfil ahora privado");
+            } else {
+                toast.error("No se pudo cambiar la privacidad");
+            }
+        } catch {
+            toast.error("Error de conexión");
+        }
+    };
+
     const handleCreatePost = async (e) => {
         e.preventDefault();
         try {
@@ -451,22 +475,30 @@ transition-opacity duration-300">
                             </div>
 
                             {isOwner ? (
-                                // Si soy el dueño, veo mis opciones de edición
-                                <button
-                                    onClick={() => setEditMode(true)}
-                                    className="flex-shrink-0 px-5 py-2
-border border-[#4a4540] hover:border-[#c49a6c]
-text-[#8a7d6e] hover:text-[#c49a6c]
-text-[10px] tracking-[0.2em] uppercase
-transition-all duration-300"
-                                >
-                                    Editar Perfil
-                                </button>
+                                <div className="flex flex-col gap-2 flex-shrink-0">
+                                    <button
+                                        onClick={() => setEditMode(true)}
+                                        className="px-5 py-2 border border-[#4a4540] hover:border-[#c49a6c] text-[#8a7d6e] hover:text-[#c49a6c] text-[10px] tracking-[0.2em] uppercase transition-all duration-300"
+                                    >
+                                        Editar Perfil
+                                    </button>
+                                    <button
+                                        onClick={handleTogglePrivacy}
+                                        className={`px-5 py-2 border text-[10px] tracking-[0.2em] uppercase transition-all duration-300 ${
+                                            user.isPrivate
+                                                ? "border-[#c49a6c] text-[#c49a6c] hover:border-[#4a4540] hover:text-[#4a4540]"
+                                                : "border-[#4a4540] text-[#4a4540] hover:border-[#c49a6c] hover:text-[#c49a6c]"
+                                        }`}
+                                    >
+                                        {user.isPrivate ? "Perfil privado" : "Perfil público"}
+                                    </button>
+                                </div>
                             ) : (
                                 // Si NO soy el dueño, aparece el botón reutilizable de seguir
                                 <FollowButton
                                     currentUserId={loggedUserId}  // Tu ID (el que está logueado)
                                     profileUserId={userId}        // El ID del perfil que estás visitando
+                                    isPrivate={user.isPrivate}
                                 />
                             )}
                         </div>
@@ -489,86 +521,104 @@ transition-all duration-300"
                     </div>
                 </div>
 
-                {/* --- SECCIÓN DE PUBLICACIONES (CARRUSEL INFINITO) --- */}
-                <div className="max-w-6xl mx-auto px-6 py-8 overflow-hidden">
-                    <div className="flex items-center gap-4 mb-6">
-                        <span className="text-[#8a7d6e] text-[10px] tracking-[0.3em] uppercase">Publicaciones</span>
-                        <div className="flex-1 h-px bg-[#3a3530]"></div>
-                    </div>
+                {/* --- SECCIÓN DE PUBLICACIONES --- */}
+                {console.log("isOwner:", isOwner)}
+                {console.log("isPrivate:", user.isPrivate)}
+                {console.log("isFollowing:", isFollowing)}
+                {isOwner || !user.isPrivate || isFollowing ? (
+                    <div className="max-w-6xl mx-auto px-6 py-8 overflow-hidden">
+                        <div className="flex items-center gap-4 mb-6">
+                            <span className="text-[#8a7d6e] text-[10px] tracking-[0.3em] uppercase">Publicaciones</span>
+                            <div className="flex-1 h-px bg-[#3a3530]"></div>
+                        </div>
 
-                    <div className="flex gap-4 items-start">
-                        {/* 1. BOTÓN NUEVO POST (Fijo a la izquierda) */}
-                        {isOwner && (
-                            <div
-                                onClick={() => setShowCreateModal(true)}
-                                className="w-64 h-[420px] flex-shrink-0 border-2 border-dashed border-[#3a3530] bg-[#2a2622] flex flex-col items-center justify-center hover:border-[#c49a6c] hover:bg-[#221f1c] cursor-pointer transition-all duration-300 group z-10"
-                            >
-                                <span className="text-[#3a3530] group-hover:text-[#c49a6c] text-4xl font-thin">+</span>
-                                <span className="text-[#3a3530] group-hover:text-[#c49a6c] text-[8px] tracking-[0.2em] uppercase mt-2">Nuevo Post</span>
-                            </div>
-                        )}
+                        <div className="flex gap-4 items-start">
+                            {/* BOTÓN NUEVO POST */}
+                            {isOwner && (
+                                <div
+                                    onClick={() => setShowCreateModal(true)}
+                                    className="w-64 h-[420px] flex-shrink-0 border-2 border-dashed border-[#3a3530] bg-[#2a2622] flex flex-col items-center justify-center hover:border-[#c49a6c] hover:bg-[#221f1c] cursor-pointer transition-all duration-300 group z-10"
+                                >
+                                    <span className="text-[#3a3530] group-hover:text-[#c49a6c] text-4xl font-thin">+</span>
+                                    <span className="text-[#3a3530] group-hover:text-[#c49a6c] text-[8px] tracking-[0.2em] uppercase mt-2">Nuevo Post</span>
+                                </div>
+                            )}
 
-                        {/* 2. CONTENEDOR DEL MOVIMIENTO */}
-                        <div className="relative overflow-hidden w-full">
-                            <div className="animate-infinite-carousel flex gap-4">
-                                {/* Duplicamos myPosts para el efecto infinito */}
-                                {myPosts.map((post, index) => (
-                                    <div
-                                        key={`${post.id}-${index}`}
-                                        className="w-72 flex-shrink-0 border border-[#3a3530] bg-[#221f1c] overflow-hidden hover:border-[#c49a6c] transition-colors duration-300 shadow-xl"
-                                    >
-                                        {/* LÓGICA DE IMAGEN DINÁMICA */}
-                                        <div className="aspect-square bg-[#1a1816]">
-                                            {post.outfit ? (
-                                                <div className="grid grid-cols-2 gap-0.5 h-full">
-                                                    {post.outfit.clothes?.slice(0, 4).map(clothe => (
-                                                        <img key={clothe.id} src={clothe.image_url} className="w-full h-full object-cover" />
-                                                    ))}
-                                                </div>
-                                            ) : post.clothe ? (
-                                                <img src={post.clothe.image_url} className="w-full h-full object-cover" />
-                                            ) : null}
-                                        </div>
-
-                                        {/* INFO DEL POST (Tu lógica original) */}
-                                        <div className="p-4 flex flex-col gap-3">
-                                            <div className="flex items-center gap-2">
-                                                {user.avatar_url ? (
-                                                    <img src={user.avatar_url} className="w-5 h-5 rounded-full object-cover" />
-                                                ) : (
-                                                    <span className="w-5 h-5 rounded-full bg-[#3a3530] flex items-center justify-center text-[#c49a6c] text-[8px]">
-                                        {user.name?.charAt(0).toUpperCase()}
-                                    </span>
-                                                )}
-                                                <span className="text-[#c49a6c] text-[10px] tracking-[0.15em]">@{user.username}</span>
-                                                <span className="text-[7px] border border-[#c49a6c]/30 px-1 text-[#c49a6c] uppercase ml-1">
-                                    {post.outfit ? 'Outfit' : 'Prenda'}
-                                </span>
+                            {/* CARRUSEL */}
+                            <div className="relative overflow-hidden w-full">
+                                <div className="animate-infinite-carousel flex gap-4">
+                                    {myPosts.map((post, index) => (
+                                        <div
+                                            key={`${post.id}-${index}`}
+                                            className="w-72 flex-shrink-0 border border-[#3a3530] bg-[#221f1c] overflow-hidden hover:border-[#c49a6c] transition-colors duration-300 shadow-xl"
+                                        >
+                                            <div className="aspect-square bg-[#1a1816]">
+                                                {post.outfit ? (
+                                                    <div className="grid grid-cols-2 gap-0.5 h-full">
+                                                        {post.outfit.clothes?.slice(0, 4).map(clothe => (
+                                                            <img key={clothe.id} src={clothe.image_url} className="w-full h-full object-cover" />
+                                                        ))}
+                                                    </div>
+                                                ) : post.clothe ? (
+                                                    <img src={post.clothe.image_url} className="w-full h-full object-cover" />
+                                                ) : null}
                                             </div>
 
-                                            <p className="text-[#6b6258] text-[10px] leading-relaxed line-clamp-2 h-8">
-                                                {post.descripcion}
-                                            </p>
-
-                                            {isOwner && (
-                                                <div className="flex gap-2 mt-1">
-                                                    <button onClick={() => { setEditingPost(post); setEditPostDesc(post.descripcion); }}
-                                                            className="flex-1 py-1.5 border border-[#4a4540] hover:border-[#c49a6c] text-[#6b6258] hover:text-[#c49a6c] text-[9px] tracking-[0.15em] uppercase transition-all">
-                                                        Editar
-                                                    </button>
-                                                    <button onClick={() => handleDeletePost(post.id)}
-                                                            className="flex-1 py-1.5 border border-[#4a4540] hover:border-red-900 text-[#4a4540] hover:text-red-700 text-[9px] tracking-[0.15em] uppercase transition-all">
-                                                        Eliminar
-                                                    </button>
+                                            <div className="p-4 flex flex-col gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    {user.avatar_url ? (
+                                                        <img src={user.avatar_url} className="w-5 h-5 rounded-full object-cover" />
+                                                    ) : (
+                                                        <span className="w-5 h-5 rounded-full bg-[#3a3530] flex items-center justify-center text-[#c49a6c] text-[8px]">
+                                            {user.name?.charAt(0).toUpperCase()}
+                                        </span>
+                                                    )}
+                                                    <span className="text-[#c49a6c] text-[10px] tracking-[0.15em]">@{user.username}</span>
+                                                    <span className="text-[7px] border border-[#c49a6c]/30 px-1 text-[#c49a6c] uppercase ml-1">
+                                        {post.outfit ? 'Outfit' : 'Prenda'}
+                                    </span>
                                                 </div>
-                                            )}
+
+                                                <p className="text-[#6b6258] text-[10px] leading-relaxed line-clamp-2 h-8">
+                                                    {post.descripcion}
+                                                </p>
+
+                                                {isOwner && (
+                                                    <div className="flex gap-2 mt-1">
+                                                        <button
+                                                            onClick={() => { setEditingPost(post); setEditPostDesc(post.descripcion); }}
+                                                            className="flex-1 py-1.5 border border-[#4a4540] hover:border-[#c49a6c] text-[#6b6258] hover:text-[#c49a6c] text-[9px] tracking-[0.15em] uppercase transition-all"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeletePost(post.id)}
+                                                            className="flex-1 py-1.5 border border-[#4a4540] hover:border-red-900 text-[#4a4540] hover:text-red-700 text-[9px] tracking-[0.15em] uppercase transition-all"
+                                                        >
+                                                            Eliminar
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
+
+                        <StatsSection />
                     </div>
-                </div>
+                ) : (
+                    <div className="max-w-2xl mx-auto px-6 py-20 flex flex-col items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-[#3a3530]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <p className="text-[#4a4540] text-[10px] tracking-[0.3em] uppercase">Perfil privado</p>
+                        <p className="text-[#3a3530] text-[11px] tracking-wide">
+                            Seguí a este usuario para ver su contenido
+                        </p>
+                    </div>
+                )}
 
                 <StatsSection />
 

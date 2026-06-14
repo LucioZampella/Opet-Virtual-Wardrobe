@@ -46,6 +46,9 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
 
+    @Column (name= "isPrivate")
+    private boolean isPrivate;
+
     private String avatar_url;
 
     private String bio;

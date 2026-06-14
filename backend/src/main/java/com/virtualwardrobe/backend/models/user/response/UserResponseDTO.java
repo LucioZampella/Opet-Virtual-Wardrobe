@@ -14,5 +14,6 @@ public class UserResponseDTO {
     private String username;
     private String bio;
     private String avatar_url;
+    private Boolean isPrivate;
     // sin password, email, latitude, longitude
 }

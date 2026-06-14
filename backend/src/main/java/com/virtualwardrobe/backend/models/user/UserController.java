@@ -34,11 +34,19 @@ public class UserController {
     public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody @Valid UpdateUserDTO user,
                                         @RequestHeader("Authorization") String authHeader) {
 
-            String token = authHeader.replace("Bearer ", "");
-            String usernameFromToken = jwtUtil.extraerUsername(token);
-            service.modificar(id, user, usernameFromToken);
+        String token = authHeader.replace("Bearer ", "");
+        String usernameFromToken = jwtUtil.extraerUsername(token);
+        service.modificar(id, user, usernameFromToken);
         return ResponseEntity.ok().build();
-        }
+    }
+
+    @PutMapping("/privacy")
+    public ResponseEntity<?> makePrivate(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        int userId = jwtUtil.extraerUserId(token);
+        service.makePrivate(userId);
+        return ResponseEntity.ok().build();
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id, @RequestHeader("Authorization") String authHeader) {

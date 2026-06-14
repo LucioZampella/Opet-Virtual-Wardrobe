@@ -93,6 +93,14 @@ public class UserService {
         repo.deleteById(id);
     }
 
+    public void makePrivate(int id) {
+        User u = repo.findById(id)
+                .orElseThrow(() -> new InvalidUserException("usuario no encontrado"));
+
+        u.setPrivate(!u.isPrivate()); // toggle: si es true lo pone false y viceversa
+        repo.save(u); // faltaba esto
+    }
+
     public UserResponseDTO buscarPorId(int id) {
         User user = repo.findById(id)
                 .orElseThrow(() -> new InvalidUserException("usuario no encontrado"));
@@ -103,6 +111,7 @@ public class UserService {
         dto.setUsername(user.getUsername());
         dto.setBio(user.getBio());
         dto.setAvatar_url(user.getAvatar_url());
+        dto.setIsPrivate(user.isPrivate());
         return dto;
     }
 

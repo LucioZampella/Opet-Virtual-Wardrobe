@@ -1,83 +1,90 @@
 import React, { useState, useEffect } from 'react';
 
-export default function FollowButton({ currentUserId, profileUserId }) {
-    // Estado para saber si ya lo seguimos o no
-    const [isFollowing, setIsFollowing] = useState(false);
+export default function FollowButton({ currentUserId, profileUserId, isPrivate }) {
+    const [status, setStatus] = useState('none'); // 'none' | 'pending' | 'following'
     const [loading, setLoading] = useState(false);
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('token');
 
-    // 1. Opcional: Verificar si ya lo sigues al cargar el perfil
     useEffect(() => {
-        if (currentUserId && profileUserId) {
-            fetch(`http://localhost:8080/api/friends/check?followerId=${currentUserId}&followingId=${profileUserId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`  // faltaba acá
-                }
-            })
-                .then((res) => res.json())
-                .then((alreadyFriends) => setIsFollowing(alreadyFriends))
-                .catch((err) => console.error("Error al verificar seguimiento:", err));
-        }
+        if (!currentUserId || !profileUserId) return;
+        fetch(`http://localhost:8080/api/friends/status?followerId=${currentUserId}&followingId=${profileUserId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => setStatus(data.status)) // espera { status: 'none' | 'pending' | 'following' }
+            .catch(err => console.error("Error al verificar seguimiento:", err));
     }, [currentUserId, profileUserId]);
 
-    // 2. Función para seguir / dejar de seguir
-    const handleFollowAction = async () => {
+    const handleFollow = async () => {
         setLoading(true);
-
         try {
-            if (!isFollowing) {
-                // ACCIÓN: SEGUIR (Crear relación)
-                const response = await fetch('http://localhost:8080/api/friends/follow', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`  // esto falta
-                    },
-                    body: JSON.stringify({
-                        followerId: currentUserId,   // Tu ID (el que sigue)
-                        followingId: profileUserId,  // El ID del perfil (al que siguen)
-                    }),
-                });
-
-                if (response.ok) {
-                    setIsFollowing(true);
-                }
-            } else {
-                // ACCIÓN: DEJAR DE SEGUIR (Borrar relación - Opcional)
-                const response = await fetch(`http://localhost:8080/api/friends/unfollow?followerId=${currentUserId}&followingId=${profileUserId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`  // faltaba acá
-                    }
-                });
-
-                if (response.ok) {
-                    setIsFollowing(false);
-                }
+            const res = await fetch('http://localhost:8080/api/friends/follow', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ followerId: currentUserId, followingId: profileUserId })
+            });
+            if (res.ok) {
+                setStatus(isPrivate ? 'pending' : 'following');
             }
-        } catch (error) {
-            console.error("Hubo un error con la petición:", error);
+        } catch (err) {
+            console.error("Error al seguir:", err);
         } finally {
             setLoading(false);
         }
     };
 
-    // Evitar que un usuario se siga a sí mismo
-    if (currentUserId === profileUserId) return null;
+    const handleUnfollow = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(
+                `http://localhost:8080/api/friends/unfollow?followerId=${currentUserId}&followingId=${profileUserId}`,
+                { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }
+            );
+            if (res.ok) setStatus('none');
+        } catch (err) {
+            console.error("Error al dejar de seguir:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (String(currentUserId) === String(profileUserId)) return null;
+
+    const baseClass = "flex-shrink-0 px-5 py-2 text-[10px] tracking-[0.2em] uppercase transition-all duration-300 border";
+
+    if (loading) return (
+        <button disabled className={`${baseClass} border-[#3a3530] text-[#4a4540] cursor-not-allowed`}>
+            ...
+        </button>
+    );
+
+    if (status === 'following') return (
+        <button
+            onClick={handleUnfollow}
+            className={`${baseClass} border-[#c49a6c] text-[#c49a6c] hover:border-red-900 hover:text-red-700`}
+        >
+            Siguiendo
+        </button>
+    );
+
+    if (status === 'pending') return (
+        <button
+            onClick={handleUnfollow}
+            className={`${baseClass} border-[#4a4540] text-[#4a4540] hover:border-red-900 hover:text-red-700`}
+        >
+            Pendiente
+        </button>
+    );
 
     return (
         <button
-            onClick={handleFollowAction}
-            disabled={loading}
-            className={`px-6 py-2 rounded-full font-semibold text-sm transition-all shadow-sm ${
-                loading
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : isFollowing
-                        ? 'bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-600 hover:border-red-200 border border-transparent'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
-            }`}
+            onClick={handleFollow}
+            className={`${baseClass} border-[#4a4540] text-[#8a7d6e] hover:border-[#c49a6c] hover:text-[#c49a6c]`}
         >
-            {loading ? 'Procesando...' : isFollowing ? 'Siguiendo' : 'Seguir'}
+            {isPrivate ? 'Solicitar' : 'Seguir'}
         </button>
     );
 }
