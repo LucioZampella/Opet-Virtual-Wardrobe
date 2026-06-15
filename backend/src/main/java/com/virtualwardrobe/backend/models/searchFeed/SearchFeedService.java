@@ -8,6 +8,7 @@ import com.virtualwardrobe.backend.models.post.PostDTO.PostResponseDTO;
 import com.virtualwardrobe.backend.models.preferences.PreferencesService;
 import com.virtualwardrobe.backend.models.preferences.UserPreferences;
 import com.virtualwardrobe.backend.models.clothe.Clothe;
+import com.virtualwardrobe.backend.models.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -52,18 +53,21 @@ public class SearchFeedService {
     public Page<PostResponseDTO> generarFeedAmigos(Integer userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
 
-        List<Follower> friends = friendsService.findAllFriendsOfUser(userId);
+        // 1. Ahora obtenemos directamente la lista de entidades de Usuarios que son amigos
+        List<User> friends = friendsService.findAllFriendsOfUser(userId);
 
-        List<Integer> friendsId = friends.stream()
-                .map(f -> f.getFollower().getId() == userId ? f.getFollowing().getId() : f.getFollower().getId())
-                .distinct()
+        // 2. Extraemos los IDs de forma directa y mucho más limpia
+        List<Integer> friendsIds = friends.stream()
+                .map(User::getId) // O el método getter que use tu entidad (ej: getUserId())
                 .toList();
 
-        if (friendsId.isEmpty()) {
+        // 3. Si no tiene amigos, devolvemos una página vacía de inmediato
+        if (friendsIds.isEmpty()) {
             return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
 
-        Page<Post> postPage = postRepo.findByUserIdIn(friendsId, pageable);
+        // 4. Buscamos los posts de esos IDs
+        Page<Post> postPage = postRepo.findByUserIdIn(friendsIds, pageable);
 
         return getPostResponseDTOS(userId, pageable, postPage);
     }

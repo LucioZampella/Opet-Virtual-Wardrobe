@@ -22,7 +22,7 @@ public class FriendController {
     private FriendsService service;
 
     @GetMapping
-    public ResponseEntity<?> getAllFriendsOfUser(
+    public ResponseEntity<List<User>> getAllFriendsOfUser(
             @RequestHeader("Authorization") String authHeader) {
         int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
         return  ResponseEntity.ok(service.findAllFriendsOfUser(userId));

@@ -3,6 +3,7 @@ package com.virtualwardrobe.backend.models.friends.CRUD;
 import com.virtualwardrobe.backend.exceptions.AuthorizationException.UnauthorizedActionException;
 import com.virtualwardrobe.backend.exceptions.FollowerException.InvalidFollowerException;
 import com.virtualwardrobe.backend.exceptions.OutfitException.InvalidOutfitException;
+import com.virtualwardrobe.backend.exceptions.UserException.InvalidUserException;
 import com.virtualwardrobe.backend.models.notification.CRUD.Notification;
 import com.virtualwardrobe.backend.models.notification.CRUD.NotificationService;
 import com.virtualwardrobe.backend.models.notification.DTO.CreaterDTO;
@@ -86,7 +87,9 @@ public class FriendsService {
                 "El usuario " + request.getFollower().getUsername() + " te está siguiendo, ¿querés seguirlo también?");
     }
 
-    public List<Follower> findAllFriendsOfUser(int id){
+    public List<User> findAllFriendsOfUser(int id){
+
+        User u = userRepositorie.findById(id).orElseThrow(() -> new InvalidUserException("usuario no encontrado"));
         return repo.findAllFriendsOfUser(id);
     }
     public boolean isFollowing(int followerId, int followingId) {

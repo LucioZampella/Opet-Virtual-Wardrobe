@@ -1,5 +1,6 @@
 package com.virtualwardrobe.backend.models.friends.CRUD;
 
+import com.virtualwardrobe.backend.models.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,8 +15,10 @@ public interface FriendRepositorie  extends JpaRepository<Follower, Long> {
     List<Follower> findByFollowerId(int friendId);
     Optional<Follower> findById(int friendId);
     Optional<Follower> findByFollowerIdAndFollowingId(int userId, int friendId);
-    @Query("SELECT f FROM Follower f WHERE f.status = true AND f.follower.id = :userId")
-    List<Follower> findAllFriendsOfUser(@Param("userId") int userId);
+
+    @Query("SELECT f.following FROM Follower f WHERE f.follower.id = :userId AND " +
+            "EXISTS (SELECT f2 FROM Follower f2 WHERE f2.follower.id = f.following.id AND f2.following.id = :userId)")
+    List<User> findAllFriendsOfUser(@Param("userId") int userId);
     boolean existsByFollowerIdAndFollowingId(int followerId, int followingId);
 
 }
