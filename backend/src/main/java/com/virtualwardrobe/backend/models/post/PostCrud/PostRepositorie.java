@@ -68,6 +68,8 @@ public interface PostRepositorie extends JpaRepository<Post, Long> {
     JOIN clothes c ON c.clothes_id = oi.clothes_id
     WHERE p.outfit_id IS NOT NULL
     AND (:name IS NULL OR LOWER(o.name) LIKE LOWER('%' || CAST(:name AS text) || '%') OR LOWER(p.descripcion) LIKE LOWER('%' || CAST(:name AS text) || '%'))
+    AND (:typeId IS NULL OR c.type_id = :typeId)
+    AND (:sizeId IS NULL OR c.size_id = :sizeId)
     AND (:materialId IS NULL OR c.material_id = :materialId)
     AND (:fitId IS NULL OR c.fit_id = :fitId)
     AND (-1 = ANY(CAST(ARRAY[:colorIds] AS bigint[])) OR EXISTS (SELECT 1 FROM clothe_colours cc WHERE cc.clothes_id = c.clothes_id AND cc.colour_id IN (:colorIds)))
@@ -88,6 +90,8 @@ public interface PostRepositorie extends JpaRepository<Post, Long> {
         JOIN outfit_items oi ON oi.outfit_id = o.outfit_id JOIN clothes c ON c.clothes_id = oi.clothes_id
         WHERE p.outfit_id IS NOT NULL
         AND (:name IS NULL OR LOWER(o.name) LIKE LOWER('%' || CAST(:name AS text) || '%') OR LOWER(p.descripcion) LIKE LOWER('%' || CAST(:name AS text) || '%'))
+        AND (:typeId IS NULL OR c.type_id = :typeId)
+        AND (:sizeId IS NULL OR c.size_id = :sizeId)
         AND (:materialId IS NULL OR c.material_id = :materialId)
         AND (:fitId IS NULL OR c.fit_id = :fitId)
         AND (-1 = ANY(CAST(ARRAY[:colorIds] AS bigint[])) OR EXISTS (SELECT 1 FROM clothe_colours cc WHERE cc.clothes_id = c.clothes_id AND cc.colour_id IN (:colorIds)))
