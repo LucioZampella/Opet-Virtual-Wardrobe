@@ -168,4 +168,13 @@ public class SearchFeedService {
 
         return dto;
     }
-}
+    public Page<PostResponseDTO> filtrar(String name, Integer typeId, Integer sizeId,
+                                                   Integer materialId, Integer fitId,
+                                                   List<Long> colorIds, int userId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        List<Long> colorIdsParam = (colorIds == null || colorIds.isEmpty()) ? List.of(-1L) : colorIds;
+        Page<Post> postPage = postRepo.findFiltered(name, typeId, sizeId, materialId, fitId, colorIdsParam, pageable);
+
+        return getPostResponseDTOS(userId, pageable, postPage);
+    }}
