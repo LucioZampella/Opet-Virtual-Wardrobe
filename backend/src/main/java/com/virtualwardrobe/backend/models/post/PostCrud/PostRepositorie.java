@@ -22,8 +22,8 @@ public interface PostRepositorie extends JpaRepository<Post, Long> {
                 "AND (:sizeId IS NULL OR p.clothe.sizeId = :sizeId) " +
                 "AND (:materialId IS NULL OR p.clothe.materialId = :materialId) " +
                 "AND (:fitId IS NULL OR p.clothe.fitId = :fitId) " +
-                "AND (:#{#colorIds == null || #colorIds.isEmpty()} = true OR EXISTS " +
-                "(SELECT c FROM p.clothe.colorIds c WHERE c.id IN :colorIds))")
+                "AND (:colorIds IS NULL OR EXISTS " +
+                "(SELECT 1 FROM Color col WHERE col.id IN :colorIds AND col MEMBER OF p.clothe.colorIds))")
         Page<Post> findFilteredClothes(
                 @Param("name") String name,
                 @Param("typeId") Integer typeId,
@@ -37,8 +37,8 @@ public interface PostRepositorie extends JpaRepository<Post, Long> {
                 "WHERE (:name IS NULL OR LOWER(o.name) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :name, '%'))) " +
                 "AND (:materialId IS NULL OR c.materialId = :materialId) " +
                 "AND (:fitId IS NULL OR c.fitId = :fitId) " +
-                "AND (:#{#colorIds == null || #colorIds.isEmpty()} = true OR EXISTS " +
-                "(SELECT col FROM c.colorIds col WHERE col.id IN :colorIds))")
+                "AND (:colorIds IS NULL OR EXISTS " +
+                "(SELECT 1 FROM Color col WHERE col.id IN :colorIds AND col MEMBER OF c.colorIds))")
         Page<Post> findFilteredOutfits(
                 @Param("name") String name,
                 @Param("materialId") Integer materialId,

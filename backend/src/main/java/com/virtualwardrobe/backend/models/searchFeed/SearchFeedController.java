@@ -44,10 +44,13 @@ public class SearchFeedController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestHeader("Authorization") String authHeader) {
-
+        try {
             int userId = jwtUtil.extraerUserId(authHeader.replace("Bearer ", ""));
-        return ResponseEntity.ok(searchFeedService.generarConFiltros(name, typeId, sizeId, materialId, fitId, colorIds, userId, page, size));
+            return ResponseEntity.ok(searchFeedService.generarConFiltros(name, typeId, sizeId, materialId, fitId, colorIds, userId, page, size));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
+    }
 
     @GetMapping("/friends")
     public ResponseEntity<Page<PostResponseDTO>> getFriendsFeed(
