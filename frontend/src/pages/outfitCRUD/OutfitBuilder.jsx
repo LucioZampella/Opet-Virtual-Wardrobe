@@ -16,6 +16,10 @@ function OutfitBuilder() {
     const { createOutfit, getAllOutfits, deleteOutfit, updateOutfit } = useOutfit();
     const [editingOutfit, setEditingOutfit] = useState(null);
 
+    // Estados para el Modal de Detalle e Interactividad de prendas
+    const [selectedOutfitDetail, setSelectedOutfitDetail] = useState(null);
+    const [activePreviewImage, setActivePreviewImage] = useState("");
+
     const fetchMyClothes = async () => {
         try {
             const response = await fetch("http://localhost:8080/clothes/my-clothes", {
@@ -26,16 +30,27 @@ function OutfitBuilder() {
             console.error("Error al cargar prendas:", error);
         }
     };
-    const openEditState = (outfit) => {
+
+    const openEditState = async (outfit) => {
         setEditingOutfit(outfit);
         setOutfitName(outfit.name);
         setSelectedClothes(outfit.clothes || []);
+        await fetchMyClothes();
+    };
+
+    const openDetailModal = (outfit) => {
+        setSelectedOutfitDetail(outfit);
+        // Inicializamos la vista gigante con la primera prenda del outfit
+        if (outfit.clothes && outfit.clothes.length > 0) {
+            setActivePreviewImage(outfit.clothes[0].image_url);
+        } else {
+            setActivePreviewImage("");
+        }
     };
 
     const fetchMyOutfits = async () => {
         setLoading(true);
         const data = await getAllOutfits(token);
-        console.log("outfits recibidos:", data);
         if (data && Array.isArray(data)) setOutfits(data);
         setLoading(false);
     };
@@ -106,7 +121,7 @@ function OutfitBuilder() {
                         </p>
                     </div>
                     <button
-                        onClick={() => { setShowCreateState(true); fetchMyClothes(); }}
+                        onClick={async () => { setShowCreateState(true); await fetchMyClothes(); }}
                         className="px-5 py-2 border border-[#4a4540] hover:border-[#c49a6c] hover:text-[#c49a6c] text-[#8a7d6e] text-[10px] tracking-[0.2em] uppercase transition-all duration-300"
                     >
                         + Crear outfit
@@ -125,37 +140,76 @@ function OutfitBuilder() {
 
                 <div className="grid grid-cols-2 gap-4 pt-6">
                     {outfits.map(outfit => (
-                        <div key={outfit.id} className="bg-[#221f1c] border border-[#3a3530] hover:border-[#4a4540] transition-all duration-300 overflow-hidden">
+                        <div key={outfit.id} className="bg-[#221f1c] border border-[#3a3530] hover:border-[#4a4540] transition-all duration-300 overflow-hidden flex flex-col justify-between">
 
-                            {/* Preview de prendas - grid de fotos */}
-                            <div className="grid grid-cols-3 gap-0.5 aspect-square bg-[#2a2622]">
-                                {outfit.clothes?.slice(0, 6).map(clothe => (
-                                    <div key={clothe.id} className="aspect-square overflow-hidden">
-                                        {clothe.image_url
-                                            ? <img src={clothe.image_url} className="w-full h-full object-cover" />
-                                            : <div className="w-full h-full bg-[#2a2622] flex items-center justify-center">
-                                                <span className="text-[#3a3530] text-[8px]">{clothe.name}</span>
+                            {/* PREVIEW DE PRENDAS ASIMÉTRICO (Al tocar abre el detalle) */}
+                            <div
+                                onClick={() => openDetailModal(outfit)}
+                                className="aspect-square bg-[#1c1917] relative overflow-hidden w-full cursor-pointer group/media"
+                            >
+                                {(() => {
+                                    const clothesCount = outfit.clothes?.length || 0;
+                                    const items = outfit.clothes || [];
+
+                                    if (clothesCount === 0) {
+                                        return (
+                                            <div className="w-full h-full flex items-center justify-center bg-[#1a1816]">
+                                                <span className="text-[#4a4540] text-[9px] tracking-wider uppercase">Sin prendas</span>
                                             </div>
-                                        }
-                                    </div>
-                                ))}
+                                        );
+                                    }
+
+                                    if (clothesCount === 1) {
+                                        return <img src={items[0].image_url} className="w-full h-full object-cover group-hover/media:scale-105 transition-transform duration-500" alt="Prenda" />;
+                                    }
+
+                                    if (clothesCount === 2) {
+                                        return (
+                                            <div className="grid grid-cols-2 gap-[2px] h-full bg-[#221f1c]">
+                                                <img src={items[0].image_url} className="w-full h-full object-cover" alt="P1" />
+                                                <img src={items[1].image_url} className="w-full h-full object-cover" alt="P2" />
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <div className="grid grid-cols-3 gap-[2px] h-full bg-[#221f1c]">
+                                            <div className="col-span-2 h-full border-r border-[#221f1c]">
+                                                <img src={items[0].image_url} className="w-full h-full object-cover" alt="Destacado" />
+                                            </div>
+                                            <div className="grid grid-rows-2 gap-[2px] h-full">
+                                                <div className="h-full relative">
+                                                    <img src={items[1].image_url} className="w-full h-full object-cover" alt="P2" />
+                                                </div>
+                                                <div className="h-full relative">
+                                                    <img src={items[2].image_url} className="w-full h-full object-cover" alt="P3" />
+                                                    {clothesCount > 3 && (
+                                                        <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center backdrop-blur-[1px]">
+                                                            <span className="text-[#e8d5b0] text-[11px] font-light">+{clothesCount - 3}</span>
+                                                            <span className="text-[#6b6258] text-[6px] tracking-[0.1em] uppercase">Prendas</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                             {/* Info */}
-                            <div className="p-3 flex items-center justify-between">
-                                <div>
-                                    <p className="text-[#e8d5b0] text-sm tracking-wide">{outfit.name}</p>
-                                    <p className="text-[#6b6258] text-[10px] mt-0.5">{outfit.clothes?.length} prendas</p>
-                                    <p className="text-[#c49a6c] text-[10px] mt-0.5">
-                                        Nivel de coincidencia: {outfit.level_of_coincidence}
-                                    </p>
+                            <div className="p-3 flex items-center justify-between border-t border-[#3a3530]/40">
+                                <div className="min-w-0 flex-1 pr-2">
+                                    <p className="text-[#e8d5b0] text-xs tracking-wide truncate font-light">{outfit.name || "Outfit sin nombre"}</p>
+                                    <p className="text-[#6b6258] text-[9px] mt-0.5">{outfit.clothes?.length} prendas</p>
+                                    {outfit.level_of_coincidence !== undefined && (
+                                        <p className="text-[#c49a6c] text-[8px] tracking-wider mt-0.5 uppercase font-medium">
+                                            Match: {outfit.level_of_coincidence}
+                                        </p>
+                                    )}
                                 </div>
-                                <div className="flex flex-col gap-1">
+                                <div className="flex flex-col gap-1.5 flex-shrink-0 text-right">
                                     <button
-                                        onClick={() => {
-                                            openEditState(outfit);
-                                            fetchMyClothes();
-                                        }}
+                                        onClick={() => openEditState(outfit)}
                                         className="text-[#6b6258] hover:text-[#c49a6c] text-[9px] tracking-[0.15em] uppercase transition-colors duration-300"
                                     >
                                         Editar
@@ -173,19 +227,99 @@ function OutfitBuilder() {
                 </div>
             </div>
 
+            {/* MODAL DETALLE DE OUTFIT (Interactivo Split-Screen) */}
+            {selectedOutfitDetail && (
+                <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 md:p-10 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-4xl h-[80vh] flex flex-col md:flex-row relative shadow-2xl overflow-hidden">
+
+                        {/* Botón Cerrar */}
+                        <button
+                            onClick={() => setSelectedOutfitDetail(null)}
+                            className="absolute top-4 right-4 z-50 text-[#8a7d6e] hover:text-[#e8d5b0] transition-colors p-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        {/* PANEL IZQUIERDO: Visualizador Dinámico */}
+                        <div className="w-full md:w-1/2 h-1/2 md:h-full bg-[#1a1816] flex items-center justify-center relative border-b md:border-b-0 md:border-r border-[#3a3530]">
+                            {activePreviewImage ? (
+                                <div className="w-full h-full p-8 flex items-center justify-center animate-fade-in">
+                                    <img
+                                        src={activePreviewImage}
+                                        className="w-full h-full object-contain max-h-[65vh]"
+                                        alt="Prenda seleccionada"
+                                    />
+                                </div>
+                            ) : (
+                                <span className="text-[#4a4540] text-[10px] tracking-widest uppercase">Sin Imagen</span>
+                            )}
+                            <div className="absolute bottom-4 left-4 bg-black/50 border border-[#c49a6c]/20 px-2.5 py-1 backdrop-blur-xs">
+                                <span className="text-[#c49a6c] text-[7px] tracking-[0.2em] uppercase font-semibold">Exhibidor de Prenda</span>
+                            </div>
+                        </div>
+
+                        {/* PANEL DERECHO: Desglose de Prendas */}
+                        <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col bg-[#221f1c]">
+
+                            {/* Cabecera */}
+                            <div className="p-5 border-b border-[#3a3530]/60">
+                                <h4 className="text-[#e8d5b0] text-[13px] tracking-widest font-light uppercase">{selectedOutfitDetail.name || "Outfit Especial"}</h4>
+                                <p className="text-[#c49a6c] text-[8px] tracking-[0.15em] uppercase mt-1">
+                                    Coincidencia: {selectedOutfitDetail.level_of_coincidence || "N/A"} • {selectedOutfitDetail.clothes?.length} prendas
+                                </p>
+                            </div>
+
+                            {/* Lista con Interactividad (onMouseEnter o onClick cambia la foto) */}
+                            <div className="flex-1 overflow-y-auto p-5 space-y-2.5">
+                                <span className="text-[#4a4540] text-[8px] tracking-[0.2em] uppercase font-bold block mb-1">
+                                    Pasá el cursor o tocá una prenda para inspeccionar:
+                                </span>
+
+                                {selectedOutfitDetail.clothes?.map((clothe) => {
+                                    const isActive = activePreviewImage === clothe.image_url;
+                                    return (
+                                        <div
+                                            key={clothe.id}
+                                            onMouseEnter={() => setActivePreviewImage(clothe.image_url)}
+                                            onClick={() => setActivePreviewImage(clothe.image_url)}
+                                            className={`flex gap-4 p-2.5 transition-all duration-300 cursor-pointer border ${isActive ? 'bg-[#1a1816] border-[#c49a6c]/60' : 'bg-[#1a1816]/30 border-[#3a3530]/40 hover:border-[#4a4540]'}`}
+                                        >
+                                            <div className="w-12 h-12 bg-[#161413] flex-shrink-0 overflow-hidden border border-[#3a3530]/60">
+                                                <img src={clothe.image_url} className="w-full h-full object-cover" alt="" />
+                                            </div>
+                                            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                <h5 className="text-[#e8d5b0] text-[11px] tracking-wide font-light truncate">{clothe.name || "Prenda de Armario"}</h5>
+                                                <p className="text-[#6b6258] text-[8px] tracking-widest uppercase mt-0.5">
+                                                    {CLOTHING_TYPES.find(type => type.id === clothe.typeId)?.label || "Prenda"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="p-3 bg-[#1a1816]/30 border-t border-[#3a3530]/40 text-center">
+                                <span className="text-[#4a4540] text-[7px] tracking-[0.3em] uppercase">Vestidor Interactivo • OPET</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            )}
+
             {/* Modal crear outfit */}
             {showCreateState && (
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
-                    <div
-                        className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8 max-h-[90vh] overflow-y-auto">
+                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8 max-h-[90vh] overflow-y-auto">
                         <h3 className="text-[#e8d5b0] text-lg font-light tracking-widest mb-1">Nuevo outfit</h3>
                         <div className="w-6 h-px bg-[#c49a6c] mb-6"></div>
 
                         <form onSubmit={handleCreate} className="flex flex-col gap-6">
                             {/* Nombre */}
                             <div>
-                                <label
-                                    className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#8a7d6e] mb-1 block">Nombre</label>
+                                <label className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#8a7d6e] mb-1 block">Nombre</label>
                                 <input
                                     value={outfitName}
                                     onChange={e => setOutfitName(e.target.value)}
@@ -249,6 +383,8 @@ function OutfitBuilder() {
                     </div>
                 </div>
             )}
+
+            {/* Modal editar outfit */}
             {editingOutfit && (
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
                     <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8 max-h-[90vh] overflow-y-auto">

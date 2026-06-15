@@ -29,6 +29,8 @@ function MyProfile() {
     const [postType, setPostType] = useState('OUTFIT'); // OUTFIT o CLOTHE
     const [stats, setStats] = useState(null);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [selectedPostDetail, setSelectedPostDetail] = useState(null);
+    const [activeProfilePreviewImage, setActiveProfilePreviewImage] = useState("");
 
     useEffect(() => {
         apiFetch(`/api/stats/user/${userId}`)
@@ -562,16 +564,74 @@ transition-opacity duration-300">
                                             key={`${post.id}-${index}`}
                                             className="w-72 flex-shrink-0 border border-[#3a3530] bg-[#221f1c] overflow-hidden hover:border-[#c49a6c] transition-colors duration-300 shadow-xl"
                                         >
-                                            <div className="aspect-square bg-[#1a1816]">
+                                            <div
+                                                onClick={() => {
+                                                    setSelectedPostDetail(post);
+                                                    // Si el post tiene un outfit con prendas, seteamos la primera como inicial
+                                                    if (post.outfit?.clothes && post.outfit.clothes.length > 0) {
+                                                        setActiveProfilePreviewImage(post.outfit.clothes[0].image_url);
+                                                    } else if (post.clothe) {
+                                                        // Si es una publicación de una sola prenda
+                                                        setActiveProfilePreviewImage(post.clothe.image_url);
+                                                    }
+                                                }}
+                                                className="aspect-square bg-[#1c1917] relative group/media overflow-hidden cursor-pointer"
+                                            >
                                                 {post.outfit ? (
-                                                    <div className="grid grid-cols-2 gap-0.5 h-full">
-                                                        {post.outfit.clothes?.slice(0, 4).map(clothe => (
-                                                            <img key={clothe.id} src={clothe.image_url} className="w-full h-full object-cover" />
-                                                        ))}
-                                                    </div>
+                                                    (() => {
+                                                        const clothesCount = post.outfit.clothes?.length || 0;
+                                                        const items = post.outfit.clothes || [];
+
+                                                        // CASO 1: Una sola prenda en el outfit (Raro, pero por las dudas)
+                                                        if (clothesCount === 1) {
+                                                            return <img src={items[0].image_url} className="w-full h-full object-cover" alt="Prenda" />;
+                                                        }
+
+                                                        // CASO 2: Dos prendas (Dividido a la mitad vertical, muy limpio)
+                                                        if (clothesCount === 2) {
+                                                            return (
+                                                                <div className="grid grid-cols-2 gap-[2px] h-full bg-[#221f1c]">
+                                                                    <img src={items[0].image_url} className="w-full h-full object-cover" alt="Prenda 1" />
+                                                                    <img src={items[1].image_url} className="w-full h-full object-cover" alt="Prenda 2" />
+                                                                </div>
+                                                            );
+                                                        }
+
+                                                        // CASO 3: 3 o más prendas (Layout Asimétrico de Revista de Moda)
+                                                        // La primera prenda toma todo el lateral izquierdo, las demás se apilan a la derecha
+                                                        return (
+                                                            <div className="grid grid-cols-3 gap-[2px] h-full bg-[#221f1c]">
+                                                                {/* Prenda principal destacada (ocupa 2 columnas de ancho y todo el alto) */}
+                                                                <div className="col-span-2 h-full border-r border-[#221f1c]">
+                                                                    <img src={items[0].image_url} className="w-full h-full object-cover" alt="Destacado" />
+                                                                </div>
+
+                                                                {/* Columna de la derecha para el resto de las prendas */}
+                                                                <div className="grid grid-rows-2 gap-[2px] h-full">
+                                                                    <div className="h-full relative">
+                                                                        <img src={items[1].image_url} className="w-full h-full object-cover" alt="Prenda 2" />
+                                                                    </div>
+                                                                    <div className="h-full relative">
+                                                                        <img src={items[2].image_url} className="w-full h-full object-cover" alt="Prenda 3" />
+
+                                                                        {/* Si hay más de 3 prendas, mostramos un indicador sofisticado encima de la última */}
+                                                                        {clothesCount > 3 && (
+                                                                            <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center backdrop-blur-[2px]">
+                                                                                <span className="text-[#e8d5b0] text-sm font-light">+{clothesCount - 3}</span>
+                                                                                <span className="text-[#6b6258] text-[7px] tracking-[0.1em] uppercase mt-0.5">Prendas</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()
                                                 ) : post.clothe ? (
-                                                    <img src={post.clothe.image_url} className="w-full h-full object-cover" />
-                                                ) : null}
+                                                    // Renderizado simple si es una sola prenda suelta
+                                                    <img src={post.clothe.image_url} className="w-full h-full object-cover transition-transform duration-500 group-hover/media:scale-105" alt="Prenda suelta" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-[#4a4540] text-[10px] tracking-widest uppercase">Sin imagen</div>
+                                                )}
                                             </div>
 
                                             <div className="p-4 flex flex-col gap-3">
@@ -742,6 +802,131 @@ transition-all duration-300
                     </div>
                 </div>
             )}
+                {selectedPostDetail && (
+                    <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 md:p-10 backdrop-blur-sm animate-fade-in">
+
+                        <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-5xl h-[85vh] flex flex-col md:flex-row relative shadow-2xl overflow-hidden">
+
+                            {/* BOTÓN CERRAR */}
+                            <button
+                                onClick={() => setSelectedPostDetail(null)}
+                                className="absolute top-4 right-4 z-50 text-[#8a7d6e] hover:text-[#e8d5b0] transition-colors p-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+
+                            {/* COLUMNA IZQUIERDA: Visualizador Dinámico Interactuable */}
+                            <div className="w-full md:w-1/2 h-2/5 md:h-full bg-[#1a1816] flex items-center justify-center relative border-b md:border-b-0 md:border-r border-[#3a3530]">
+                                {activeProfilePreviewImage ? (
+                                    <div className="w-full h-full p-6 flex items-center justify-center animate-fade-in">
+                                        <img
+                                            src={activeProfilePreviewImage}
+                                            className="w-full h-full object-contain max-h-[70vh]"
+                                            alt="Visualización de prenda"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="text-[#4a4540] text-[10px] tracking-widest uppercase">Sin imagen</div>
+                                )}
+                                <div className="absolute bottom-6 left-6 bg-black/60 border border-[#c49a6c]/30 px-3 py-1.5 backdrop-blur-sm">
+                                    <span className="text-[#c49a6c] text-[8px] tracking-[0.2em] uppercase font-semibold">Exhibidor de Look</span>
+                                </div>
+                            </div>
+
+                            {/* COLUMNA DERECHA: Datos del Post y Perchero */}
+                            <div className="w-full md:w-1/2 h-3/5 md:h-full flex flex-col bg-[#221f1c]">
+
+                                {/* Cabecera */}
+                                <div className="p-6 border-b border-[#3a3530]/60 flex items-center gap-3">
+                                    {user?.avatar_url ? (
+                                        <img src={user.avatar_url} className="w-6 h-6 rounded-full object-cover" alt="" />
+                                    ) : (
+                                        <span className="w-6 h-6 rounded-full bg-[#3a3530] flex items-center justify-center text-[#c49a6c] text-[9px]">
+                            {user?.name?.charAt(0).toUpperCase()}
+                        </span>
+                                    )}
+                                    <div className="flex flex-col">
+                                        <span className="text-[#e8d5b0] text-[11px] tracking-widest font-light">@{user?.username}</span>
+                                        <span className="text-[#6b6258] text-[8px] tracking-[0.1em] uppercase mt-0.5">
+                            {selectedPostDetail.outfit ? 'Colección Outfit' : 'Detalle de Prenda'}
+                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Contenido con scroll */}
+                                <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-elegant">
+                                    <div>
+                                        <span className="text-[#4a4540] text-[8px] tracking-[0.2em] uppercase font-bold block mb-2">Inspiración</span>
+                                        <p className="text-[#8a7d6e] text-xs leading-relaxed font-light italic">
+                                            "{selectedPostDetail.descripcion || 'Sin descripción provista.'}"
+                                        </p>
+                                    </div>
+
+                                    <div className="h-px bg-[#3a3530]/40"></div>
+
+                                    {/* LISTA DE PRENDAS INTERACTIVAS */}
+                                    <div>
+                        <span className="text-[#4a4540] text-[8px] tracking-[0.2em] uppercase font-bold block mb-4">
+                            {selectedPostDetail.outfit ? 'Prendas en este look' : 'Especificaciones'}
+                        </span>
+
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {selectedPostDetail.outfit ? (
+                                                selectedPostDetail.outfit.clothes?.map((clothe) => {
+                                                    // Evaluamos si esta es la prenda activa en el visualizador
+                                                    const isCurrentlyActive = activeProfilePreviewImage === clothe.image_url;
+                                                    return (
+                                                        <div
+                                                            key={clothe.id}
+                                                            onMouseEnter={() => setActiveProfilePreviewImage(clothe.image_url)}
+                                                            onClick={() => setActiveProfilePreviewImage(clothe.image_url)}
+                                                            className={`flex gap-4 p-3 transition-all duration-300 cursor-pointer border ${isCurrentlyActive ? 'bg-[#1a1816] border-[#c49a6c]/50' : 'bg-[#1a1816]/40 border-[#3a3530]/40 hover:border-[#4a4540]'}`}
+                                                        >
+                                                            <div className="w-14 h-14 bg-[#161413] flex-shrink-0 overflow-hidden border border-[#3a3530]/60">
+                                                                <img src={clothe.image_url} className="w-full h-full object-cover" alt="" />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                                <h4 className="text-[#e8d5b0] text-[11px] tracking-wider font-light truncate">
+                                                                    {clothe.name || CLOTHING_TYPES.find(t => t.id === clothe.typeId)?.label || "Prenda del Look"}
+                                                                </h4>
+                                                                <p className="text-[#c49a6c] text-[8px] tracking-widest uppercase mt-1 font-medium">
+                                                                    {CLOTHING_TYPES.find(type => type.id === clothe.typeId)?.label || "Colección Privada"}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                /* Si es una sola prenda suelta en el post */
+                                                <div className="flex gap-4 p-3 bg-[#1a1816]/40 border border-[#c49a6c]/30">
+                                                    <div className="w-14 h-14 bg-[#161413] flex-shrink-0 overflow-hidden">
+                                                        <img src={selectedPostDetail.clothe?.image_url} className="w-full h-full object-cover" alt="" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                        <h4 className="text-[#e8d5b0] text-[11px] tracking-wider font-light">
+                                                            {selectedPostDetail.clothe?.name || "Pieza Exclusiva"}
+                                                        </h4>
+                                                        <p className="text-[#c49a6c] text-[8px] tracking-widest uppercase mt-1 font-medium">
+                                                            {CLOTHING_TYPES.find(type => type.id === selectedPostDetail.clothe?.typeId)?.label || "Pieza Única"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Footer */}
+                                <div className="p-4 bg-[#1a1816]/30 border-t border-[#3a3530]/40 text-center">
+                                    <span className="text-[#4a4540] text-[8px] tracking-[0.3em] uppercase">Estilo Curado • OPET Studio</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                )}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-6">
                     <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8 max-h-[90vh] overflow-y-auto">
