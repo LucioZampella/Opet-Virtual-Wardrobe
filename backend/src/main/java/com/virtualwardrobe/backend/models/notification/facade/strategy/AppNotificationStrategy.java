@@ -17,12 +17,11 @@ public class AppNotificationStrategy implements NotificationStrategy {
     }
 
     @Override
-    public void notify(int actorId, int ReceiverId, String description, String type) {
-            // solamente guardo la notififacion en la base de datos con los datos que yo quiero crear
+    public void notify(int actorId, int receiverId, String type, String description) {
         CreaterDTO dto = new CreaterDTO();
-        dto.setDescription(description);
+        dto.setDescription(description);  // ahora sí es el mensaje legible
         dto.setType(type);
-        dto.setUser_id(ReceiverId);
-        service.create(dto,actorId);
+        dto.setUser_id(receiverId);
+        service.create(dto, actorId);
     }
 }

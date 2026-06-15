@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const BASE = "http://localhost:8080/api";
 
 const NotificationBell = ({ token }) => {
+    const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [usernames, setUsernames] = useState({});
     const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +25,7 @@ const NotificationBell = ({ token }) => {
             setNotifications(data);
             await fetchUsernames(data);
         } catch (e) {
-            console.error("Error al traer notificaciones:", e);
+            toast.error("No se pudieron cargar las notificaciones.");
         }
     };
 
@@ -31,7 +34,7 @@ const NotificationBell = ({ token }) => {
         const entries = await Promise.all(
             ids.map(async (id) => {
                 try {
-                    const res = await fetch(`${BASE}/profile/${id}`, {
+                    const res = await fetch(`http://localhost:8080/usuarios/profile/${id}`, {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     if (!res.ok) return [id, `usuario #${id}`];
@@ -62,16 +65,20 @@ const NotificationBell = ({ token }) => {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            if (res.ok) setNotifications(prev => prev.filter(n => n.id !== id));
+            if (res.ok) {
+                setNotifications(prev => prev.filter(n => n.id !== id));
+                toast.success("Notificación eliminada.");
+            } else {
+                toast.error("No se pudo eliminar la notificación.");
+            }
         } catch (e) {
-            console.error("Error al borrar notificación:", e);
+            toast.error("Error al eliminar la notificación.");
         }
     };
 
     const handleMarkRead = async (id, e) => {
         e.stopPropagation();
         try {
-            // ajustá el endpoint si difiere
             const res = await fetch(`${BASE}/notifications/${id}/read`, {
                 method: "PATCH",
                 headers: { "Authorization": `Bearer ${token}` }
@@ -80,11 +87,42 @@ const NotificationBell = ({ token }) => {
                 setNotifications(prev =>
                     prev.map(n => n.id === id ? { ...n, already_read: true } : n)
                 );
+                toast.success("Marcada como leída.");
+            } else {
+                toast.error("No se pudo marcar como leída.");
             }
         } catch (e) {
-            console.error("Error al marcar como leída:", e);
+            toast.error("Error al marcar como leída.");
         }
     };
+    const handleFollow = async (actorId, currentUserId) => {
+        try {
+            const res = await fetch(`${BASE}/friends/follow`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    followerId: currentUserId,
+                    followingId: actorId
+                })
+            });
+            if (res.ok) {
+                toast.success("¡Solicitud enviada!");
+            } else {
+                toast.error("No se pudo seguir al usuario.");
+            }
+        } catch (e) {
+            toast.error("Error al seguir al usuario.");
+        }
+    };
+    const getUserIdFromToken = (token) => {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.userId;
+    };
+
+    const currentUserId = getUserIdFromToken(token);
 
     const handleAccept = async (notif, e) => {
         e.stopPropagation();
@@ -93,9 +131,14 @@ const NotificationBell = ({ token }) => {
                 `${BASE}/friends/accept?followerId=${notif.actor_id}&followingId=${notif.user_id}`,
                 { method: "POST", headers: { "Authorization": `Bearer ${token}` } }
             );
-            if (res.ok) setNotifications(prev => prev.filter(n => n.id !== notif.id));
+            if (res.ok) {
+                toast.success("Solicitud aceptada.");
+                await fetchNotifications(); // recarga para mostrar el FOLLOW_BACK
+            } else {
+                toast.error("No se pudo aceptar la solicitud.");
+            }
         } catch (e) {
-            console.error("Error al aceptar:", e);
+            toast.error("Error al aceptar la solicitud.");
         }
     };
 
@@ -106,9 +149,14 @@ const NotificationBell = ({ token }) => {
                 `${BASE}/friends/unfollow?followerId=${notif.actor_id}&followingId=${notif.user_id}`,
                 { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } }
             );
-            if (res.ok) setNotifications(prev => prev.filter(n => n.id !== notif.id));
+            if (res.ok) {
+                setNotifications(prev => prev.filter(n => n.id !== notif.id));
+                toast.success("Solicitud rechazada.");
+            } else {
+                toast.error("No se pudo rechazar la solicitud.");
+            }
         } catch (e) {
-            console.error("Error al rechazar:", e);
+            toast.error("Error al rechazar la solicitud.");
         }
     };
 
@@ -154,10 +202,17 @@ const NotificationBell = ({ token }) => {
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <p className="text-zinc-300 text-xs leading-tight flex-1">
-                                                <span className="font-medium text-[#c49a6c] mr-1">
-                                                    @{username}
+                                                <span
+                                                    className="font-medium text-[#c49a6c] mr-1 cursor-pointer hover:underline"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`/profile/${notif.actor_id}`);
+                                                        setIsOpen(false);
+                                                    }}
+                                                >
+                                                 @{username}
                                                 </span>
-                                                {notif.description}
+                                                {notif.type === "FOLLOW_REQUEST" ? "quiere seguirte" : notif.description}
                                             </p>
                                             <div className="flex gap-1 flex-shrink-0">
                                                 {!isRead && (
@@ -192,6 +247,20 @@ const NotificationBell = ({ token }) => {
                                                     className="text-[11px] px-3 py-1 rounded border border-red-700 text-red-400 hover:bg-red-900/30 transition-colors"
                                                 >
                                                     Rechazar
+                                                </button>
+                                            </div>
+                                        )}
+                                        {/* AGREGÁS ESTO */}
+                                        {notif.type === "FOLLOW_BACK" && !isRead && (
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleFollow(notif.actor_id, currentUserId);
+                                                    }}
+                                                    className="text-[11px] px-3 py-1 rounded border border-[#c49a6c] text-[#c49a6c] hover:bg-[#c49a6c]/10 transition-colors"
+                                                >
+                                                    Seguir también
                                                 </button>
                                             </div>
                                         )}

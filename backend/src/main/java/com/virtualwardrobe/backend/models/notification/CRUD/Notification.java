@@ -29,7 +29,7 @@ public class Notification {
     @Column(name= "type")
     private String type;
 
-    @Column(nullable = false, length = 500)
+    @Column(name ="description",nullable = false, length = 500)
     private String description;
 
     @Column(name="already_read")

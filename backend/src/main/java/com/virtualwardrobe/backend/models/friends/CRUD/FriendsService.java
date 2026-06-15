@@ -46,23 +46,11 @@ public class FriendsService {
             follower.setStatus(false);
             repo.save(follower);
 
-            CreaterDTO dto = new CreaterDTO();
-            dto.setDescription("El usuario " + user.getUsername() + " quiere seguirte");
-            dto.setType("FOLLOW_REQUEST");
-            dto.setUser_id(friend_id);
-            serv.create(dto, user_id);
-
             notificationFacade.notificate(user.getId(), friend.getId(), "FOLLOW_REQUEST",
                     "El usuario " + user.getUsername() + " quiere seguirte");
         } else {
             follower.setStatus(true);
             repo.save(follower);
-
-            CreaterDTO dto = new CreaterDTO();
-            dto.setDescription("El usuario " + user.getUsername() + " te empezó a seguir");
-            dto.setType("FOLLOW_ACCEPT");
-            dto.setUser_id(friend_id);
-            serv.create(dto, user_id);
 
             notificationFacade.notificate(user.getId(), friend.getId(), "FOLLOW_ACCEPT",
                     "El usuario " + user.getUsername() + " te empezó a seguir");
@@ -86,14 +74,16 @@ public class FriendsService {
         request.setStatus(true);
         repo.save(request);
 
-        CreaterDTO dto = new CreaterDTO();
-        dto.setDescription("El usuario " + request.getFollowing().getUsername() + " aceptó tu solicitud");
-        dto.setType("FOLLOW_ACCEPT");
-        dto.setUser_id(followerId);
-        serv.create(dto, followerId);
+        // eliminás la notificación de FOLLOW_REQUEST
+        serv.deleteByActorIdAndUserIdAndType(followerId, followingId, "FOLLOW_REQUEST");
 
+        // notificación al que pidió seguirte
         notificationFacade.notificate(followingId, followerId, "FOLLOW_ACCEPT",
                 "El usuario " + request.getFollowing().getUsername() + " aceptó tu solicitud");
+
+        // notificación a vos para seguir de vuelta
+        notificationFacade.notificate(followerId, followingId, "FOLLOW_BACK",
+                "El usuario " + request.getFollower().getUsername() + " te está siguiendo, ¿querés seguirlo también?");
     }
 
     public List<Follower> findAllFriendsOfUser(int id){
@@ -109,5 +99,4 @@ public class FriendsService {
     public Optional<Follower> findByFollowerIdAndFollowingId(int id, int friend_id){
         return repo.findByFollowerIdAndFollowingId(id,friend_id);
     }
-
 }

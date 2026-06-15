@@ -63,5 +63,9 @@ public class NotificationService {
         notif.setAlready_read(true);
         repo.save(notif);
     }
+    public void deleteByActorIdAndUserIdAndType(int actorId, int userId, String type) {
+        repo.deleteByActorIdAndUserIdAndType(actorId, userId, type);
+    }
+
 
 }

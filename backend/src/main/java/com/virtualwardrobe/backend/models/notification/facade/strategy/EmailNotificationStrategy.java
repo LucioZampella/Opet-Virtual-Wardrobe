@@ -22,7 +22,7 @@ public class EmailNotificationStrategy implements NotificationStrategy{
     }
 
     @Override
-    public void notify(int actorId, int ReceiverId, String description, String type) {
+    public void notify(int actorId, int ReceiverId, String type, String description) {
         User receiver = userRepository.findById(ReceiverId)
                 .orElseThrow(() -> new InvalidUserException("User not found"));
 
