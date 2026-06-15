@@ -41,31 +41,31 @@ export const CLOTHING_TYPES = [
 ];
 
 export const COLORS = [
-    { id: 1, label: "Negro" },
-    { id: 2, label: "Blanco" },
-    { id: 3, label: "Gris" },
-    { id: 4, label: "Beige" },
-    { id: 5, label: "Crema" },
+    { id: 1, label: "Negro", hex: "#000000" },
+    { id: 2, label: "Blanco", hex: "#FFFFFF" },
+    { id: 3, label: "Gris", hex: "#808080" },
+    { id: 4, label: "Beige", hex: "#F5F5DC" },
+    { id: 5, label: "Crema", hex: "#FFFDD0" },
 
-    { id: 6, label: "Rojo" },
-    { id: 7, label: "Azul" },
-    { id: 8, label: "Amarillo" },
-    { id: 9, label: "Verde" },
-    { id: 10, label: "Naranja" },
-    { id: 11, label: "Violeta" },
-    { id: 12, label: "Rosa" },
+    { id: 6, label: "Rojo", hex: "#FF0000" },
+    { id: 7, label: "Azul", hex: "#0000FF" },
+    { id: 8, label: "Amarillo", hex: "#FFFF00" },
+    { id: 9, label: "Verde", hex: "#008000" },
+    { id: 10, label: "Naranja", hex: "#FFA500" },
+    { id: 11, label: "Violeta", hex: "#800080" },
+    { id: 12, label: "Rosa", hex: "#FFC0CB" },
 
-    { id: 13, label: "Cian" },
-    { id: 14, label: "Turquesa" },
-    { id: 15, label: "Burdeos" },
-    { id: 16, label: "Mostaza" },
-    { id: 17, label: "Oliva" },
-    { id: 18, label: "Terracota" },
-    { id: 19, label: "Celeste" },
-    { id: 20, label: "Lila" },
-    { id: 21, label: "Marrón" },
-    { id: 22, label: "Dorado" },
-    { id: 23, label: "Plateado" }
+    { id: 13, label: "Cian", hex: "#00FFFF" },
+    { id: 14, label: "Turquesa", hex: "#40E0D0" },
+    { id: 15, label: "Burdeos", hex: "#800020" },
+    { id: 16, label: "Mostaza", hex: "#FFDB58" },
+    { id: 17, label: "Oliva", hex: "#808000" },
+    { id: 18, label: "Terracota", hex: "#E2725B" },
+    { id: 19, label: "Celeste", hex: "#87CEEB" },
+    { id: 20, label: "Lila", hex: "#C8A2C8" },
+    { id: 21, label: "Marrón", hex: "#A52A2A" },
+    { id: 22, label: "Dorado", hex: "#FFD700" },
+    { id: 23, label: "Plateado", hex: "#C0C0C0" }
 ];
 
 export const SIZES = [

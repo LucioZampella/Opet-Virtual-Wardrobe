@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar.jsx";
 import Search from "../searching/Search.jsx";
-import GenericSelect from "../../constants/GenericSelect";
+import FilterSelect from "../../constants/FilterSelect";
 import { CLOTHING_TYPES, COLORS, SIZES, FITS, MATERIALS } from "../../constants/clotheOptions.js";
 import toast from "react-hot-toast";
 import { useApi } from "../../modules/useApi.js";
@@ -137,32 +137,32 @@ function SearchFeed() {
                     placeholder="BUSCAR OUTFITS..."
                 />
                 {/* Filters */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 pb-4">
-                    <GenericSelect
+                <div className="flex flex-wrap gap-2 pb-4">
+                    <FilterSelect
                         label="Tipo"
                         options={CLOTHING_TYPES}
                         value={CLOTHING_TYPES.find(t => t.id === parseInt(filters.typeId)) || null}
                         onChange={val => handleFilterChange("typeId", val)}
                     />
-                    <GenericSelect
+                    <FilterSelect
                         label="Talle"
                         options={SIZES}
                         value={SIZES.find(s => s.id === parseInt(filters.sizeId)) || null}
                         onChange={val => handleFilterChange("sizeId", val)}
                     />
-                    <GenericSelect
+                    <FilterSelect
                         label="Material"
                         options={MATERIALS}
                         value={MATERIALS.find(m => m.id === parseInt(filters.materialId)) || null}
                         onChange={val => handleFilterChange("materialId", val)}
                     />
-                    <GenericSelect
+                    <FilterSelect
                         label="Fit"
                         options={FITS}
                         value={FITS.find(f => f.id === parseInt(filters.fitId)) || null}
                         onChange={val => handleFilterChange("fitId", val)}
                     />
-                    <GenericSelect
+                    <FilterSelect
                         label="Colores"
                         options={COLORS}
                         multiple={true}
