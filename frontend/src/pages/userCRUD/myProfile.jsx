@@ -46,22 +46,31 @@ function MyProfile() {
     }, [userId]);
 
     useEffect(() => {
-        apiFetch(`/api/posts/my-posts`)
+        // Si no hay userId todavía (por ejemplo, mientras carga), frenamos acá
+        if (!userId) return;
+
+        // Acoplamos tu endpoint @GetMapping("/user/{userId}")
+        apiFetch(`/api/posts/user/${userId}`)
             .then(res => res.json())
-            .then(data => setMyPosts(data))
-            .catch(err => console.error("Error cargando posts", err));
+            .then(data => {
+                console.log("Posts del usuario cargados:", data);
+                setMyPosts(data); // El estado dinámico que alimenta el carrusel
+            })
+            .catch(err => console.error("Error cargando posts del usuario", err));
+
+        // Tus otros fetches para el armario (solo si los necesitas en esta vista)
         apiFetch('/outfit/my-outfits')
             .then(res => res.json())
             .then(data => setOutfits(data))
             .catch(err => console.error("Error cargando outfits", err));
+
         apiFetch('/clothes/my-clothes')
             .then(res => res.json())
-            .then(data => {
-                console.log("Prendas recibidas:", data); // Mira si llegan datos aquí
-                setClothes(data);
-            })
-            .catch(err => console.error( "Error cargando prendas", err))
+            .then(data => setClothes(data))
+            .catch(err => console.error("Error cargando prendas", err));
+
     }, [userId, token]);
+
     useEffect(() => {
         if (!isOwner && userId && loggedUserId) {
             apiFetch(`/api/friends/is-following?followerId=${loggedUserId}&followingId=${userId}`)
@@ -521,6 +530,7 @@ transition-opacity duration-300">
                     </div>
                 </div>
 
+
                 {/* --- SECCIÓN DE PUBLICACIONES --- */}
                 {console.log("isOwner:", isOwner)}
                 {console.log("isPrivate:", user.isPrivate)}
@@ -605,8 +615,28 @@ transition-opacity duration-300">
                                 </div>
                             </div>
                         </div>
+                        {/* Estadisticas: AHORA SOLO VISIBLES SI SOS EL DUEÑO */}
+                        {isOwner && (
+                            <StatsSection />
+                        )}
 
-                        <StatsSection />
+                        {/* BOTONES ABAJO DE LAS STATS (SOLO SI SOS EL DUEÑO) */}
+                        {isOwner && (
+                            <div className="flex justify-end gap-4 mt-12 pt-6 border-t border-[#3a3530]/50 max-w-6xl mx-auto">
+                                <button
+                                    onClick={logOut}
+                                    className="px-5 py-2.5 border border-[#3a3530] hover:border-[#6b6258] text-[#6b6258] hover:text-[#e8d5b0] text-[10px] tracking-[0.2em] uppercase transition-all duration-300"
+                                >
+                                    Cerrar Sesión
+                                </button>
+                                <button
+                                    onClick={eliminateProfile}
+                                    className="px-5 py-2.5 border border-red-950/40 hover:border-red-800 text-red-900/60 hover:text-red-400 text-[10px] tracking-[0.2em] uppercase transition-all duration-300"
+                                >
+                                    Eliminar Cuenta
+                                </button>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="max-w-2xl mx-auto px-6 py-20 flex flex-col items-center gap-3">
@@ -618,7 +648,9 @@ transition-opacity duration-300">
                             Seguí a este usuario para ver su contenido
                         </p>
                     </div>
+
                 )}
+
 
 
 
@@ -682,6 +714,7 @@ transition-all duration-300
                     </div>
                 </div>
             )}
+
             {editingPost && (
                 <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-6">
                     <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">

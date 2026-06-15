@@ -63,6 +63,7 @@ public class PostController {
     public ResponseEntity<List<Post>> getFeedPosts() {
         return ResponseEntity.ok(service.obtenerTodas());
     }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Post>> getPostsByUser(@PathVariable int userId) {
         return ResponseEntity.ok(service.obtenerPorUsuario(userId));
