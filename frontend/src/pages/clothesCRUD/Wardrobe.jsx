@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import Navbar from "../../components/Navbar.jsx";
-import GenericSelect from "../../constants/GenericSelect";
+import FilterSelect from "../../constants/FilterSelect";
 const CLOUDINARY_CLOUD_NAME = "ducp0gbgq";
 const CLOUDINARY_UPLOAD_PRESET = "opet_clothes";
 import { CLOTHING_TYPES, COLORS, SIZES, FITS, MATERIALS } from "../../constants/clotheOptions.js";
@@ -556,52 +556,72 @@ function Wardrobe() {
 
                 {/* Filtros, los cuales solo se muestran con 1 prenda o mas*/}
 
-                {/*CAMBIOOO, ahora se mostrara todo el tiempo con el objetivo de que cuando no encuentre nada con el filtro*/}
-                {/*Siga estando los filtros arriba y no se crashee todo */}
+                {/* ==================== SECCIÓN DE FILTROS ACTUALIZADA ==================== */}
+                {(clothes.length > 0 || Object.values(filters).some(v => v !== "" && !(Array.isArray(v) && v.length === 0))) && (
+                    <>
+                        {/* Contenedor con la misma estética flex de SearchFeed */}
+                        <div className="flex flex-wrap gap-2 pb-4">
+                            <FilterSelect
+                                label="Tipo"
+                                options={CLOTHING_TYPES}
+                                value={CLOTHING_TYPES.find(t => t.id === parseInt(filters.typeId)) || null}
+                                onChange={(val) => handleFilterChange("typeId", val)}
+                            />
+                            <FilterSelect
+                                label="Talle"
+                                options={SIZES}
+                                value={SIZES.find(s => s.id === parseInt(filters.sizeId)) || null}
+                                onChange={(val) => handleFilterChange("sizeId", val)}
+                            />
+                            <FilterSelect
+                                label="Material"
+                                options={MATERIALS}
+                                value={MATERIALS.find(m => m.id === parseInt(filters.materialId)) || null}
+                                onChange={(val) => handleFilterChange("materialId", val)}
+                            />
+                            <FilterSelect
+                                label="Fit"
+                                options={FITS}
+                                value={FITS.find(f => f.id === parseInt(filters.fitId)) || null}
+                                onChange={(val) => handleFilterChange("fitId", val)}
+                            />
+                            <FilterSelect
+                                label="Colores"
+                                options={COLORS}
+                                multiple={true}
+                                value={COLORS.filter(c => filters.colorIds.includes(c.id)) || []}
+                                onChange={(selectedValues) => {
+                                    const ids = Array.isArray(selectedValues) ? selectedValues.map(o => o.id) : [];
+                                    handleFilterChange("colorIds", ids);
+                                }}
+                            />
+                        </div>
 
-
-                {(clothes.length > 0 || Object.values(filters).some(v => v !== "")) && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 py-2">
-                        <GenericSelect
-                            label="Tipo"
-                            options={CLOTHING_TYPES}
-                            value={CLOTHING_TYPES.find(t => t.id === parseInt(filters.typeId)) || null}
-                            onChange={(val) => handleFilterChange("typeId", val)}
-                        />
-                        <GenericSelect
-                            label="Talle"
-                            options={SIZES}
-                            value={SIZES.find(s => s.id === parseInt(filters.sizeId)) || null}
-                            onChange={(val) => handleFilterChange("sizeId", val)}
-                        />
-
-                        <GenericSelect
-                            label="Material"
-                            options={MATERIALS}
-                            value={MATERIALS.find(m => m.id === parseInt(filters.materialId)) || null}
-                            onChange={(val) => handleFilterChange("materialId", val)}
-                        />
-
-                        <GenericSelect
-                            label="Fit"
-                            options={FITS}
-                            value={FITS.find(f => f.id === parseInt(filters.fitId)) || null}
-                            onChange={(val) => handleFilterChange("fitId", val)}
-                        />
-                        <GenericSelect
-                            label="Todos los Colores"
-                            options={COLORS}
-                            multiple={true}
-                            value={COLORS.filter(c => filters.colorIds.includes(c.id)) || []}
-                            onChange={(selectedValues) => {
-                                const ids = Array.isArray(selectedValues) ?
-                                    selectedValues.map(o => o.id) :
-                                    [];
-                                handleFilterChange("colorIds", ids);
-                                }
-                            }
-                        />
-                    </div>)}
+                        {/* Botón para limpiar filtros idéntico al de SearchFeed */}
+                        {Object.values(filters).some(v => v !== "" && !(Array.isArray(v) && v.length === 0)) && (
+                            <div className="flex justify-end mb-4">
+                                <button
+                                    onClick={() => {
+                                        const cleared = {
+                                            typeId: "",
+                                            sizeId: "",
+                                            materialId: "",
+                                            fitId: "",
+                                            colorIds: [],
+                                            preferenceLevel: "",
+                                        };
+                                        setFilters(cleared);
+                                        fetchClothes(); // Restablece el ropero completo
+                                    }}
+                                    className="text-[9px] tracking-[0.2em] uppercase text-[#6b6258] border border-[#3a3530] px-3 py-1 hover:border-red-900 hover:text-red-700 transition-all duration-300"
+                                >
+                                    × Limpiar filtros
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+                {/* ======================================================================== */}
 
                 {loading && (
                     <div className="flex justify-center py-16">
