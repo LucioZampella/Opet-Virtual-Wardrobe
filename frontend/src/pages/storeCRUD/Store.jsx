@@ -27,6 +27,7 @@ function Store() {
     const [editingListing, setEditingListing] = useState(null);
     const [form, setForm] = useState(EmptyForm);
     const [loading, setLoading] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false); // <-- estado de carga al publicar
     const [filters, setFilters] = useState({
         min: 0,
         max: 10000001,
@@ -38,13 +39,10 @@ function Store() {
         name: "",
     })
 
-    const fetchAllListings = async () => { // --> Trae todas las listings
+    const fetchAllListings = async () => {
         setLoading(true);
         try {
-            const response = await apiFetch(`/store/home`, {
-                method: "GET",
-            });
-
+            const response = await apiFetch(`/store/home`, { method: "GET" });
             if (response.ok) {
                 const data = await response.json();
                 setStoreListing(data);
@@ -64,11 +62,10 @@ function Store() {
         fetchAllListings();
     }, []);
 
-    const fetchWithFilters = async (newFilters) => { // --> Trae todas las listings pero ahora con filtros especificos
+    const fetchWithFilters = async (newFilters) => {
         setLoading(true);
         try {
             const params = new URLSearchParams();
-
             Object.keys(newFilters).forEach(key => {
                 const value = newFilters[key];
                 if (value !== "" && value !== null && value !== undefined) {
@@ -79,11 +76,9 @@ function Store() {
                     }
                 }
             });
-
             const response = await apiFetch(`/store/filter?${params}`, {
                 headers: {"Accept": "application/json"}
             });
-
             if (response.ok) {
                 const data = await response.json();
                 setStoreListing(data);
@@ -98,16 +93,14 @@ function Store() {
         } finally {
             setLoading(false);
         }
-
     }
-    // --> me traigo todas mis prendas del usuario
+
     const fetchMyClothes = async () => {
         try {
             const response = await apiFetch(`/clothes/my-clothes`);
             if (response.ok) {
                 const data = await response.json();
                 setMyClothes(data);
-                console.log(myClothes)
             }
         } catch (error) {
             console.error("Error al cargar prendas: ", error);
@@ -115,19 +108,15 @@ function Store() {
         }
     };
 
-    const handleFormChange = (e) => { // --> Maneja los cambios en los atributos de las listings
+    const handleFormChange = (e) => {
         const {name, value} = e.target;
-        setForm(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setForm(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFilterChange = (e) => { // --> Maneja los cambios de filtros
+    const handleFilterChange = (e) => {
         const {name, value} = e.target;
         const newFilters = {...filters, [name]: value};
         setFilters(newFilters);
-
         const hayAlgunFiltro = Object.values(newFilters).some(v => v !== "");
         if (hayAlgunFiltro) {
             fetchWithFilters(newFilters);
@@ -136,12 +125,9 @@ function Store() {
         }
     }
 
-    const handleSearching = (searchValue) => { // --> Maneja busquedas de articulos
-        setFilters(prev => ({...prev, name: searchValue})); // --> Esto para que se muestre en el
-        //input lo que vas escribiendo
-
+    const handleSearching = (searchValue) => {
+        setFilters(prev => ({...prev, name: searchValue}));
         const newFilters = {...filters, name: searchValue}
-
         if (searchValue.trim() !== "") {
             fetchWithFilters(newFilters)
         } else {
@@ -149,8 +135,9 @@ function Store() {
         }
     };
 
-    const createStoreListing = async (e) => { // --> Crear una publicacion de venta
+    const createStoreListing = async (e) => {
         e.preventDefault();
+        setIsPublishing(true); // <-- activa loading
         try {
             const response = await apiFetch(`/store`, {
                 method: "POST",
@@ -162,11 +149,11 @@ function Store() {
                     status: form.status,
                 })
             });
-
             if (response.ok) {
                 await fetchAllListings();
-                toast.success("Venta de prenda  creada exitosamente")
+                toast.success("Venta de prenda creada exitosamente")
                 setShowCreateListing(false);
+                setSelectedClothe(null);
                 setForm(EmptyForm);
             } else {
                 const errorMsg = await response.text();
@@ -176,10 +163,12 @@ function Store() {
         } catch (error) {
             console.error("Error de conexión con el servidor: ", error)
             toast.error("Error de conexion")
+        } finally {
+            setIsPublishing(false); // <-- desactiva loading siempre
         }
     };
 
-    const openEditState = (StoreListing) => { //--> Abre el estado de edicion de una publicacion ya subida
+    const openEditState = (StoreListing) => {
         setEditingListing(StoreListing);
         setForm({
             name: StoreListing.name || "",
@@ -189,9 +178,8 @@ function Store() {
         });
     };
 
-    const updateStoreListing = async (e) => { //--> Update las ediciones realizadas
+    const updateStoreListing = async (e) => {
         e.preventDefault();
-
         try {
             const response = await apiFetch(`/store/${editingListing.listingId}`, {
                 method: "PUT",
@@ -202,15 +190,11 @@ function Store() {
                     status: form.status
                 })
             });
-
             if (response.ok) {
                 setStoreListing(prev =>
                     prev.map(l =>
                         l.listingId === editingListing.listingId
-                            ? {
-                                ...l, ...form, name: form.name, price: Number(form.price), description: form.description,
-                                status: form.status
-                            }
+                            ? { ...l, ...form, price: Number(form.price) }
                             : l
                     )
                 );
@@ -227,12 +211,9 @@ function Store() {
         }
     };
 
-    const deleteListing = async (listingId) => { // --> Borra la publicacion propia seleccionada por el usuario
+    const deleteListing = async (listingId) => {
         try {
-            const response = await apiFetch(`/store/${listingId}`, {
-                method: "DELETE",
-            });
-
+            const response = await apiFetch(`/store/${listingId}`, { method: "DELETE" });
             if (response.ok) {
                 setStoreListing(prev => prev.filter(l => l.listingId !== listingId));
                 toast.success("Venta eliminada")
@@ -338,38 +319,55 @@ function Store() {
             {/* Nueva Publicación Modal */}
             {showCreateListing && (
                 <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6">
-                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8">
+                    <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-md p-8 max-h-[90vh] overflow-y-auto">
                         <h3 className="text-[#e8d5b0] text-lg font-light tracking-widest mb-1">Nueva publicación</h3>
                         <div className="w-6 h-px bg-[#c49a6c] mb-8"></div>
 
-                        {/* Selector de prendas optimizado estéticamente */}
-                        <div
-                            className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto mb-6 p-1 bg-[#1a1816]/50 border border-[#3a3530]/40 rounded-sm">
-                            {myClothes.map(clothe => (
-                                <div
-                                    key={clothe.id}
-                                    onClick={() => setSelectedClothe(clothe)}
-                                    className={`
-                                        cursor-pointer border aspect-square overflow-hidden
-                                        transition-all duration-300
-                                        ${selectedClothe?.id === clothe.id
-                                        ? 'border-[#c49a6c] shadow-[0_0_10px_rgba(196,154,108,0.15)] scale-[0.98]'
-                                        : 'border-[#3a3530] hover:border-[#4a4540] hover:scale-[1.02]'}
-                                    `}
-                                >
-                                    {clothe.image_url
-                                        ? <img src={clothe.image_url} className="w-full h-full object-cover"/>
-                                        : <div className="w-full h-full flex items-center justify-center bg-[#2a2622]">
-                                            <span
-                                                className="text-[#4a4540] text-[9px] text-center px-1">{clothe.name}</span>
+                        {/* Selector de prendas — estilo OutfitBuilder */}
+                        <div>
+                            <p className={labelClass}>Seleccioná una prenda</p>
+                            <div className="grid grid-cols-4 gap-2 mt-2">
+                                {myClothes.map(clothe => {
+                                    const isSelected = selectedClothe?.id === clothe.id;
+                                    return (
+                                        <div
+                                            key={clothe.id}
+                                            onClick={() => setSelectedClothe(clothe)}
+                                            className={`
+                                                cursor-pointer border aspect-square overflow-hidden
+                                                transition-all duration-300 relative
+                                                ${isSelected
+                                                ? 'border-[#c49a6c] ring-1 ring-[#c49a6c] brightness-110 scale-95'
+                                                : 'border-[#3a3530] hover:border-[#4a4540] opacity-60'}
+                                            `}
+                                        >
+                                            {/* Checkmark dorado cuando está seleccionada */}
+                                            {isSelected && (
+                                                <div className="absolute inset-0 bg-[#c49a6c]/20 z-10 flex items-center justify-center pointer-events-none">
+                                                    <span className="text-[#c49a6c] text-lg">✓</span>
+                                                </div>
+                                            )}
+                                            {clothe.image_url
+                                                ? <img src={clothe.image_url} className="w-full h-full object-cover"/>
+                                                : <div className="w-full h-full flex items-center justify-center bg-[#2a2622]">
+                                                    <span className="text-[#4a4540] text-[8px] text-center px-1">{clothe.name}</span>
+                                                </div>
+                                            }
                                         </div>
-                                    }
-                                </div>
-                            ))}
+                                    );
+                                })}
+                            </div>
+
+                            {/* Confirmación de selección */}
+                            {selectedClothe && (
+                                <p className="text-[#c49a6c] text-[10px] tracking-[0.15em] mt-3">
+                                    ✓ {selectedClothe.name}
+                                </p>
+                            )}
                         </div>
 
                         {selectedClothe && (
-                            <form onSubmit={createStoreListing} className="flex flex-col gap-6 mt-4">
+                            <form onSubmit={createStoreListing} className="flex flex-col gap-6 mt-6">
                                 <div>
                                     <label className={labelClass}>Precio</label>
                                     <input
@@ -395,21 +393,31 @@ function Store() {
                                 <div className="flex gap-4">
                                     <button
                                         type="submit"
-                                        className="flex-1 py-3 bg-[#c49a6c] hover:bg-[#d4aa7c] text-[#221f1c] text-xs font-semibold tracking-[0.2em] uppercase transition-all duration-300"
+                                        disabled={isPublishing}
+                                        className="flex-1 py-3 bg-[#c49a6c] hover:bg-[#d4aa7c] disabled:opacity-60 disabled:cursor-not-allowed text-[#221f1c] text-xs font-semibold tracking-[0.2em] uppercase transition-all duration-300 flex items-center justify-center gap-2"
                                     >
-                                        Publicar
+                                        {isPublishing ? (
+                                            <>
+                                                {/* Spinner SVG inline */}
+                                                <svg className="animate-spin w-3 h-3 text-[#221f1c]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                                </svg>
+                                                Publicando...
+                                            </>
+                                        ) : "Publicar"}
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setShowCreateListing(false)}
-                                        className="flex-1 py-3 border border-[#4a4540] hover:border-[#6b6258] text-[#6b6258] text-xs tracking-[0.2em] uppercase transition-all duration-300"
+                                        disabled={isPublishing}
+                                        onClick={() => { setShowCreateListing(false); setSelectedClothe(null); }}
+                                        className="flex-1 py-3 border border-[#4a4540] hover:border-[#6b6258] disabled:opacity-40 disabled:cursor-not-allowed text-[#6b6258] text-xs tracking-[0.2em] uppercase transition-all duration-300"
                                     >
                                         Cancelar
                                     </button>
                                 </div>
                             </form>
                         )}
-
                     </div>
                 </div>
             )}

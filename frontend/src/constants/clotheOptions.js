@@ -144,3 +144,64 @@ export const SINGLE_ONLY_TYPES = [
     27, // Sandalias
     28, // Traje
 ];
+// 1. Definición de los Grupos de Exclusión basados en los IDs de arriba
+export const EXCLUSION_GROUPS = {
+    CALZADO: [3, 4, 15, 27],          // Zapatillas, Zapatos, Taco, Sandalias
+    CABEZA: [8, 16],                  // Sombrero, Gorra
+    PARTE_INFERIOR: [6, 7, 19],       // Pantalón, Short, Calzas
+    CUERPO_COMPLETO: [2, 20, 28],     // Vestido, Malla/Traje de baño, Traje
+    CUELLO: [17, 22, 31, 35]          // Bufanda, Corbata, Collares, Cadenas
+};
+
+/**
+ * 2. Función que analiza las prendas seleccionadas actualmente
+ * y devuelve un Set con todos los typeIds que deberían bloquearse.
+ */
+export const getBlockedTypeIds = (selectedClothes) => {
+    const blocked = new Set();
+    if (!selectedClothes || selectedClothes.length === 0) return blocked;
+
+    // Mapeamos qué grupos ya tienen al menos una prenda seleccionada
+    const activeGroups = {
+        CALZADO: selectedClothes.some(c => EXCLUSION_GROUPS.CALZADO.includes(c.typeId)),
+        CABEZA: selectedClothes.some(c => EXCLUSION_GROUPS.CABEZA.includes(c.typeId)),
+        PARTE_INFERIOR: selectedClothes.some(c => EXCLUSION_GROUPS.PARTE_INFERIOR.includes(c.typeId)),
+        CUERPO_COMPLETO: selectedClothes.some(c => EXCLUSION_GROUPS.CUERPO_COMPLETO.includes(c.typeId)),
+        CUELLO: selectedClothes.some(c => EXCLUSION_GROUPS.CUELLO.includes(c.typeId)),
+    };
+
+    // Regla: Si ya hay un Calzado, bloquear los demás calzados
+    if (activeGroups.CALZADO) {
+        EXCLUSION_GROUPS.CALZADO.forEach(id => blocked.add(id));
+    }
+
+    // Regla: Si ya hay algo en la Cabeza, bloquear los demás sombreros/gorras
+    if (activeGroups.CABEZA) {
+        EXCLUSION_GROUPS.CABEZA.forEach(id => blocked.add(id));
+    }
+
+    // Regla: Si ya hay un accesorio de Cuello, bloquear los demás
+    if (activeGroups.CUELLO) {
+        EXCLUSION_GROUPS.CUELLO.forEach(id => blocked.add(id));
+    }
+
+    // Regla cruzada: Parte Inferior y Cuerpo Completo
+    if (activeGroups.PARTE_INFERIOR) {
+        // Bloquear que elijas otra parte inferior
+        EXCLUSION_GROUPS.PARTE_INFERIOR.forEach(id => blocked.add(id));
+        // Bloquear cuerpo completo (porque ya tenés un pantalón/short/calza)
+        EXCLUSION_GROUPS.CUERPO_COMPLETO.forEach(id => blocked.add(id));
+    }
+
+    if (activeGroups.CUERPO_COMPLETO) {
+        // Bloquear que elijas otro cuerpo completo
+        EXCLUSION_GROUPS.CUERPO_COMPLETO.forEach(id => blocked.add(id));
+        // Bloquear parte inferior (el vestido/traje ya cubre abajo)
+        EXCLUSION_GROUPS.PARTE_INFERIOR.forEach(id => blocked.add(id));
+    }
+
+    // Nota: Las partes superiores (Remera, Camisa, etc.) y accesorios libres
+    // no entran en ningún if, por ende nunca se agregan al Set de 'blocked'.
+
+    return blocked;
+};

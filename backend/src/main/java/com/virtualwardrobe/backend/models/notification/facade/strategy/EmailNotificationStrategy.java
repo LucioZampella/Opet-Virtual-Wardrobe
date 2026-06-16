@@ -39,7 +39,7 @@ public class EmailNotificationStrategy implements NotificationStrategy {
             // Ponemos una URL directa de tu logo. Podés usar la de tu frontend local (si tenés la imagen en public/logo.png):
             // String logoUrl = "http://localhost:5173/logo.png";
             // O una subida a internet de forma gratuita para que Gmail la renderice al 100% sin bloquearla:
-            String logoUrl = "https://i.ibb.co/v4C6Xf2M/opet-cream-and-grey.png";
+            String logoUrl = "https://i.ibb.co/cc6M35jx/logo.png";
 
             String htmlContent =
                     "<html>" +

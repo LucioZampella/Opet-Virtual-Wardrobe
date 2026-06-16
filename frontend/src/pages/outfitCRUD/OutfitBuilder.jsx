@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar.jsx";
-import { CLOTHING_TYPES, SINGLE_ONLY_TYPES } from "../../constants/clotheOptions.js";
+import { CLOTHING_TYPES, EXCLUSION_GROUPS, getBlockedTypeIds } from "../../constants/clotheOptions.js";
 import { useOutfit } from "./hooker/useOutfit.js";
 import toast from "react-hot-toast";
 
@@ -16,7 +16,6 @@ function OutfitBuilder() {
     const { createOutfit, getAllOutfits, deleteOutfit, updateOutfit } = useOutfit();
     const [editingOutfit, setEditingOutfit] = useState(null);
 
-    // Estados para el Modal de Detalle e Interactividad de prendas
     const [selectedOutfitDetail, setSelectedOutfitDetail] = useState(null);
     const [activePreviewImage, setActivePreviewImage] = useState("");
 
@@ -40,7 +39,6 @@ function OutfitBuilder() {
 
     const openDetailModal = (outfit) => {
         setSelectedOutfitDetail(outfit);
-        // Inicializamos la vista gigante con la primera prenda del outfit
         if (outfit.clothes && outfit.clothes.length > 0) {
             setActivePreviewImage(outfit.clothes[0].image_url);
         } else {
@@ -61,17 +59,36 @@ function OutfitBuilder() {
 
     const toggleClothe = (clothe) => {
         const yaEsta = selectedClothes.find(c => c.id === clothe.id);
+
+        // Si ya está → deseleccionar siempre (sin restricciones)
         if (yaEsta) {
             setSelectedClothes(prev => prev.filter(c => c.id !== clothe.id));
             return;
         }
-        if (SINGLE_ONLY_TYPES.includes(clothe.typeId)) {
-            const hayMismoTipo = selectedClothes.some(c => c.typeId === clothe.typeId);
-            if (hayMismoTipo) {
-                toast.error("Solo podés agregar una prenda de este tipo");
-                return;
+
+        // Verificar si el typeId está bloqueado por algún grupo de exclusión
+        const blocked = getBlockedTypeIds(selectedClothes);
+        if (blocked.has(clothe.typeId)) {
+            // Armar mensaje descriptivo según qué grupo conflictúa
+            const groupMessages = {
+                CALZADO: "Ya tenés un calzado seleccionado",
+                CABEZA: "Ya tenés un accesorio de cabeza seleccionado",
+                PARTE_INFERIOR: "Ya tenés una prenda inferior seleccionada",
+                CUERPO_COMPLETO: "Un outfit de cuerpo completo (vestido/traje/malla) ya cubre la parte inferior",
+                CUELLO: "Ya tenés un accesorio de cuello seleccionado",
+            };
+
+            for (const [groupName, typeIds] of Object.entries(EXCLUSION_GROUPS)) {
+                if (typeIds.includes(clothe.typeId)) {
+                    toast.error(groupMessages[groupName] || "No podés agregar esta prenda");
+                    return;
+                }
             }
+            // Caso borde: bloqueado por cruce CUERPO_COMPLETO ↔ PARTE_INFERIOR
+            toast.error("No podés combinar esta prenda con tu selección actual");
+            return;
         }
+
         setSelectedClothes(prev => [...prev, clothe]);
     };
 
@@ -107,6 +124,80 @@ function OutfitBuilder() {
         setOutfitName("");
     };
 
+    // Render de la grilla de prendas (reutilizado en crear y editar)
+    const ClotheGrid = () => {
+        const blocked = getBlockedTypeIds(selectedClothes);
+
+        return (
+            <>
+                {CLOTHING_TYPES.map(type => {
+                    const prendasDelTipo = myClothes.filter(c => c.typeId === type.id);
+                    if (prendasDelTipo.length === 0) return null;
+
+                    const gruposBloqueados = Object.entries(EXCLUSION_GROUPS)
+                        .filter(([, ids]) => ids.includes(type.id) && blocked.has(type.id));
+                    const tipoEstaBloqueado = blocked.has(type.id);
+
+                    return (
+                        <div key={type.id}>
+                            <p className={`text-[10px] font-semibold tracking-[0.2em] uppercase mb-2 transition-colors duration-200 ${tipoEstaBloqueado ? 'text-[#4a4540]' : 'text-[#8a7d6e]'}`}>
+                                {type.label}
+                                {tipoEstaBloqueado && (
+                                    <span className="ml-2 text-[8px] tracking-[0.1em] text-[#3a3530] normal-case">— no disponible</span>
+                                )}
+                            </p>
+                            <div className="grid grid-cols-4 gap-2">
+                                {prendasDelTipo.map(clothe => {
+                                    const seleccionada = selectedClothes.find(c => c.id === clothe.id);
+                                    const estaBlockeada = !seleccionada && blocked.has(clothe.typeId);
+
+                                    return (
+                                        <div
+                                            key={clothe.id}
+                                            onClick={() => toggleClothe(clothe)}
+                                            title={estaBlockeada ? "No compatible con tu selección actual" : clothe.name}
+                                            className={`
+                                                cursor-pointer border aspect-square overflow-hidden
+                                                transition-all duration-300 relative
+                                                ${seleccionada
+                                                ? 'border-[#c49a6c] ring-1 ring-[#c49a6c] brightness-110 scale-95'
+                                                : estaBlockeada
+                                                    ? 'border-[#2a2622] opacity-20 cursor-not-allowed grayscale'
+                                                    : 'border-[#3a3530] hover:border-[#4a4540] opacity-60 hover:opacity-80'
+                                            }
+                                            `}
+                                        >
+                                            {/* Checkmark si está seleccionada */}
+                                            {seleccionada && (
+                                                <div className="absolute inset-0 bg-[#c49a6c]/20 z-10 flex items-center justify-center pointer-events-none">
+                                                    <span className="text-[#c49a6c] text-lg">✓</span>
+                                                </div>
+                                            )}
+                                            {/* Icono de bloqueo si está bloqueada */}
+                                            {estaBlockeada && (
+                                                <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+                                                    <svg className="w-4 h-4 text-[#3a3530]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                            {clothe.image_url
+                                                ? <img src={clothe.image_url} className="w-full h-full object-cover" />
+                                                : <div className="w-full h-full flex items-center justify-center bg-[#2a2622]">
+                                                    <span className="text-[#4a4540] text-[8px] text-center px-1">{clothe.name}</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
+            </>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-[#2a2622]">
             <Navbar />
@@ -128,7 +219,6 @@ function OutfitBuilder() {
                     </button>
                 </div>
 
-                {/* Lista de outfits */}
                 {loading && <p className="text-[#6b6258] text-xs text-center mt-10 animate-pulse tracking-[0.3em] uppercase">Cargando...</p>}
 
                 {!loading && outfits.length === 0 && (
@@ -142,7 +232,6 @@ function OutfitBuilder() {
                     {outfits.map(outfit => (
                         <div key={outfit.id} className="bg-[#221f1c] border border-[#3a3530] hover:border-[#4a4540] transition-all duration-300 overflow-hidden flex flex-col justify-between">
 
-                            {/* PREVIEW DE PRENDAS ASIMÉTRICO (Al tocar abre el detalle) */}
                             <div
                                 onClick={() => openDetailModal(outfit)}
                                 className="aspect-square bg-[#1c1917] relative overflow-hidden w-full cursor-pointer group/media"
@@ -158,11 +247,9 @@ function OutfitBuilder() {
                                             </div>
                                         );
                                     }
-
                                     if (clothesCount === 1) {
                                         return <img src={items[0].image_url} className="w-full h-full object-cover group-hover/media:scale-105 transition-transform duration-500" alt="Prenda" />;
                                     }
-
                                     if (clothesCount === 2) {
                                         return (
                                             <div className="grid grid-cols-2 gap-[2px] h-full bg-[#221f1c]">
@@ -171,7 +258,6 @@ function OutfitBuilder() {
                                             </div>
                                         );
                                     }
-
                                     return (
                                         <div className="grid grid-cols-3 gap-[2px] h-full bg-[#221f1c]">
                                             <div className="col-span-2 h-full border-r border-[#221f1c]">
@@ -196,7 +282,6 @@ function OutfitBuilder() {
                                 })()}
                             </div>
 
-                            {/* Info */}
                             <div className="p-3 flex items-center justify-between border-t border-[#3a3530]/40">
                                 <div className="min-w-0 flex-1 pr-2">
                                     <p className="text-[#e8d5b0] text-xs tracking-wide truncate font-light">{outfit.name || "Outfit sin nombre"}</p>
@@ -227,12 +312,10 @@ function OutfitBuilder() {
                 </div>
             </div>
 
-            {/* MODAL DETALLE DE OUTFIT (Interactivo Split-Screen) */}
+            {/* MODAL DETALLE */}
             {selectedOutfitDetail && (
-                <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 md:p-10 backdrop-blur-sm animate-fade-in">
+                <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 md:p-10 backdrop-blur-sm">
                     <div className="bg-[#221f1c] border border-[#3a3530] w-full max-w-4xl h-[80vh] flex flex-col md:flex-row relative shadow-2xl overflow-hidden">
-
-                        {/* Botón Cerrar */}
                         <button
                             onClick={() => setSelectedOutfitDetail(null)}
                             className="absolute top-4 right-4 z-50 text-[#8a7d6e] hover:text-[#e8d5b0] transition-colors p-2"
@@ -241,42 +324,29 @@ function OutfitBuilder() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
-
-                        {/* PANEL IZQUIERDO: Visualizador Dinámico */}
                         <div className="w-full md:w-1/2 h-1/2 md:h-full bg-[#1a1816] flex items-center justify-center relative border-b md:border-b-0 md:border-r border-[#3a3530]">
                             {activePreviewImage ? (
-                                <div className="w-full h-full p-8 flex items-center justify-center animate-fade-in">
-                                    <img
-                                        src={activePreviewImage}
-                                        className="w-full h-full object-contain max-h-[65vh]"
-                                        alt="Prenda seleccionada"
-                                    />
+                                <div className="w-full h-full p-8 flex items-center justify-center">
+                                    <img src={activePreviewImage} className="w-full h-full object-contain max-h-[65vh]" alt="Prenda seleccionada" />
                                 </div>
                             ) : (
                                 <span className="text-[#4a4540] text-[10px] tracking-widest uppercase">Sin Imagen</span>
                             )}
-                            <div className="absolute bottom-4 left-4 bg-black/50 border border-[#c49a6c]/20 px-2.5 py-1 backdrop-blur-xs">
+                            <div className="absolute bottom-4 left-4 bg-black/50 border border-[#c49a6c]/20 px-2.5 py-1">
                                 <span className="text-[#c49a6c] text-[7px] tracking-[0.2em] uppercase font-semibold">Exhibidor de Prenda</span>
                             </div>
                         </div>
-
-                        {/* PANEL DERECHO: Desglose de Prendas */}
                         <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col bg-[#221f1c]">
-
-                            {/* Cabecera */}
                             <div className="p-5 border-b border-[#3a3530]/60">
                                 <h4 className="text-[#e8d5b0] text-[13px] tracking-widest font-light uppercase">{selectedOutfitDetail.name || "Outfit Especial"}</h4>
                                 <p className="text-[#c49a6c] text-[8px] tracking-[0.15em] uppercase mt-1">
                                     Coincidencia: {selectedOutfitDetail.level_of_coincidence || "N/A"} • {selectedOutfitDetail.clothes?.length} prendas
                                 </p>
                             </div>
-
-                            {/* Lista con Interactividad (onMouseEnter o onClick cambia la foto) */}
                             <div className="flex-1 overflow-y-auto p-5 space-y-2.5">
                                 <span className="text-[#4a4540] text-[8px] tracking-[0.2em] uppercase font-bold block mb-1">
                                     Pasá el cursor o tocá una prenda para inspeccionar:
                                 </span>
-
                                 {selectedOutfitDetail.clothes?.map((clothe) => {
                                     const isActive = activePreviewImage === clothe.image_url;
                                     return (
@@ -299,12 +369,10 @@ function OutfitBuilder() {
                                     );
                                 })}
                             </div>
-
                             <div className="p-3 bg-[#1a1816]/30 border-t border-[#3a3530]/40 text-center">
                                 <span className="text-[#4a4540] text-[7px] tracking-[0.3em] uppercase">Vestidor Interactivo • OPET</span>
                             </div>
                         </div>
-
                     </div>
                 </div>
             )}
@@ -317,7 +385,6 @@ function OutfitBuilder() {
                         <div className="w-6 h-px bg-[#c49a6c] mb-6"></div>
 
                         <form onSubmit={handleCreate} className="flex flex-col gap-6">
-                            {/* Nombre */}
                             <div>
                                 <label className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#8a7d6e] mb-1 block">Nombre</label>
                                 <input
@@ -328,42 +395,8 @@ function OutfitBuilder() {
                                 />
                             </div>
 
-                            {/* Prendas agrupadas por tipo */}
-                            {CLOTHING_TYPES.map(type => {
-                                const prendasDelTipo = myClothes.filter(c => c.typeId === type.id);
-                                if (prendasDelTipo.length === 0) return null;
-                                return (
-                                    <div key={type.id}>
-                                        <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#8a7d6e] mb-2">{type.label}</p>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {prendasDelTipo.map(clothe => {
-                                                const seleccionada = selectedClothes.find(c => c.id === clothe.id);
-                                                return (
-                                                    <div
-                                                        key={clothe.id}
-                                                        onClick={() => toggleClothe(clothe)}
-                                                        className={`cursor-pointer border aspect-square overflow-hidden transition-all duration-300 relative ${seleccionada ? 'border-[#c49a6c] ring-1 ring-[#c49a6c] brightness-110 scale-95' : 'border-[#3a3530] hover:border-[#4a4540] opacity-60'}`}
-                                                    >
-                                                        {seleccionada && (
-                                                            <div className="absolute inset-0 bg-[#c49a6c]/20 z-10 flex items-center justify-center pointer-events-none">
-                                                                <span className="text-[#c49a6c] text-lg">✓</span>
-                                                            </div>
-                                                        )}
-                                                        {clothe.image_url
-                                                            ? <img src={clothe.image_url} className="w-full h-full object-cover" />
-                                                            : <div className="w-full h-full flex items-center justify-center bg-[#2a2622]">
-                                                                <span className="text-[#4a4540] text-[8px] text-center px-1">{clothe.name}</span>
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            <ClotheGrid />
 
-                            {/* Resumen */}
                             {selectedClothes.length > 0 && (
                                 <p className="text-[#c49a6c] text-[10px] tracking-[0.15em]">
                                     ✓ {selectedClothes.length} {selectedClothes.length === 1 ? "prenda seleccionada" : "prendas seleccionadas"}
@@ -401,40 +434,7 @@ function OutfitBuilder() {
                                 />
                             </div>
 
-                            {/* Prendas agrupadas por tipo */}
-                            {CLOTHING_TYPES.map(type => {
-                                const prendasDelTipo = myClothes.filter(c => c.typeId === type.id);
-                                if (prendasDelTipo.length === 0) return null;
-                                return (
-                                    <div key={type.id}>
-                                        <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#8a7d6e] mb-2">{type.label}</p>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {prendasDelTipo.map(clothe => {
-                                                const seleccionada = selectedClothes.find(c => c.id === clothe.id);
-                                                return (
-                                                    <div
-                                                        key={clothe.id}
-                                                        onClick={() => toggleClothe(clothe)}
-                                                        className={`cursor-pointer border aspect-square overflow-hidden transition-all duration-300 relative ${seleccionada ? 'border-[#c49a6c] ring-1 ring-[#c49a6c] brightness-110 scale-95' : 'border-[#3a3530] hover:border-[#4a4540] opacity-60'}`}
-                                                    >
-                                                        {seleccionada && (
-                                                            <div className="absolute inset-0 bg-[#c49a6c]/20 z-10 flex items-center justify-center pointer-events-none">
-                                                                <span className="text-[#c49a6c] text-lg">✓</span>
-                                                            </div>
-                                                        )}
-                                                        {clothe.image_url
-                                                            ? <img src={clothe.image_url} className="w-full h-full object-cover" />
-                                                            : <div className="w-full h-full flex items-center justify-center bg-[#2a2622]">
-                                                                <span className="text-[#4a4540] text-[8px] text-center px-1">{clothe.name}</span>
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            <ClotheGrid />
 
                             {selectedClothes.length > 0 && (
                                 <p className="text-[#c49a6c] text-[10px] tracking-[0.15em]">
