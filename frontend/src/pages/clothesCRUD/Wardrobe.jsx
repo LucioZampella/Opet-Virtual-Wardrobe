@@ -6,6 +6,7 @@ const CLOUDINARY_UPLOAD_PRESET = "opet_clothes";
 import { CLOTHING_TYPES, COLORS, SIZES, FITS, MATERIALS } from "../../constants/clotheOptions.js";
 import { FAQ_QUESTIONS } from "../../constants/faqOptions.js";
 import toast from "react-hot-toast";
+import Spinner from "../../components/Spinner.jsx";
 
 const EmptyForm = {
     name:       "", // --> Por defecto arrancan vacios
@@ -858,27 +859,16 @@ function Wardrobe() {
                             <div className="flex gap-4 mt-2">
                                 <button
                                     type="submit"
-                                    disabled={uploading}
-                                    className="
-                                        flex-1 py-3
-                                        bg-[#c49a6c] hover:bg-[#e8d5b0]
-                                        text-[#221f1c] text-xs font-semibold
-                                        tracking-[0.2em] uppercase
-                                        transition-all duration-300
-                                        disabled:opacity-40 disabled:cursor-not-allowed
-                                    "
+                                    disabled={uploading || isCreating}
+                                    className="flex-1 py-3 bg-[#c49a6c] hover:bg-[#e8d5b0] text-[#221f1c] text-xs font-semibold tracking-[0.2em] uppercase transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
-                                    Guardar prenda
+                                    {isCreating ? <Spinner /> : "Guardar prenda"}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => { setShowCreateState(false); setForm(EmptyForm); }}
-                                    className="
-                                        flex-1 py-3 border border-[#4a4540]
-                                        hover:border-[#6b6258] text-[#6b6258]
-                                        text-xs tracking-[0.2em] uppercase
-                                        transition-all duration-300
-                                    "
+                                    disabled={isCreating}
+                                    className="flex-1 py-3 border border-[#4a4540] hover:border-[#6b6258] text-[#6b6258] text-xs tracking-[0.2em] uppercase transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     Cancelar
                                 </button>

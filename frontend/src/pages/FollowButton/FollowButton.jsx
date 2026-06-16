@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Spinner from "../../components/Spinner.jsx";
 
 export default function FollowButton({ currentUserId, profileUserId, isPrivate }) {
     const [status, setStatus] = useState('none'); // 'none' | 'pending' | 'following'
@@ -56,8 +57,8 @@ export default function FollowButton({ currentUserId, profileUserId, isPrivate }
     const baseClass = "flex-shrink-0 px-5 py-2 text-[10px] tracking-[0.2em] uppercase transition-all duration-300 border";
 
     if (loading) return (
-        <button disabled className={`${baseClass} border-[#3a3530] text-[#4a4540] cursor-not-allowed`}>
-            ...
+        <button disabled className={`${baseClass} border-[#3a3530] text-[#4a4540] cursor-not-allowed flex items-center justify-center`}>
+            <Spinner size={3} color="#4a4540" />
         </button>
     );
 
