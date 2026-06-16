@@ -1,5 +1,5 @@
 // aca un nuevo usuario podra logearse a su cuenta
-
+import Spinner from "../../components/Spinner.jsx";
 import {useNavigate} from "react-router-dom"; // --> Herramienta que oculta/muestra clips al instante sin hacer todo de nuevo
 import {useState} from "react"; // --> Recuerda lo que el usuario va tecleando
 import toast from "react-hot-toast";
@@ -10,9 +10,11 @@ function Login({onLoginSuccess}) {
     const [password, setPassword] = useState(''); //--> Variable password y funcion setPassword para modificarla
     const navigate = useNavigate();
     const { saveSession } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
 
     const manageEntry = async (event) => {
         event.preventDefault(); //--> Esto para evitar que pegue pantallazo en blanco
+        setIsLoading(true);
 
         try {
             const response = await fetch("http://localhost:8080/usuarios/login", {
@@ -32,6 +34,8 @@ function Login({onLoginSuccess}) {
             }
         } catch (error) {
             toast.error("Error al conectar con el servidor:", error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -92,15 +96,18 @@ function Login({onLoginSuccess}) {
                         {/* Boton principal - fondo dorado solido */}
                         <button
                             type="submit"
+                            disabled={isLoading}
                             className="
                                 w-full py-4
                                 bg-[#c49a6c] hover:bg-[#e8d5b0]
                                 text-[#221f1c] text-xs font-semibold
                                 tracking-[0.25em] uppercase
                                 transition-all duration-300
-                            "
+                                disabled:opacity-40 disabled:cursor-not-allowed
+                                flex items-center justify-center gap-2
+                             "
                         >
-                            Iniciar sesión
+                            {isLoading ? <Spinner size={3}/> : "Iniciar sesión"}
                         </button>
 
                         {/* Divisor */}

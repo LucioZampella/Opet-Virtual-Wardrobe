@@ -2,6 +2,7 @@ import {useNavigate} from "react-router-dom";
 import {useState} from "react";
 import LocationPicker from "../../components/LocationPicker.jsx";
 import toast from "react-hot-toast";
+import Spinner from "../../components/Spinner.jsx";
 
 function SignUp() {
     const [username, setUsername] = useState('');
@@ -12,9 +13,11 @@ function SignUp() {
     const [latitude, setLatitude] = useState(null);
     const [longitude, setLongitude] = useState(null);
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
 
     const manageEntry = async (event) => {
         event.preventDefault();
+        setIsLoading(true);
         try {
             const response = await fetch("http://localhost:8080/usuarios/signup", {
                 method: "POST",
@@ -36,13 +39,15 @@ function SignUp() {
                 navigate("/login"); //--> Si se registro bien, lo manda al login
             } else if (!response.ok){
                 toast.error("Error " + await response.text())
-
             }
         } catch (error) {
             console.error("Error al conectar con el servidor:", error);
             toast.error("Parece que el servidor de Java está apagado.");
+        } finally {
+            setIsLoading(false);
         }
     };
+
 
     const detectUbi = () => {
         if (navigator.geolocation) {
@@ -227,7 +232,9 @@ function SignUp() {
                                     overflow-hidden
                                 "
                             >
-                                <span className="relative z-10">Crear cuenta</span>
+                                <span className="relative z-10">
+                                    {isLoading ? <Spinner size={3}/> : "Crear cuenta"}
+                                </span>
                                 <div className="
                                     absolute inset-0 bg-[#e8d5b0]
                                     translate-x-[-100%] group-hover:translate-x-0
