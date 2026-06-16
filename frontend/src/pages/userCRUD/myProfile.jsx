@@ -31,6 +31,9 @@ function MyProfile() {
     const [isFollowing, setIsFollowing] = useState(false);
     const [selectedPostDetail, setSelectedPostDetail] = useState(null);
     const [activeProfilePreviewImage, setActiveProfilePreviewImage] = useState("");
+    const [myFollowers, setMyFollowers] = useState([]);
+    const[myFollowing , setMyFollowing]= useState([]);
+    const [loadingFriends, setLoadingFriends] = useState(false);
 
     useEffect(() => {
         apiFetch(`/api/stats/user/${userId}`)
@@ -81,6 +84,40 @@ function MyProfile() {
                 .catch(err => console.error("Error chequeando follow", err));
         }
     }, [userId, loggedUserId]);
+
+    useEffect(() => {
+        if (!userId) return;
+
+        const fetchFriendsData = async () => {
+            setLoadingFriends(true);
+            try {
+                // 1. Traer los Seguidos (Following) usando tu apiFetch estructurado
+                const followingResponse = await apiFetch(`/api/friends/following?user_id=${userId}`);
+                if (followingResponse.ok) {
+                    const followingData = await followingResponse.json();
+                    setMyFollowing(followingData);
+                } else {
+                    console.error("Error en respuesta de following:", followingResponse.status);
+                }
+
+                // 2. Traer los Seguidores (Followers) usando tu apiFetch estructurado
+                const followersResponse = await apiFetch(`/api/friends/follower?user_id=${userId}`);
+                if (followersResponse.ok) {
+                    const followersData = await followersResponse.json();
+                    setMyFollowers(followersData);
+                } else {
+                    console.error("Error en respuesta de followers:", followersResponse.status);
+                }
+
+            } catch (error) {
+                console.error("Error cargando amigos:", error);
+            } finally {
+                setLoadingFriends(false);
+            }
+        };
+
+        fetchFriendsData();
+    }, [userId]); // Quitamos token de acá porque apiFetch ya lo maneja internamente o lo saca del contexto
 
     const logOut = (e) => {
         e.preventDefault();
@@ -519,8 +556,8 @@ transition-opacity duration-300">
                         <div className="flex gap-10 border-t border-[#3a3530] pt-6">
                             {[
                                 {label: "Publicaciones", value: myPosts.length},
-                                {label: "Seguidores", value: 0},
-                                {label: "Seguidos", value: 0},
+                                {label: "Seguidores", value: myFollowers.length},
+                                {label: "Seguidos", value: myFollowing.length},
                             ].map(stat => (
                                 <div key={stat.label} className="flex flex-col items-center gap-1">
                                     <span className="text-[#e8d5b0] text-lg font-light">{stat.value}</span>

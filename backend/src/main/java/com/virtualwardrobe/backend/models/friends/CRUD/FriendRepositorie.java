@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface FriendRepositorie  extends JpaRepository<Follower, Long> {
 
     List<Follower> findByFollowerId(int friendId);
+    List<Follower> findByFollowingId(int userId);
     Optional<Follower> findById(int friendId);
     Optional<Follower> findByFollowerIdAndFollowingId(int userId, int friendId);
 

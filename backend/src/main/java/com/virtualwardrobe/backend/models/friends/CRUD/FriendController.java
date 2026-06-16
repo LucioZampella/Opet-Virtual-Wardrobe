@@ -80,4 +80,21 @@ public class FriendController {
         return ResponseEntity.ok(service.isFollowing(followerId, followingId));
     }
 
+    @GetMapping("/following")
+    public ResponseEntity<List<Follower>> getFollowing(
+            @RequestParam int user_id)
+    {
+                return ResponseEntity.ok(service.findAllFollowingOfUser(user_id));
+    }
+
+    @GetMapping ("/follower")
+    public ResponseEntity<List<Follower>> getFollower(
+            @RequestParam int user_id)
+    {
+        return ResponseEntity.ok(service.findAllFollowersOfUser(user_id));
+    }
+
+
+
+
 }

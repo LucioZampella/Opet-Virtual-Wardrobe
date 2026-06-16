@@ -102,4 +102,5 @@ public class FriendsService {
     public Optional<Follower> findByFollowerIdAndFollowingId(int id, int friend_id){
         return repo.findByFollowerIdAndFollowingId(id,friend_id);
     }
+    public List<Follower> findAllFollowersOfUser(int id ) {return repo.findByFollowingId(id);}
 }
