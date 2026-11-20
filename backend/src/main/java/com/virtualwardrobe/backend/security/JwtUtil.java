@@ -2,6 +2,7 @@ package com.virtualwardrobe.backend.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -9,7 +10,8 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final String password= "V2lyZXdhcmRyb2JlU2VjcmV0S2V5Rm9ySldUU2lnbmluZzIwMjYhQCM=";
+    @Value("${jwt.secret}")
+    private String password;
 
     public String generateToken(String username,int userId) {
         return Jwts.builder()
