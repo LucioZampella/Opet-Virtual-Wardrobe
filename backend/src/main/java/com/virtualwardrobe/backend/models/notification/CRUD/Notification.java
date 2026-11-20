@@ -36,6 +36,8 @@ public class Notification {
     private boolean already_read;
     @Column(name= "date")
     private LocalDateTime date;
+    @Column(name = "link")
+    private String link;
 }
 
 
