@@ -23,6 +23,21 @@ public interface NotificationRepositorie extends JpaRepository<Notification, Lon
             @Param("alreadyRead") boolean alreadyRead,
             @Param("userId") int userId
     );
+    // Notificaciones sin leer que apuntan a un link (ej: el chat "/chats/42"), para no repetirlas.
+    @Query("SELECT n FROM Notification n WHERE n.user_id = :userId AND n.type = :type " +
+            "AND n.link = :link AND n.already_read = false")
+    List<Notification> findUnreadByUserIdAndTypeAndLink(@Param("userId") int userId,
+                                                       @Param("type") String type,
+                                                       @Param("link") String link);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Notification n SET n.already_read = true " +
+            "WHERE n.user_id = :userId AND n.type = :type AND n.link = :link AND n.already_read = false")
+    void markReadByUserIdAndTypeAndLink(@Param("userId") int userId,
+                                        @Param("type") String type,
+                                        @Param("link") String link);
+
     @Transactional
     @Modifying
     @Query("DELETE FROM Notification n WHERE n.actor_id = :actorId AND n.user_id = :userId AND n.type = :type")

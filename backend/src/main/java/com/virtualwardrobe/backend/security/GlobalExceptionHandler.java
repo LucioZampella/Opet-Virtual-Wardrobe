@@ -7,6 +7,9 @@ package com.virtualwardrobe.backend.security;
 
 import com.virtualwardrobe.backend.exceptions.AuthorizationException.UnauthorizedActionException;
 import com.virtualwardrobe.backend.exceptions.ClotheException.InvalidClotheException;
+import com.virtualwardrobe.backend.exceptions.ConversationException.ConversationAccessDeniedException;
+import com.virtualwardrobe.backend.exceptions.ConversationException.ConversationNotFoundException;
+import com.virtualwardrobe.backend.exceptions.ConversationException.InvalidConversationException;
 import com.virtualwardrobe.backend.exceptions.OutfitException.InvalidOutfitException;
 import com.virtualwardrobe.backend.exceptions.StoreException.InvalidStoreException;
 import com.virtualwardrobe.backend.exceptions.UserException.InvalidUserException;
@@ -71,6 +74,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidUserException.class)
     public ResponseEntity<String> handleUnauthorized(InvalidUserException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
+    // --- Chat ---
+    @ExceptionHandler(ConversationNotFoundException.class)
+    public ResponseEntity<String> handleConversationNotFound(ConversationNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ConversationAccessDeniedException.class)
+    public ResponseEntity<String> handleConversationAccessDenied(ConversationAccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidConversationException.class)
+    public ResponseEntity<String> handleInvalidConversation(InvalidConversationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }
 
